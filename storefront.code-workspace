@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../admin-portal"
+		},
+		{
+			"path": "../backend-medusa"
+		}
+	]
+}

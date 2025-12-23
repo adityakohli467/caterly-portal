@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ZENN Dark Theme - Dark backgrounds with white text */
+    --background: 0 0% 10%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 100%;
+    /* Primary teal #055160 - ZENN brand color */
+    --primary: 188 90% 20%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 80%;
+    --accent: 188 90% 20%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 188 90% 20%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
