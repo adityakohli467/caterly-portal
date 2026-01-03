@@ -1,27 +1,56 @@
-name: Deploy zenn portal
+name: Deploy Zenn Portal
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   deploy:
+    name: Deploy Zenn Portal to EC2
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to EC2
+      # 1️⃣ Checkout repository (workflow context only)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Deploy via SSH
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
+            set -e
+
+            echo "📁 Moving to project directory"
             cd /home/ubuntu/zenn/zenn_portal
-            git pull origin main
+
+            echo "🔄 Pulling latest code using GitHub PAT"
+            git pull https://kaushikaspace:${{ secrets.GH_PAT }}@github.com/kaushikaspace/zenn_portal.git main
+
+            echo "🧹 Cleaning old build"
+            rm -rf .next
+
+            echo "📦 Installing dependencies"
             npm install
+
+            echo "🏗️ Building Next.js (standalone)"
             npm run build
+
+            echo "📂 Copying static & public files"
+            mkdir -p .next/standalone/.next
             cp -r .next/static .next/standalone/.next/
             cp -r public .next/standalone/
+
+            echo "🚀 Restarting PM2 process"
             cd .next/standalone
-            pm2 restart zenn-portal
+            PORT=3000 pm2 restart zenn-portal --update-env || PORT=3000 pm2 start server.js --name zenn-portal
+
+            echo "💾 Saving PM2 state"
             pm2 save
+
+            echo "✅ Zenn Portal deployment completed successfully"
