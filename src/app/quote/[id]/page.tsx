@@ -52,31 +52,63 @@ interface QuoteDetails {
 export default function PublicQuotePage() {
   const params = useParams()
   const router = useRouter()
-  const quoteId = params.id
+  const quoteIdentifier = params.id as string
   const [comments, setComments] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [actionTaken, setActionTaken] = useState<string | null>(null)
 
+  // Determine if identifier is a token (64 char hex string) or ID (number)
+  const isToken = /^[a-f0-9]{64}$/i.test(quoteIdentifier)
+  const isNumeric = /^\d+$/.test(quoteIdentifier)
+
   // Fetch quote from public API (no authentication required)
   const { data: quoteData, isLoading, error } = useQuery({
-    queryKey: ['public-quote', quoteId],
+    queryKey: ['public-quote', quoteIdentifier],
     queryFn: async () => {
-      const response = await api.get(`/store/quotes/${quoteId}`)
-      return response.data.quote
+      if (isToken) {
+        // Use token-based endpoint
+        const response = await api.get(`/store/quotes/token/${quoteIdentifier}`)
+        // Handle both { quote: {...} } and direct quote object
+        const quoteData = response.data?.quote || response.data
+        if (!quoteData) {
+          throw new Error('Quote data not found in response')
+        }
+        return quoteData
+      } else if (isNumeric) {
+        // Use ID-based endpoint (backward compatibility)
+        const response = await api.get(`/store/quotes/${quoteIdentifier}`)
+        return response.data.quote || response.data
+      } else {
+        throw new Error('Invalid quote identifier')
+      }
     },
-    retry: 1
+    retry: 1,
+    enabled: isToken || isNumeric
   })
 
+  // Extract quote data - handle both response structures
   const quote: QuoteDetails | null = quoteData || null
 
   // Submit feedback mutation
   const submitFeedbackMutation = useMutation({
     mutationFn: async ({ action, comments }: { action: string, comments: string }) => {
-      const response = await api.post(`/store/quotes/${quoteId}/feedback`, {
-        action,
-        comments: comments.trim() || null
-      })
-      return response.data
+      if (isToken) {
+        // Use token-based endpoint
+        const response = await api.post(`/store/quotes/token/${quoteIdentifier}/feedback`, {
+          action,
+          comments: comments.trim() || null
+        })
+        return response.data
+      } else if (isNumeric) {
+        // Use ID-based endpoint (backward compatibility)
+        const response = await api.post(`/store/quotes/${quoteIdentifier}/feedback`, {
+          action,
+          comments: comments.trim() || null
+        })
+        return response.data
+      } else {
+        throw new Error('Invalid quote identifier')
+      }
     },
     onSuccess: (data, variables) => {
       setActionTaken(variables.action)
@@ -132,7 +164,27 @@ export default function PublicQuotePage() {
     )
   }
 
-  if (error || !quote) {
+  if (error) {
+    console.error('Quote fetch error:', error)
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="p-8 max-w-md">
+          <div className="text-center">
+            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Quote</h1>
+            <p className="text-gray-600 mb-6">
+              {error instanceof Error ? error.message : 'Failed to load quote. Please try again.'}
+            </p>
+            <Button onClick={() => router.push('/')} className="bg-[#0d6efd] hover:bg-[#0b5ed7]">
+              Go to Homepage
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!quote || !quote.order_id) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 max-w-md">
@@ -140,7 +192,9 @@ export default function PublicQuotePage() {
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Quote Not Found</h1>
             <p className="text-gray-600 mb-6">
-              The quote you're looking for doesn't exist or has been removed.
+              {!isToken && !isNumeric 
+                ? 'Invalid quote link. Please check the link and try again.'
+                : 'The quote you\'re looking for doesn\'t exist or has been removed.'}
             </p>
             <Button onClick={() => router.push('/')} className="bg-[#0d6efd] hover:bg-[#0b5ed7]">
               Go to Homepage
@@ -157,7 +211,19 @@ export default function PublicQuotePage() {
     8: 'Rejected',
     9: 'Modification Requested'
   }
-  const currentStatus = quote.order_status ? statusMessages[quote.order_status] : null
+  const currentStatus = quote?.order_status ? statusMessages[quote.order_status] : null
+
+  // Final safety check
+  if (!quote) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#0d6efd]" />
+          <p className="mt-4 text-gray-600">Loading quote...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -179,44 +245,50 @@ export default function PublicQuotePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <p className="text-sm text-gray-600">Customer Name</p>
-              <p className="font-medium">
-                {quote.firstname && quote.lastname 
-                  ? `${quote.firstname} ${quote.lastname}` 
+              <p className="font-medium text-gray-900">
+                {quote?.firstname || quote?.lastname
+                  ? `${quote?.firstname || ''} ${quote?.lastname || ''}`.trim() || 'N/A'
                   : 'N/A'}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Email</p>
-              <p className="font-medium">{quote.email || 'N/A'}</p>
+              <p className="font-medium text-gray-900">{quote?.email || 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Phone</p>
-              <p className="font-medium">{quote.telephone || 'N/A'}</p>
+              <p className="font-medium text-gray-900">{quote?.telephone || 'N/A'}</p>
             </div>
-            {quote.delivery_date_time && (
+            {quote?.delivery_date_time && (
               <div>
                 <p className="text-sm text-gray-600">Delivery Date & Time</p>
-                <p className="font-medium">{formatDate(quote.delivery_date_time)}</p>
+                <p className="font-medium text-gray-900">{formatDate(quote.delivery_date_time)}</p>
               </div>
             )}
-            {quote.location_name && (
+            {quote?.location_name && (
               <div>
                 <p className="text-sm text-gray-600">Location</p>
-                <p className="font-medium">{quote.location_name}</p>
+                <p className="font-medium text-gray-900">{quote.location_name}</p>
               </div>
             )}
-            {quote.company_name && (
+            {quote?.company_name && (
               <div>
                 <p className="text-sm text-gray-600">Company</p>
-                <p className="font-medium">{quote.company_name}</p>
+                <p className="font-medium text-gray-900">{quote.company_name}</p>
+              </div>
+            )}
+            {quote?.department_name && (
+              <div>
+                <p className="text-sm text-gray-600">Department</p>
+                <p className="font-medium text-gray-900">{quote.department_name}</p>
               </div>
             )}
           </div>
 
-          {quote.delivery_address && (
+          {quote?.delivery_address && (
             <div className="mb-4">
               <p className="text-sm text-gray-600">Delivery Address</p>
-              <p className="font-medium">{quote.delivery_address}</p>
+              <p className="font-medium text-gray-900">{quote.delivery_address}</p>
             </div>
           )}
         </Card>
@@ -236,25 +308,33 @@ export default function PublicQuotePage() {
                 </tr>
               </thead>
               <tbody>
-                {quote.products?.map((product, index) => (
-                  <tr key={index} className="border-b border-gray-100">
-                    <td className="py-3 px-4">
-                      <div className="font-medium">{product.product_name}</div>
-                      {product.options && product.options.length > 0 && (
-                        <div className="text-sm text-gray-600 mt-1">
-                          {product.options.map((opt, optIndex) => (
-                            <div key={optIndex}>
-                              {opt.option_name}: {opt.option_value} ({opt.option_quantity} × ${Number(opt.option_price).toFixed(2)})
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                {quote?.products && Array.isArray(quote.products) && quote.products.length > 0 ? (
+                  quote.products.map((product: any, index: number) => (
+                    <tr key={index} className="border-b border-gray-100">
+                      <td className="py-3 px-4">
+                        <div className="font-medium text-gray-900">{product.product_name || 'Unknown Product'}</div>
+                        {product.options && Array.isArray(product.options) && product.options.length > 0 && (
+                          <div className="text-sm text-gray-600 mt-1">
+                            {product.options.map((opt: any, optIndex: number) => (
+                              <div key={optIndex}>
+                                {opt.option_name}: {opt.option_value} ({opt.option_quantity} × ${Number(opt.option_price).toFixed(2)})
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="text-right py-3 px-4 text-gray-900">{product.quantity || 0}</td>
+                      <td className="text-right py-3 px-4 text-gray-900">${Number(product.price || 0).toFixed(2)}</td>
+                      <td className="text-right py-3 px-4 font-medium text-gray-900">${Number(product.total || 0).toFixed(2)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-3 px-4 text-center text-gray-500">
+                      {quote?.products ? 'No products in array' : 'Products data not available'}
                     </td>
-                    <td className="text-right py-3 px-4">{product.quantity}</td>
-                    <td className="text-right py-3 px-4">${Number(product.price).toFixed(2)}</td>
-                    <td className="text-right py-3 px-4 font-medium">${Number(product.total).toFixed(2)}</td>
                   </tr>
-                ))}
+                )}
               </tbody>
               <tfoot>
                 <tr className="border-b border-gray-100">
@@ -263,12 +343,12 @@ export default function PublicQuotePage() {
                   </td>
                   <td className="text-right py-3 px-4">
                     <span className="text-sm font-medium text-gray-900">
-                      ${Number(quote.subtotal || 0).toFixed(2)}
+                      ${Number(quote?.subtotal || 0).toFixed(2)}
                     </span>
                   </td>
                 </tr>
 
-                {quote.wholesale_discount && quote.wholesale_discount > 0 && (
+                {quote?.wholesale_discount && quote.wholesale_discount > 0 && (
                   <tr className="border-b border-gray-100">
                     <td colSpan={3} className="text-right py-3 px-4">
                       <span className="text-sm font-medium text-green-600">Wholesale Discount</span>
@@ -281,7 +361,7 @@ export default function PublicQuotePage() {
                   </tr>
                 )}
 
-                {quote.coupon_discount > 0 && (
+                {quote?.coupon_discount && quote.coupon_discount > 0 && (
                   <tr className="border-b border-gray-100">
                     <td colSpan={3} className="text-right py-3 px-4">
                       <div className="flex flex-col items-end">
@@ -305,7 +385,7 @@ export default function PublicQuotePage() {
                   </td>
                   <td className="text-right py-3 px-4">
                     <span className="text-sm font-medium text-gray-900">
-                      ${Number(quote.delivery_fee || 0).toFixed(2)}
+                      ${Number(quote?.delivery_fee || 0).toFixed(2)}
                     </span>
                   </td>
                 </tr>
@@ -316,7 +396,7 @@ export default function PublicQuotePage() {
                   </td>
                   <td className="text-right py-3 px-4">
                     <span className="text-sm font-medium text-gray-900">
-                      ${Number(quote.gst || 0).toFixed(2)}
+                      ${Number(quote?.gst || 0).toFixed(2)}
                     </span>
                   </td>
                 </tr>
@@ -327,7 +407,7 @@ export default function PublicQuotePage() {
                   </td>
                   <td className="text-right py-3 px-4">
                     <span className="text-lg font-bold text-[#0d6efd]">
-                      ${Number(quote.calculated_total || quote.order_total || 0).toFixed(2)}
+                      ${Number(quote?.calculated_total || quote?.order_total || 0).toFixed(2)}
                     </span>
                   </td>
                 </tr>
