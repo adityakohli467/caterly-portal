@@ -402,7 +402,7 @@ export default function CheckoutPage() {
                 {/* Billing Details */}
                 <Card>
                   <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Billing Details</h2>
+                    <h2 className="text-2xl font-bold text-white mb-6">Billing Details</h2>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -653,7 +653,7 @@ export default function CheckoutPage() {
                 {/* Delivery Notes */}
                 <Card>
                   <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Delivery Notes</h2>
+                    <h2 className="text-2xl font-bold text-white mb-6">Delivery Notes</h2>
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="delivery-notes">Delivery Notes (Optional)</Label>
@@ -715,7 +715,7 @@ export default function CheckoutPage() {
               <div className="lg:col-span-1">
                 <Card className="sticky top-24">
                   <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                    <h2 className="text-2xl font-bold text-white mb-6">Order Summary</h2>
 
                     {/* Cart Items */}
                     <div className="space-y-4 mb-6">

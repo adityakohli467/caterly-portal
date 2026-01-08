@@ -319,7 +319,7 @@ export default function AccountPage() {
                 Order History
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            {/* <CardContent>
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -343,7 +343,7 @@ export default function AccountPage() {
                           <Link href={`/orders/${order.order_id}`} className="flex-1">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium">
+                                <p className="font-medium text-gray-500">
                                   Order #{order.order_id}
                                 </p>
                                 <p className="text-sm text-gray-500">
@@ -416,7 +416,139 @@ export default function AccountPage() {
                   )}
                 </>
               )}
-            </CardContent>
+            </CardContent> */}
+            <CardContent>
+  {loading ? (
+    <div className="text-center py-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+    </div>
+  ) : orders.length === 0 ? (
+    <div className="text-center py-8 text-gray-500">
+      <p className="mb-4">No orders yet</p>
+      <Link href="/shop">
+        <Button>Start Shopping</Button>
+      </Link>
+    </div>
+  ) : (
+    <>
+      <div className="space-y-4">
+        {orders.map((order) => (
+          <div
+            key={order.order_id}
+            className="group p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <Link
+                href={`/orders/${order.order_id}`}
+                className="flex-1"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-500">
+                      Order #{order.order_id}
+                    </p>
+
+                    <p className="text-sm text-gray-500">
+                      {new Date(order.date_added).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )}
+                    </p>
+
+                    {order.item_count && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        {order.item_count} item
+                        {order.item_count !== 1 ? "s" : ""}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="text-right">
+                    {/* TOTAL AMOUNT */}
+                    <p className="font-bold text-white group-hover:text-black transition-colors duration-200">
+                      $
+                      {parseFloat(
+                        String(order.total || 0)
+                      ).toFixed(2)}
+                    </p>
+
+                    {/* STATUS */}
+                    <p
+                      className={`text-sm ${
+                        order.order_status === 0
+                          ? "text-red-600"
+                          : order.order_status === 2
+                          ? "text-green-600"
+                          : order.order_status === 1
+                          ? "text-yellow-600"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {getStatusText(order.order_status)}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+
+              {order.order_status === 1 && (
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    router.push(
+                      `/payment?order_id=${order.order_id}`
+                    )
+                  }}
+                  className="ml-4 bg-primary hover:bg-primary/90"
+                  size="sm"
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Make Payment
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() =>
+              setCurrentPage((prev) => Math.max(1, prev - 1))
+            }
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(totalPages, prev + 1)
+              )
+            }
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </>
+  )}
+</CardContent>
+
           </Card>
         </TabsContent>
 

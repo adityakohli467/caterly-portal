@@ -330,7 +330,8 @@ function ShopPageContent() {
                       placeholder="Q Search Products"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full sm:w-48 text-sm sm:text-base"
+                      className="w-full sm:w-48 text-sm sm:text-base "
+                      style={{color:"black"}}
                     />
                     {searchLoading && search && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">

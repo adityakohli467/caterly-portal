@@ -314,7 +314,7 @@ function RegisterPageContent() {
                   placeholder="Full Name"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                   required
                 />
               </div>
@@ -326,10 +326,10 @@ function RegisterPageContent() {
                 placeholder="Phone Number"
                 value={formData.phoneNumber}
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                className={`px-4 py-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`px-4 py-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500  ${
                   userType === "wholesale"
-                    ? "bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white"
-                    : "bg-gray-50 border border-gray-200"
+                    ? "bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white "
+                    : "bg-gray-50 border border-gray-200 text-black"
                 }`}
                 required
               />
@@ -341,7 +341,7 @@ function RegisterPageContent() {
                 className={`px-4 py-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   userType === "wholesale"
                     ? "bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white"
-                    : "bg-gray-50 border border-gray-200"
+                    : "bg-gray-50 border border-gray-200 text-black"
                 }`}
                 required
               />
@@ -356,7 +356,7 @@ function RegisterPageContent() {
                 className={`w-full px-4 py-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   userType === "wholesale"
                     ? "bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white"
-                    : "bg-gray-50 border border-gray-200"
+                    : "bg-gray-50 border border-gray-200 text-black"
                 }`}
                 required
               />
@@ -383,7 +383,7 @@ function RegisterPageContent() {
                     placeholder="Suburb"
                     value={formData.suburb}
                     onChange={(e) => setFormData({ ...formData, suburb: e.target.value })}
-                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     required
                   />
                   <Input
@@ -391,7 +391,7 @@ function RegisterPageContent() {
                     placeholder="Postal Code"
                     value={formData.postalCode}
                     onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     required
                   />
                 </div>
@@ -401,7 +401,7 @@ function RegisterPageContent() {
                     placeholder="State"
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     required
                   />
                 </div>
@@ -427,7 +427,7 @@ function RegisterPageContent() {
                   placeholder="Postal Code"
                   value={formData.postalCode}
                   onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                  className="px-4 py-6 bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-6 bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
                   required
                 />
                 <Input
@@ -499,7 +499,7 @@ function RegisterPageContent() {
                     placeholder="Password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="px-4 py-6 bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-6 bg-[#0F2C5C] border-[#1e3a6b] text-white placeholder:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
                     required
                   />
                   <Input
@@ -523,7 +523,7 @@ function RegisterPageContent() {
                     placeholder="Password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     required
                   />
                   <p className="text-xs mt-1 text-gray-500">
@@ -536,7 +536,7 @@ function RegisterPageContent() {
                     placeholder="Re - Enter Password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     required
                   />
                 </div>
