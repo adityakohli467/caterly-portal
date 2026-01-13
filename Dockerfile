@@ -1,4 +1,4 @@
-# Multi-stage build for Storefront
+# Multi-stage build for 
 
 FROM node:18-alpine AS base
 
