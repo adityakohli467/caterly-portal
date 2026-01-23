@@ -38,7 +38,7 @@ export function DropdownMenu({ children, trigger, align = "right", className }: 
       {open && (
         <div
           className={cn(
-            "absolute z-50 mt-2 min-w-[180px] rounded-md border bg-white shadow-lg",
+            "absolute z-50 mt-2 min-w-[280px] rounded-lg border border-gray-200 bg-white shadow-2xl",
             align === "right" ? "right-0" : "left-0",
             className
           )}
@@ -65,7 +65,7 @@ export function DropdownMenuItem({ children, onClick, className, asChild }: Drop
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children, {
       className: cn(
-        "flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer",
+        "flex w-full items-center gap-3 px-4 py-3 text-sm text-black hover:bg-gray-100 cursor-pointer transition-colors",
         className
       ),
       onClick: handleClick,
@@ -75,7 +75,7 @@ export function DropdownMenuItem({ children, onClick, className, asChild }: Drop
   return (
     <div
       className={cn(
-        "flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer",
+        "flex w-full items-center gap-3 px-4 py-3 text-sm text-black hover:bg-gray-100 cursor-pointer transition-colors",
         className
       )}
       onClick={handleClick}

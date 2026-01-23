@@ -1,708 +1,806 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { ArrowRight, Star, ChevronLeft, ChevronRight } from "lucide-react"
-import { api } from "@/lib/api"
-import { toast } from "sonner"
-import { getProductImageUrl } from "@/lib/product-utils"
-
-interface Product {
-  product_id: number
-  product_name: string
-  product_description: string
-  product_price: string
-  original_price?: number
-  discounted_price?: number
-  discount_percentage?: number
-  has_discount?: boolean
-  product_image?: string
-  product_images?: Array<{ image_url: string; image_order?: number } | string> | null
-  header_name?: string
-}
-
-interface Review {
-  review_id: number
-  rating: number
-  review_text: string
-  reviewer_name: string
-  reviewer_location?: string
-  created_at: string
-}
 
 export default function HomePage() {
-  const [email, setEmail] = useState("")
-  const [coffeeProducts, setCoffeeProducts] = useState<Product[]>([])
-  const [teaProducts, setTeaProducts] = useState<Product[]>([])
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [loading, setLoading] = useState(true)
-  const [reviewsLoading, setReviewsLoading] = useState(true)
-  const [coffeePage, setCoffeePage] = useState(1)
-  const [teaPage, setTeaPage] = useState(1)
-  const [brewingPage, setBrewingPage] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  useEffect(() => {
-    fetchFeaturedProducts()
-    fetchPublishedReviews()
-  }, [])
-
-  const fetchFeaturedProducts = async () => {
-    try {
-      setLoading(true)
-      let coffeeProductsData: Product[] = []
-      let teaProductsData: Product[] = []
-      
-      // Fetch featured coffee (featured_1) and tea (featured_2) products
-      try {
-        const [coffeeResponse, teaResponse] = await Promise.all([
-          api.get("/store/products/featured/coffee", { params: { limit: 4 } }).catch(() => null),
-          api.get("/store/products/featured/tea", { params: { limit: 4 } }).catch(() => null)
-        ])
-        
-        coffeeProductsData = coffeeResponse?.data?.products || []
-        teaProductsData = teaResponse?.data?.products || []
-      } catch (error: any) {
-        console.warn("Failed to fetch featured products by flag:", error)
-      }
-      
-      // If no featured products found, try fallback strategies
-      if (coffeeProductsData.length === 0) {
-        try {
-          // Try to get products from "Coffee" category
-          const fallbackResponse = await api.get("/store/products", { 
-            params: { limit: 4, search: "coffee" } 
-          })
-          coffeeProductsData = fallbackResponse.data.products?.slice(0, 4) || []
-        } catch (fallbackError) {
-          console.warn("Coffee fallback failed:", fallbackError)
-        }
-      }
-      
-      if (teaProductsData.length === 0) {
-        try {
-          // Try to get products from "Tea" category
-          const fallbackResponse = await api.get("/store/products", { 
-            params: { limit: 4, search: "tea" } 
-          })
-          teaProductsData = fallbackResponse.data.products?.slice(0, 4) || []
-        } catch (fallbackError) {
-          console.warn("Tea fallback failed:", fallbackError)
-        }
-      }
-      
-      // Last resort: try general featured products
-      if (coffeeProductsData.length === 0 && teaProductsData.length === 0) {
-        try {
-          const response = await api.get("/store/products/featured", { params: { limit: 8 } })
-          const products = response.data.products || []
-          if (products.length > 0) {
-            coffeeProductsData = products.slice(0, 4)
-            teaProductsData = products.slice(4, 8)
-          }
-        } catch (fallbackError) {
-          console.error("All fallback fetches failed:", fallbackError)
-        }
-      }
-      
-      setCoffeeProducts(coffeeProductsData)
-      setTeaProducts(teaProductsData)
-    } catch (error: any) {
-      console.error("Failed to fetch featured products:", error)
-      // Set empty arrays on complete failure
-      setCoffeeProducts([])
-      setTeaProducts([])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchPublishedReviews = async () => {
-    try {
-      setReviewsLoading(true)
-      const response = await api.get("/store/reviews/general", { params: { limit: 6 } })
-      setReviews(response.data.reviews || [])
-    } catch (error: any) {
-      console.error("Failed to fetch reviews:", error)
-      // Use empty array if fetch fails - reviews are optional
-      setReviews([])
-      // Don't show error toast - reviews are not critical
-    } finally {
-      setReviewsLoading(false)
-    }
-  }
-
-  // Static brewing images - moved outside useMemo to avoid serialization issues
-  const BREWING_IMAGES = [
-    { id: 1, image: "/assets/sndurex/Feature Card.png", alt: "St. Dreux Coffee Cups" },
-    { id: 2, image: "/assets/sndurex/Feature Card (1).png", alt: "The Shepherd Coffee Bag" },
-    { id: 3, image: "/assets/sndurex/Feature Card (2).png", alt: "Coffee Pouring" }
-  ] as const
-
-  // Pagination constants
-  const COFFEE_PRODUCTS_PER_PAGE = 4
-  const TEA_PRODUCTS_PER_PAGE = 4
-  const BREWING_IMAGES_PER_PAGE = 3
-
-  // Calculate pagination for coffee products (4 per page)
-  const coffeeTotalPages = useMemo(() => {
-    if (!coffeeProducts || coffeeProducts.length === 0) return 1
-    return Math.ceil(coffeeProducts.length / COFFEE_PRODUCTS_PER_PAGE)
-  }, [coffeeProducts.length])
-
-  const displayedCoffeeProducts = useMemo(() => {
-    if (!coffeeProducts || coffeeProducts.length === 0) return []
-    const startIndex = (coffeePage - 1) * COFFEE_PRODUCTS_PER_PAGE
-    const endIndex = startIndex + COFFEE_PRODUCTS_PER_PAGE
-    return coffeeProducts.slice(startIndex, endIndex)
-  }, [coffeeProducts, coffeePage])
-
-  // Calculate pagination for tea products (4 per page)
-  const teaTotalPages = useMemo(() => {
-    if (!teaProducts || teaProducts.length === 0) return 1
-    return Math.ceil(teaProducts.length / TEA_PRODUCTS_PER_PAGE)
-  }, [teaProducts.length])
-
-  const displayedTeaProducts = useMemo(() => {
-    if (!teaProducts || teaProducts.length === 0) return []
-    const startIndex = (teaPage - 1) * TEA_PRODUCTS_PER_PAGE
-    const endIndex = startIndex + TEA_PRODUCTS_PER_PAGE
-    return teaProducts.slice(startIndex, endIndex)
-  }, [teaProducts, teaPage])
-
-  // Calculate pagination for brewing images (3 per page)
-  const brewingTotalPages = useMemo(() => {
-    return Math.ceil(BREWING_IMAGES.length / BREWING_IMAGES_PER_PAGE)
-  }, [])
-
-  const displayedBrewingImages = useMemo(() => {
-    const startIndex = (brewingPage - 1) * BREWING_IMAGES_PER_PAGE
-    const endIndex = startIndex + BREWING_IMAGES_PER_PAGE
-    return BREWING_IMAGES.slice(startIndex, endIndex)
-  }, [brewingPage])
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!email.trim()) {
-      toast.error("Please enter your email address")
-      return
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email.trim())) {
-      toast.error("Please enter a valid email address")
-      return
-    }
-
-    try {
-      setIsSubmitting(true)
-      const response = await api.post("/store/newsletter/subscribe", {
-        email: email.trim(),
-      })
-
-      toast.success(response.data.message || "Successfully subscribed to our newsletter!")
-      setEmail("")
-    } catch (error: any) {
-      console.error("Newsletter subscription error:", error)
-      const errorMessage = error.response?.data?.message || "Failed to subscribe. Please try again later."
-      toast.error(errorMessage)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   return (
-    <div className="flex flex-col w-full overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="relative h-[600px] sm:h-[700px] md:h-[800px] bg-black">
-        <div className="absolute inset-0">
+    <div className="w-full overflow-x-hidden">
+
+      {/* ================================================= */}
+      {/* 1. HERO SECTION */}
+      {/* ================================================= */}
+<section className="relative w-full h-[788px] overflow-hidden bg-white">
+
+  {/* BACKGROUND IMAGE */}
+  <Image
+    src="/assets/images/log.png"
+    alt="Caterly Hero Background"
+    fill
+    priority
+    className="object-cover"
+  />
+
+  {/* CONTENT */}
+  <div className="relative z-10 h-full flex items-center justify-center">
+    <div className="flex flex-col items-center text-center max-w-[900px] px-6 gap-[24px]">
+
+      {/* HEADING */}
+      <h1 className="text-[56px] leading-[1.2] font-semibold text-black">
+        Crafting{" "}
+        <span className="text-[#E03A3E] italic font-semibold">
+          unforgettable
+        </span>
+        <br />
+        event experiences.
+      </h1>
+
+      {/* SUBTEXT */}
+      <p className="text-[16px] text-[#6B6B6B] max-w-[620px]">
+        Elevating every event with refined flavors, flawless presentation,
+        and enduring impressions.
+      </p>
+
+      {/* BUTTONS */}
+      <div className="flex items-center gap-4 mt-2">
+        <button
+          className="
+            bg-[#E03A3E]
+            hover:bg-[#cc3236]
+            text-white
+            px-6
+            py-3
+            rounded-md
+            text-sm
+            font-semibold
+          "
+        >
+          Book Now
+        </button>
+
+        <button
+          className="
+            bg-white
+            border
+            border-[#E6E6E6]
+            hover:bg-gray-100
+            text-black
+            px-6
+            py-3
+            rounded-md
+            text-sm
+            font-semibold
+          "
+        >
+          View Menu
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
+      {/* ================================================= */}
+      {/* 2. WHO WE ARE */}
+      {/* ================================================= */}
+   <section className="bg-white py-16">
+  <div className="max-w-[1440px] mx-auto px-[120px]">
+
+    {/* SECTION HEADER */}
+    <div className="text-center mb-20">
+      <h2 className="text-[32px] font-semibold text-black mb-4">
+        Our Services
+      </h2>
+      <p className="text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto">
+        From intimate gatherings to large scale events,
+        <br />
+        we've got you covered.
+      </p>
+    </div>
+
+    {/* CARDS */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-[64px]">
+
+      {/* CARD 1 */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+        <div className="relative h-[260px] rounded-xl overflow-hidden mb-6">
           <Image
-            src="/assets/sndurex/Wireframe - 14 (3).png"
-            alt="ZENN Catering"
+            src="/assets/images/c1.png"
+            alt="Catering Services"
             fill
             className="object-cover"
-            priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
         </div>
-        <div className="relative container mx-auto px-6 h-full flex items-center">
-          <div className="max-w-2xl text-white">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-              Where quality is more than a promise.
-            </h1>
-            <p className="text-lg sm:text-xl mb-8 text-white/90" style={{ fontFamily: 'Albert Sans' }}>
-              Experience the perfect harmony of flavor, creativity, and hospitality.
+
+        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
+          Catering Services
+        </h3>
+
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6">
+          Professional catering for meetings,
+          workshops, and business events with
+          premium-quality food.
+        </p>
+
+        <Link href="/shop" passHref legacyBehavior>
+          <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+            Book Now
+          </button>
+        </Link>
+      </div>
+
+      {/* CARD 2 */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+        <div className="relative h-[260px] rounded-xl overflow-hidden mb-6">
+          <Image
+            src="/assets/images/c2.jpg"
+            alt="Venue Bookings"
+            fill
+            className="object-cover"
+          />
+        </div>
+
+        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
+          Venue Bookings
+        </h3>
+
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6">
+          Professional catering for meetings,
+          workshops, and business events with
+          premium-quality food.
+        </p>
+
+        <Link href="/venue" passHref legacyBehavior>
+          <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+            Book Now
+          </button>
+        </Link>
+      </div>
+
+      {/* CARD 3 */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+        <div className="relative h-[260px] rounded-xl overflow-hidden mb-6">
+          <Image
+             src="/assets/images/c3.jpg"
+            alt="Staff Hire"
+            fill
+            className="object-cover"
+          />
+        </div>
+
+        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
+          Staff Hire
+        </h3>
+
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6">
+          Professional catering for meetings,
+          workshops, and business events with
+          premium-quality food.
+        </p>
+
+        <Link href="/staff" passHref legacyBehavior>
+          <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+            Book Now
+          </button>
+        </Link>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+      {/* ================================================= */}
+      {/* 3. CATERING EXCELLENCE */}
+      {/* ================================================= */}
+<section className="bg-white py-24">
+  <div className="max-w-[1440px] mx-auto px-[120px]">
+
+    {/* HEADER */}
+    <div className="text-center mb-20">
+      <h2 className="text-[36px] font-semibold text-black mb-4">
+        Our Catering Services
+      </h2>
+      <p className="text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto leading-relaxed">
+        From intimate gatherings to large corporate events, we offer a range
+        <br />
+        of catering services to meet your needs.
+      </p>
+    </div>
+
+    {/* CARDS GRID */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-x-[40px] gap-y-[64px]">
+
+      {[
+        {
+          title: "All Day",
+          desc:
+            "Make your special day unforgettable with our customized wedding menus and professional service.",
+          img:"/assets/images/c4.jpg"
+        },
+        {
+          title: "All Day",
+          desc:
+            "Make your special day unforgettable with our customized wedding menus and professional service.",
+         img:"/assets/images/c5.jpg"
+        },
+        {
+          title: "All Day",
+          desc:
+            "Make your special day unforgettable with our customized wedding menus and professional service.",
+          img:"/assets/images/c4.jpg"
+        },
+        {
+          title: "Grazing Tables",
+          desc:
+            "Stunning grazing tables that combine visual appeal with delicious variety for your guests.",
+          img:"/assets/images/c6.jpg"
+        },
+        {
+          title: "Breakfast Catering",
+          desc:
+            "Start your day right with our fresh, energizing breakfast options for meetings and events.",
+         img:"/assets/images/c7.jpg"
+        },
+        {
+          title: "Finger Food",
+          desc:
+            "Delicious bite-sized delights perfect for cocktail parties and networking events.",
+          img:"/assets/images/c8.jpg"
+        },
+      ].map((item, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-2xl shadow-md overflow-hidden"
+        >
+          {/* IMAGE */}
+          <div className="relative h-[240px] w-full">
+            <Image
+              src={item.img}
+              alt={item.title}
+              fill
+              className="object-cover"
+            />
+          </div>
+
+          {/* CONTENT */}
+          <div className="p-6">
+            <h3 className="text-[18px] font-semibold text-black mb-3">
+              {item.title}
+            </h3>
+
+            <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-4">
+              {item.desc}
             </p>
-            <Link href="/shop">
-              <Button size="lg" className="bg-[#055160] hover:bg-[#04414d] text-white px-8 py-6 text-lg" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-                LET'S CONNECT
-              </Button>
-            </Link>
+
+            <button className="text-[#E03A3E] text-sm font-semibold flex items-center gap-1 hover:underline">
+              Read more
+              <span className="text-lg">→</span>
+            </button>
           </div>
         </div>
-      </section>
+      ))}
+    </div>
 
-      {/* Mission Statement - WHO WE ARE Section */}
-      <section className="relative w-screen py-16 bg-[#0a0a0a]" style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' }}>
-        <div className="relative container mx-auto px-6 text-center max-w-4xl z-10">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-            WHO WE ARE
-          </h2>
-          <p className="text-white leading-relaxed text-lg mb-4" style={{ fontFamily: 'Albert Sans' }}>
-            With over 50 years of experience, ZENN has been at the forefront of culinary excellence. Our purpose-built facility in Epping serves as the foundation for creating experiences that nourish both body and soul.
-          </p>
-          <p className="text-white leading-relaxed text-lg mb-4" style={{ fontFamily: 'Albert Sans' }}>
-            We believe in the power of diversity and respect, bringing together people from all walks of life to create something truly special.
-          </p>
+    {/* CTA BUTTON */}
+    <div className="flex justify-center mt-20">
+      <Link href="/shop" passHref legacyBehavior>
+        <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-8 py-3 rounded-md text-sm font-semibold">
+          View Catering Menu
+        </button>
+      </Link>
+    </div>
+
+  </div>
+</section>
+
+      {/* ================================================= */}
+      {/* 4. SERVICES / OFFERINGS */}
+      {/* ================================================= */}
+<section
+  className="relative w-full py-[120px] bg-white overflow-hidden"
+  style={{
+    backgroundImage: "url('/assets/images/frame.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
+  <div className="relative max-w-[1440px] mx-auto px-[120px]">
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-[80px]">
+
+      {/* LEFT CONTENT */}
+      <div>
+        <h2 className="text-[32px] font-semibold text-black mb-6">
+          Who we are
+        </h2>
+
+        <p className="text-[15px] text-[#333333] leading-relaxed mb-4 max-w-[520px]">
+          For over 15 years, we’ve been crafting exceptional catering experiences
+          with a focus on fresh, seasonal ingredients and impeccable service.
+          Our team of passionate culinary experts creates memorable food
+          experiences for every occasion.
+        </p>
+
+        <p className="text-[15px] text-[#333333] leading-relaxed max-w-[520px]">
+          We believe that great food brings people together. Whether you’re
+          planning a corporate lunch, an elegant wedding, or an intimate dinner
+          party, we approach each event with creativity, attention to detail,
+          and a commitment to exceeding your expectations.
+        </p>
+      </div>
+
+      {/* RIGHT IMAGE */}
+<div className="relative w-[652px] h-[380px] rounded-lg overflow-hidden">
+  <Image
+    src="/assets/images/c9.jpg"
+    alt="Product Image"
+    fill
+    className="object-cover"
+  />
+</div>
+
+
+
+    </div>
+  </div>
+</section>
+
+      {/* ================================================= */}
+      {/* 5. EXPERIENCE SECTION */}
+      {/* ================================================= */}
+<section className="bg-white py-[120px]">
+  <div className="max-w-[1440px] mx-auto px-[120px]">
+
+    {/* HEADER */}
+    <div className="text-center mb-[80px]">
+      <h2 className="text-[36px] font-semibold text-black mb-4">
+        Why Choose Us
+      </h2>
+      <p className="text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto">
+        From intimate gatherings to large scale events, we've got you covered
+      </p>
+    </div>
+
+    {/* FEATURES */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-[80px] text-center">
+
+      {/* ITEM 1 */}
+      <div className="flex flex-col items-center">
+        <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
+          {/* Truck Icon */}
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#2F5BFF"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="1" y="3" width="15" height="13" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
         </div>
-      </section>
 
-      {/* Coffee Blends Section */}
-      <section className="py-16 bg-[#0a0a0a]">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between mb-8">
+        <h3 className="text-[18px] font-semibold text-black mb-2">
+          Delivery Available
+        </h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[260px]">
+          Reliable delivery within 25 miles of our kitchen
+        </p>
+      </div>
+
+      {/* ITEM 2 */}
+      <div className="flex flex-col items-center">
+        <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
+          {/* Handshake Icon */}
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#2F5BFF"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M16 3h5v5" />
+            <path d="M8 3H3v5" />
+            <path d="M21 3l-7 7" />
+            <path d="M3 3l7 7" />
+            <path d="M12 14l-2 2a4 4 0 0 1-6-6l2-2" />
+            <path d="M12 14l2 2a4 4 0 0 0 6-6l-2-2" />
+          </svg>
+        </div>
+
+        <h3 className="text-[18px] font-semibold text-black mb-2">
+          Committed to Value
+        </h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[260px]">
+          Premium quality at competitive prices
+        </p>
+      </div>
+
+      {/* ITEM 3 */}
+      <div className="flex flex-col items-center">
+        <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
+          {/* Leaf Icon */}
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#2F5BFF"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M11 20A7 7 0 0 1 9 6c0-3 5-3 5-6 0 0 5 4 5 10a7 7 0 0 1-8 7z" />
+            <path d="M12 20v-8" />
+          </svg>
+        </div>
+
+        <h3 className="text-[18px] font-semibold text-black mb-2">
+          Freshest Ingredients
+        </h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[260px]">
+          Locally sourced seasonal produce
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+      {/* ================================================= */}
+      {/* 6. TESTIMONIALS */}
+      {/* ================================================= */}
+<section className="py-24 bg-white">
+  <div className="max-w-[1400px] mx-auto px-6 text-center">
+
+    {/* Heading */}
+    <h2 className="text-[36px] font-semibold text-black mb-4">
+      Event Gallery
+    </h2>
+
+    {/* Subheading */}
+    <p className="text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto mb-16">
+      Browse our portfolio of past events and get inspired for your next gathering.
+    </p>
+
+    {/* Gallery Images */}
+    <div
+      id="gallery-track"
+      className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+      data-images='["/assets/images/c10.jpg","/assets/images/c11.jpg","/assets/images/c12.jpg","/assets/images/c13.jpg"]'
+      data-index="0"
+    >
+      <div className="relative h-[420px] rounded-xl overflow-hidden">
+        <img src="/assets/images/c10.jpg" className="w-full h-full object-cover" />
+      </div>
+      <div className="relative h-[420px] rounded-xl overflow-hidden">
+        <img src="/assets/images/c11.jpg" className="w-full h-full object-cover" />
+      </div>
+      <div className="relative h-[420px] rounded-xl overflow-hidden">
+        <img src="/assets/images/c12.jpg" className="w-full h-full object-cover" />
+      </div>
+    </div>
+
+    {/* Navigation Buttons */}
+    <div className="flex items-center justify-center gap-4">
+
+      {/* Prev */}
+      <button
+        onClick={() => {
+          const gallery = document.getElementById("gallery-track");
+          const images = JSON.parse(gallery.dataset.images);
+          let index = parseInt(gallery.dataset.index);
+          if (index > 0) index--;
+          gallery.dataset.index = index;
+
+          const visible = images.slice(index, index + 3);
+          gallery.innerHTML = visible.map(img => `
+            <div class="relative h-[420px] rounded-xl overflow-hidden">
+              <img src="${img}" class="w-full h-full object-cover" />
+            </div>
+          `).join("");
+        }}
+        className="w-12 h-12 rounded-lg bg-[#F2F2F2] flex items-center justify-center text-[#9A9A9A] hover:bg-[#E6E6E6] transition"
+      >
+        ←
+      </button>
+
+      {/* Next */}
+      <button
+        onClick={() => {
+          const gallery = document.getElementById("gallery-track");
+          const images = JSON.parse(gallery.dataset.images);
+          let index = parseInt(gallery.dataset.index);
+          if (index + 3 < images.length) index++;
+          gallery.dataset.index = index;
+
+          const visible = images.slice(index, index + 3);
+          gallery.innerHTML = visible.map(img => `
+            <div class="relative h-[420px] rounded-xl overflow-hidden">
+              <img src="${img}" class="w-full h-full object-cover" />
+            </div>
+          `).join("");
+        }}
+        className="w-12 h-12 rounded-lg bg-[#E03A3E] flex items-center justify-center text-white hover:bg-[#cc3236] transition"
+      >
+        →
+      </button>
+
+    </div>
+
+  </div>
+</section>
+
+
+      {/* ================================================= */}
+      {/* 7. GALLERY */}
+      {/* ================================================= */}
+<section className="py-24 bg-white">
+  <div className="max-w-[1440px] mx-auto px-6">
+
+    {/* CTA Wrapper */}
+    <div
+      className="
+        relative
+        rounded-2xl
+        overflow-hidden
+        px-6
+        py-20
+        md:px-16
+        text-center
+        flex
+        items-center
+        justify-center
+        min-h-[260px]
+      "
+      style={{
+        backgroundImage: "url('/assets/images/f2.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-[#3b0d1b]/90" />
+
+      {/* Content */}
+      <div className="relative z-10 max-w-[900px] mx-auto">
+
+        {/* Heading */}
+        <h2 className="text-[36px] md:text-[44px] font-semibold text-white mb-4 leading-tight">
+          Let&apos;s Make Your Event Delicious
+        </h2>
+
+        {/* Description */}
+        <p className="text-white/80 text-[16px] md:text-[17px] mb-10">
+          Ready to create an unforgettable culinary experience for your guests? Contact us today to start planning.
+        </p>
+
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+
+          <button
+            className="
+              bg-white
+              text-black
+              px-8
+              py-3
+              rounded-md
+              text-sm
+              font-semibold
+              hover:bg-gray-100
+              transition
+            "
+          >
+            Request a Quote
+          </button>
+
+          <button
+            className="
+              bg-[#E03A3E]
+              text-white
+              px-8
+              py-3
+              rounded-md
+              text-sm
+              font-semibold
+              hover:bg-[#cc3236]
+              transition
+            "
+          >
+            Call Now
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+
+      {/* ================================================= */}
+      {/* 8. CALL TO ACTION */}
+      {/* ================================================= */}
+<section className="py-24 bg-white">
+  <div className="max-w-[1200px] mx-auto px-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch border rounded-xl overflow-hidden">
+
+      {/* LEFT : FORM */}
+      <div className="p-10">
+
+        {/* Heading */}
+        <h2 className="text-[28px] font-semibold text-black mb-2">
+          Request a Quote
+        </h2>
+        <p className="text-gray-600 text-sm mb-8 max-w-md">
+          Fill out the form and our team will get back to you within 24 hours to
+          discuss your catering needs.
+        </p>
+
+        {/* FORM */}
+        <form className="space-y-6">
+
+          {/* First & Last Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h2 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>CATERING EXCELLENCE</h2>
-              <p className="text-white/80 mt-2" style={{ fontFamily: 'Albert Sans' }}>
-                Premium quality food, professional service, and seamless event planning
-              </p>
-            </div>
-            <Link href="/shop">
-              <Button variant="outline" className="border-[#055160] text-[#055160] hover:bg-[#055160] hover:text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-                View more
-              </Button>
-            </Link>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#055160] mx-auto"></div>
-            </div>
-          ) : coffeeProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-white/70 mb-4">No featured products available at the moment.</p>
-              <Link href="/shop">
-                <Button variant="outline" className="border-[#055160] text-[#055160] hover:bg-[#055160] hover:text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-                  Browse All Products
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {displayedCoffeeProducts.map((product) => (
-                <Card key={product.product_id} className="overflow-hidden hover:shadow-xl transition-shadow group bg-[#1a1a1a] border-[#2a2a2a]">
-                  <div className="relative aspect-square bg-gray-900">
-                    {getProductImageUrl(product) ? (
-                      <img
-                        src={getProductImageUrl(product)!}
-                        alt={product.product_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/30" />
-                    )}
-                    {!getProductImageUrl(product) && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-white text-center">
-                          <div className="text-6xl font-light mb-2">25g</div>
-                          <div className="text-sm">SAMPLE PACK</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-lg mb-1 text-white">{product.product_name}</h3>
-                    <div className="flex items-center gap-2 mb-2">
-                      {product.has_discount && product.original_price && product.discounted_price ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-white/50 line-through">
-                            ${product.original_price.toFixed(2)}
-                          </span>
-                          <span className="text-xl font-bold text-[#055160]">
-                            ${product.discounted_price.toFixed(2)}
-                          </span>
-                          {product.discount_percentage && (
-                            <span className="text-xs bg-[#055160] text-white px-2 py-0.5 rounded">
-                              {product.discount_percentage}% OFF
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xl font-bold text-[#055160]">
-                          ${parseFloat(product.product_price).toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-white/70 mb-4 line-clamp-2">{product.product_description}</p>
-                    <Link href={`/shop/${product.product_id}`}>
-                      <Button size="sm" className="w-full bg-[#055160] hover:bg-[#04414d] text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-                        View Product
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {coffeeTotalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => setCoffeePage(p => Math.max(1, p - 1))}
-                disabled={coffeePage === 1}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              {Array.from({ length: coffeeTotalPages || 1 }, (_, i) => i + 1).map((pageNum) => (
-                <Button
-                  key={pageNum}
-                  variant="outline"
-                  size="icon"
-                  className={`rounded-full border-[#2a2a2a] ${coffeePage === pageNum ? 'bg-[#055160] text-white border-[#055160]' : 'text-white border-[#2a2a2a]'}`}
-                  onClick={() => setCoffeePage(pageNum)}
-                >
-                  {pageNum}
-                </Button>
-              ))}
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => setCoffeePage(p => Math.min(coffeeTotalPages, p + 1))}
-                disabled={coffeePage === coffeeTotalPages}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Tea Products Section */}
-      <section className="py-16 bg-[#0a0a0a]">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>DRIVEN BY INNOVATION</h2>
-              <p className="text-white/80 mt-2" style={{ fontFamily: 'Albert Sans' }}>
-                Our culinary artistry explores innovative ideas and sources high-quality ingredients
-              </p>
-            </div>
-            <Link href="/shop">
-              <Button variant="outline" className="border-[#055160] text-[#055160] hover:bg-[#055160] hover:text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-                View more
-              </Button>
-            </Link>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            </div>
-          ) : teaProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-white/70 mb-4">No featured products available at the moment.</p>
-              <Link href="/shop">
-                <Button variant="outline" className="border-[#055160] text-[#055160] hover:bg-[#055160] hover:text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-                  Browse All Products
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {displayedTeaProducts.map((product) => (
-                <Card key={product.product_id} className="overflow-hidden hover:shadow-xl transition-shadow group bg-[#1a1a1a] border-[#2a2a2a]">
-                  <div className="relative aspect-square bg-gray-900">
-                    {getProductImageUrl(product) ? (
-                      <img
-                        src={getProductImageUrl(product)!}
-                        alt={product.product_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/30" />
-                    )}
-                    {!getProductImageUrl(product) && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-white text-center">
-                          <div className="text-6xl font-light mb-2">25g</div>
-                          <div className="text-sm">SAMPLE PACK</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-lg mb-1 text-white">{product.product_name}</h3>
-                    <div className="flex items-center gap-2 mb-2">
-                      {product.has_discount && product.original_price && product.discounted_price ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-white/50 line-through">
-                            ${product.original_price.toFixed(2)}
-                          </span>
-                          <span className="text-xl font-bold text-[#055160]">
-                            ${product.discounted_price.toFixed(2)}
-                          </span>
-                          {product.discount_percentage && (
-                            <span className="text-xs bg-[#055160] text-white px-2 py-0.5 rounded">
-                              {product.discount_percentage}% OFF
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xl font-bold text-[#055160]">
-                          ${parseFloat(product.product_price).toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-white/70 mb-4 line-clamp-2">{product.product_description}</p>
-                    <Link href={`/shop/${product.product_id}`}>
-                      <Button size="sm" className="w-full bg-[#055160] hover:bg-[#04414d] text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-                        View Product
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {teaTotalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => setTeaPage(p => Math.max(1, p - 1))}
-                disabled={teaPage === 1}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              {Array.from({ length: teaTotalPages || 1 }, (_, i) => i + 1).map((pageNum) => (
-                <Button
-                  key={pageNum}
-                  variant="outline"
-                  size="icon"
-                  className={`rounded-full border-[#2a2a2a] ${teaPage === pageNum ? 'bg-[#055160] text-white border-[#055160]' : 'text-white border-[#2a2a2a]'}`}
-                  onClick={() => setTeaPage(pageNum)}
-                >
-                  {pageNum}
-                </Button>
-              ))}
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => setTeaPage(p => Math.min(teaTotalPages, p + 1))}
-                disabled={teaPage === teaTotalPages}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Call to Action Section */}
-      <section className="w-screen py-16 bg-[#0a0a0a]" style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' }}>
-        <div className="container mx-auto px-6 max-w-7xl text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-            Let's Create Something Extraordinary!
-          </h2>
-          <p className="text-white/90 mb-8 leading-relaxed text-lg max-w-3xl mx-auto" style={{ fontFamily: 'Albert Sans' }}>
-            Ready to elevate your next event? Our catering specialists are here to bring your vision to life with exceptional food, impeccable service, and unforgettable experiences.
-          </p>
-          <Link href="/contact">
-            <Button size="lg" className="bg-white text-[#0a0a0a] hover:bg-white/90 px-8 py-6 text-lg rounded-lg" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-              CONTACT US
-            </Button>
-          </Link>
-          <p className="text-white/60 mt-4 text-sm" style={{ fontFamily: 'Albert Sans' }}>
-            Get in touch today to discuss your catering needs.
-          </p>
-        </div>
-      </section>
-
-      {/* THE ZENN EXPERIENCE Section */}
-      <section className="w-screen py-16 bg-[#0a0a0a]" style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' }}>
-        <div className="container mx-auto px-6 max-w-7xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-white order-2 lg:order-1">
-              <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-                THE ZENN EXPERIENCE
-              </h2>
-              <p className="text-white/90 mb-6 leading-relaxed text-lg" style={{ fontFamily: 'Albert Sans' }}>
-                We are dedicated to maintaining the highest standards in everything we do. Our baristas take pride in crafting the perfect cup of coffee, ensuring every sip is an experience to remember.
-              </p>
-              <p className="text-white/90 mb-6 leading-relaxed text-lg" style={{ fontFamily: 'Albert Sans' }}>
-                The Zenn experience is about connection, quality, and exceeding expectations—whether you're dining in, grabbing takeaway, or catering your next event.
-              </p>
-            </div>
-            <div className="relative h-96 lg:h-[500px] order-1 lg:order-2">
-              <div className="absolute inset-0 rounded-lg overflow-hidden">
-                <Image
-                  src="/assets/sndurex/Rectangle 180 (1).png"
-                  alt="ZENN Experience"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 bg-[#0a0a0a]">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>WHERE PEOPLE THRIVE</h2>
-            <p className="text-xl text-white/80 mt-4" style={{ fontFamily: 'Albert Sans' }}>
-              Our culture promotes personal growth, equal opportunities, and strong teamwork
-            </p>
-          </div>
-
-          {reviewsLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#055160] mx-auto"></div>
-            </div>
-          ) : reviews.length === 0 ? (
-            <div className="text-center py-12 text-white/70">
-              <p>No reviews available yet.</p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-3 gap-8">
-              {reviews.map((review) => (
-                <Card key={review.review_id} className="relative bg-[#1a1a1a] border-[#2a2a2a]">
-                  <CardContent className="pt-12 pb-6">
-                    <div className="absolute top-6 left-6 text-6xl text-white/20">"</div>
-                    <p className="text-white/90 mb-6 relative z-10 leading-relaxed text-sm" style={{ fontFamily: 'Albert Sans' }}>
-                      {review.review_text}
-                    </p>
-                    <div className="border-t border-[#2a2a2a] pt-4">
-                      <p className="font-semibold text-white">{review.reviewer_name}</p>
-                      {review.reviewer_location && (
-                        <p className="text-sm text-white/60">{review.reviewer_location}</p>
-                      )}
-                      <div className="flex items-center gap-1 mt-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star 
-                            key={star}
-                            className={`w-4 h-4 ${star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-white/30'}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Brewing Gallery */}
-      <section className="py-16 bg-[#0a0a0a]">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-              CATERING EXCELLENCE
-            </h2>
-            <p className="text-white/80" style={{ fontFamily: 'Albert Sans' }}>
-              Comprehensive options for all dietary needs including vegetarian, vegan, gluten-free, dairy-free, nut-free, Halal, and allergen-sensitive options.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            {displayedBrewingImages.map((item) => (
-              <div key={item.id} className="relative aspect-square overflow-hidden rounded-lg group cursor-pointer">
-                <Image
-                  src={item.image}
-                  alt={item.alt}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </div>
-            ))}
-          </div>
-
-          {brewingTotalPages > 1 && (
-            <div className="flex justify-center gap-2">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => setBrewingPage(p => Math.max(1, p - 1))}
-                disabled={brewingPage === 1}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              {Array.from({ length: brewingTotalPages || 1 }, (_, i) => i + 1).map((pageNum) => (
-                <Button
-                  key={pageNum}
-                  variant="outline"
-                  size="icon"
-                  className={`rounded-full border-[#2a2a2a] ${brewingPage === pageNum ? 'bg-[#055160] text-white border-[#055160]' : 'text-white border-[#2a2a2a]'}`}
-                  onClick={() => setBrewingPage(pageNum)}
-                >
-                  {pageNum}
-                </Button>
-              ))}
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => setBrewingPage(p => Math.min(brewingTotalPages, p + 1))}
-                disabled={brewingPage === brewingTotalPages}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Newsletter Signup Section */}
-      <section className="w-screen py-16 bg-[#0a0a0a] text-white border-t border-[#1a1a1a]" style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' }}>
-        <div className="container mx-auto px-6 max-w-4xl">
-          <div className="text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-              Sign up for our Newsletter
-            </h2>
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-2xl mx-auto">
-              <Input
-                type="email"
-                placeholder="Enter Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
-                className="bg-[#1a1a1a] border-[#2a2a2a] text-white placeholder:text-white/50 disabled:opacity-50 flex-1 h-12 text-base rounded-md"
-                required
-                style={{ fontFamily: 'Albert Sans' }}
+              <label className="text-sm font-medium text-black">First Name</label>
+              <input
+                type="text"
+                placeholder="Enter Here"
+                className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
               />
-              <Button 
-                type="submit"
-                disabled={isSubmitting || !email.trim()}
-                className="bg-[#055160] hover:bg-[#04414d] text-white px-6 sm:px-8 h-12 text-base disabled:opacity-50 whitespace-nowrap rounded-md"
-                style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}
-              >
-                {isSubmitting ? "Subscribing..." : "Submit"}
-              </Button>
-            </form>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Last Name</label>
+              <input
+                type="text"
+                placeholder="Enter Here"
+                className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+              />
+            </div>
           </div>
-        </div>
-      </section>
+
+          {/* Email */}
+          <div>
+            <label className="text-sm font-medium text-black">Email</label>
+            <input
+              type="email"
+              placeholder="Enter Here"
+              className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="text-sm font-medium text-black">Phone</label>
+            <input
+              type="tel"
+              placeholder="Enter Here"
+              className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+            />
+          </div>
+
+          {/* Delivery Time & Guests */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-black">
+                Delivery Time
+              </label>
+              <select className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-600 focus:outline-none focus:border-[#E03A3E]">
+                <option>Select</option>
+                <option>Morning</option>
+                <option>Afternoon</option>
+                <option>Evening</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">
+                Number of Guests
+              </label>
+              <input
+                type="number"
+                placeholder="Enter Here"
+                className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+              />
+            </div>
+          </div>
+
+          {/* Event Type & Contact Time */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-black">
+                Select Event Type
+              </label>
+              <select className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-600 focus:outline-none focus:border-[#E03A3E]">
+                <option>Select</option>
+                <option>Corporate</option>
+                <option>Wedding</option>
+                <option>Private Event</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">
+                Suitable Contact Time
+              </label>
+              <input
+                type="text"
+                placeholder="Enter Here"
+                className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+              />
+            </div>
+          </div>
+
+          {/* Message */}
+          <div>
+            <label className="text-sm font-medium text-black">Message</label>
+            <textarea
+              placeholder="Tell us about your event"
+              rows={4}
+              className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+            />
+          </div>
+
+          {/* Captcha */}
+          <div className="flex items-center gap-4">
+            <div className="border-2 border-dashed border-[#E03A3E] px-6 py-3 text-black font-semibold rounded-md">
+              3282
+            </div>
+            <input
+              type="text"
+              placeholder="Enter Captcha"
+              className="flex-1 rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+            />
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="
+              w-full
+              bg-[#E03A3E]
+              hover:bg-[#cc3236]
+              text-white
+              py-4
+              rounded-md
+              text-sm
+              font-semibold
+              transition
+            "
+          >
+            Submit
+          </button>
+
+        </form>
+      </div>
+
+      {/* RIGHT : IMAGE */}
+    <div className="relative hidden lg:block">
+  <img
+    src="/assets/images/c14.jpg"
+    alt="Chef preparing food"
+    className="w-full h-full object-cover"
+  />
+</div>
+
+
+    </div>
+  </div>
+</section>
+
     </div>
   )
 }
-
-

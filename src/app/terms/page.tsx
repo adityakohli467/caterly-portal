@@ -35,7 +35,7 @@ export default function TermsPage() {
               Intellectual Property
             </h2>
             <p className="text-gray-700 leading-relaxed">
-              All website content, logos, and trademarks remain the property of St. Dreux Coffee. Use without consent is prohibited.
+              All website content, logos, and trademarks remain the property of CaterlyCoffee. Use without consent is prohibited.
             </p>
           </section>
 

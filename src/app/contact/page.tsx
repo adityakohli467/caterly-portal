@@ -235,7 +235,7 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5 text-[#2952E6] mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-gray-900 font-medium mb-1">Address</p>
-                    <p className="text-gray-700">St Dreux Coffee Roasters</p>
+                    <p className="text-gray-700">Caterly Coffee Roasters</p>
                     <p className="text-gray-700">3/93 Jedda Rd, Prestons NSW 2170</p>
                   </div>
                 </div>
@@ -372,12 +372,12 @@ export default function ContactPage() {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="St Dreux Coffee Roasters Location"
+              title=" Caterly Coffee Roasters Location"
               className="absolute inset-0"
             />
           </div>
           <div className="mt-6 text-center">
-            <p className="text-gray-700 font-medium">St Dreux Coffee Roasters</p>
+            <p className="text-gray-700 font-medium"> Coffee Roasters</p>
             <p className="text-gray-600">3/93 Jedda Rd, Prestons NSW 2170</p>
           </div>
         </div>
