@@ -29,7 +29,7 @@ export default function AboutPage() {
         <div className="absolute inset-0">
           <Image
             src="/assets/sndurex/Wireframe - 37.png"
-            alt="The St. Dreux Story"
+            alt="The CaterlyStory"
             fill
             className="object-cover"
             priority
@@ -40,7 +40,7 @@ export default function AboutPage() {
           <div className="max-w-2xl text-white">
             <p className="text-lg sm:text-xl mb-3 font-light italic" style={{ color: '#C4A484' }}>People. Passion. Purpose.</p>
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6">
-              The St. Dreux Story
+              The CaterlyStory
             </h1>
             <p className="text-xl mb-8 text-white/90">
               Crafted with passion, enjoyed in sip. Taste the difference.
@@ -59,7 +59,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto text-center">
             <p className="text-gray-700 leading-relaxed text-lg mb-6">
-              At St. Dreux Coffee, everything starts with <span className="font-semibold italic" style={{ color: '#C4A484' }}>passion</span> — for people, for craft, and for the perfect cup. With decades of experience and a love for coffee's rich heritage, we bring together growers, baristas, and café owners to create something truly special.
+              At CaterlyCoffee, everything starts with <span className="font-semibold italic" style={{ color: '#C4A484' }}>passion</span> — for people, for craft, and for the perfect cup. With decades of experience and a love for coffee's rich heritage, we bring together growers, baristas, and café owners to create something truly special.
             </p>
             <p className="text-gray-700 leading-relaxed text-lg mb-6">
               Rooted in integrity and creativity, we build lasting partnerships and a community that shares our love for great coffee. Inspired by St. Dreux, the patron saint of coffeehouses, we carry forward his spirit of devotion and purpose — one cup at a time.

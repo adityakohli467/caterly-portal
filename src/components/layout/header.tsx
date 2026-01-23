@@ -1,495 +1,183 @@
-// "use client"
-
-// import Link from "next/link"
-// import Image from "next/image"
-// import { useEffect, useState } from "react"
-// import { Button } from "@/components/ui/button"
-// import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu"
-// import { useAuthStore } from "@/store/auth"
-// import { useCartStore } from "@/store/cart"
-// import { ShoppingCart, Menu, X, User, LogOut, LogIn } from "lucide-react"
-
-// export function Header() {
-//   const { isAuthenticated, user, logout, checkAuth } = useAuthStore()
-//   const { getTotalItems } = useCartStore()
-//   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-//   const [mounted, setMounted] = useState(false)
-
-//   useEffect(() => {
-//     setMounted(true)
-//     checkAuth()
-//   }, [checkAuth])
-
-//   // Close mobile menu when route changes
-//   useEffect(() => {
-//     setMobileMenuOpen(false)
-//   }, [])
-
-//   return (
-//     <header className="sticky top-0 z-50 shadow-md bg-[#0a0a0a] border-b border-[#1a1a1a]">
-//       {/* Main Navigation */}
-//       <div className="container mx-auto px-4 sm:px-6">
-//         <div className="flex items-center justify-between h-16 sm:h-20 min-h-[64px] sm:min-h-[80px]">
-//           {/* Logo - ZENN Text */}
-//           <Link href="/" className="flex items-center py-2 sm:py-3" onClick={() => setMobileMenuOpen(false)}>
-//             <span className="text-white text-2xl sm:text-3xl font-bold" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-//               ZENN
-//             </span>
-//           </Link>
-
-//           {/* Desktop Navigation */}
-//           <nav className="hidden lg:flex items-center gap-6 xl:gap-10">
-//             <Link href="/" className="text-white hover:text-[#055160] transition-colors text-base font-medium" style={{ fontFamily: 'Albert Sans' }}>
-//               HOME
-//             </Link>
-//             <Link href="/shop" className="text-white hover:text-[#055160] transition-colors text-base font-medium" style={{ fontFamily: 'Albert Sans' }}>
-//               CATERING
-//             </Link>
-//             <Link href="/contact" className="text-white hover:text-[#055160] transition-colors text-base font-medium" style={{ fontFamily: 'Albert Sans' }}>
-//               CONTACT
-//             </Link>
-//           </nav>
-
-//           {/* Desktop Actions */}
-//           <div className="hidden lg:flex items-center gap-4 xl:gap-6">
-//             <Link href="/quote">
-//               <Button className="bg-[#055160] hover:bg-[#04414d] text-white px-6 py-2 text-base" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-//                 ORDER NOW
-//               </Button>
-//             </Link>
-//             <Link href="/cart" className="flex items-center gap-2 text-white hover:text-[#055160] transition-colors whitespace-nowrap">
-//               <ShoppingCart className="h-5 w-5" />
-//               {mounted && getTotalItems() > 0 && (
-//                 <span className="text-sm">({getTotalItems()})</span>
-//               )}
-//             </Link>
-
-//             {!mounted ? (
-//               // Show nothing during SSR to prevent hydration mismatch
-//               <div className="flex items-center gap-3" style={{ minHeight: '40px' }}></div>
-//             ) : isAuthenticated ? (
-//               <DropdownMenu
-//                 trigger={
-//                   <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1a1a1a] hover:bg-[#055160] text-white transition-colors border border-[#2a2a2a]">
-//                     <User className="h-5 w-5" />
-//                   </button>
-//                 }
-//                 align="right"
-//               >
-//                 <div className="py-1 bg-[#0a0a0a] border border-[#1a1a1a]">
-//                   <div className="px-4 py-2 border-b border-[#1a1a1a]">
-//                     <p className="text-sm font-medium text-white">
-//                       {user?.username || user?.email?.split('@')[0] || 'User'}
-//                     </p>
-//                     {user?.email && (
-//                       <p className="text-xs text-gray-400 truncate">{user.email}</p>
-//                     )}
-//                   </div>
-//                   <DropdownMenuItem asChild>
-//                     <Link href="/account" className="flex items-center gap-2">
-//                       <User className="h-4 w-4" />
-//                       Account
-//                     </Link>
-//                   </DropdownMenuItem>
-//                   <DropdownMenuItem onClick={logout} className="text-red-600">
-//                     <div className="flex items-center gap-2">
-//                       <LogOut className="h-4 w-4" />
-//                       Logout
-//                     </div>
-//                   </DropdownMenuItem>
-//                 </div>
-//               </DropdownMenu>
-//             ) : (
-//               <DropdownMenu
-//                 trigger={
-//                   <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1a1a1a] hover:bg-[#055160] text-white transition-colors border border-[#2a2a2a]">
-//                     <User className="h-5 w-5" />
-//                   </button>
-//                 }
-//                 align="right"
-//               >
-//                 <div className="py-1 bg-[#0a0a0a] border border-[#1a1a1a]">
-//                   <DropdownMenuItem asChild>
-//                     <Link href="/auth/login" className="flex items-center gap-2 text-white hover:text-[#055160]">
-//                       <LogIn className="h-4 w-4" />
-//                       Login
-//                     </Link>
-//                   </DropdownMenuItem>
-//                   <DropdownMenuItem asChild>
-//                     <Link href="/auth/register" className="flex items-center gap-2 text-white hover:text-[#055160]">
-//                       <User className="h-4 w-4" />
-//                       Register
-//                     </Link>
-//                   </DropdownMenuItem>
-//                 </div>
-//               </DropdownMenu>
-//             )}
-//           </div>
-
-//           {/* Mobile Actions */}
-//           <div className="flex lg:hidden items-center gap-3">
-//             <Link href="/cart" className="flex items-center gap-1 text-white hover:text-[#055160] transition-colors relative">
-//               <ShoppingCart className="h-5 w-5" />
-//               {mounted && getTotalItems() > 0 ? (
-//                 <span className="absolute -top-1 -right-1 bg-[#055160] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-//                   {getTotalItems()}
-//                 </span>
-//               ) : null}
-//             </Link>
-
-//             {/* Mobile Menu Button */}
-//             <button
-//               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-//               className="text-white hover:text-[#055160] transition-colors p-2"
-//               aria-label="Toggle menu"
-//             >
-//               {mobileMenuOpen ? (
-//                 <X className="h-6 w-6" />
-//               ) : (
-//                 <Menu className="h-6 w-6" />
-//               )}
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Mobile Menu */}
-//         {mobileMenuOpen && (
-//           <div className="lg:hidden border-t border-[#1a1a1a] animate-in slide-in-from-top bg-[#0a0a0a]">
-//             <nav className="flex flex-col py-4">
-//               <Link
-//                 href="/"
-//                 className="px-4 py-3 text-white hover:bg-[#1a1a1a] hover:text-[#055160] transition-colors text-base"
-//                 onClick={() => setMobileMenuOpen(false)}
-//                 style={{ fontFamily: 'Albert Sans' }}
-//               >
-//                 HOME
-//               </Link>
-//               <Link
-//                 href="/shop"
-//                 className="px-4 py-3 text-white hover:bg-[#1a1a1a] hover:text-[#055160] transition-colors text-base"
-//                 onClick={() => setMobileMenuOpen(false)}
-//                 style={{ fontFamily: 'Albert Sans' }}
-//               >
-//                 CATERING
-//               </Link>
-//               <Link
-//                 href="/contact"
-//                 className="px-4 py-3 text-white hover:bg-[#1a1a1a] hover:text-[#055160] transition-colors text-base"
-//                 onClick={() => setMobileMenuOpen(false)}
-//                 style={{ fontFamily: 'Albert Sans' }}
-//               >
-//                 CONTACT
-//               </Link>
-//               <div className="px-4 py-3 border-t border-[#1a1a1a] mt-2">
-//                 <Link href="/quote" onClick={() => setMobileMenuOpen(false)}>
-//                   <Button className="w-full bg-[#055160] hover:bg-[#04414d] text-white" style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}>
-//                     ORDER NOW
-//                   </Button>
-//                 </Link>
-//               </div>
-              
-//               <div className="border-t border-[#1a1a1a] mt-2 pt-4 space-y-1">
-//                 {!mounted ? (
-//                   // Show nothing during SSR to prevent hydration mismatch
-//                   <div style={{ minHeight: '40px' }}></div>
-//                 ) : isAuthenticated ? (
-//                   <>
-//                     <div className="px-4 py-2 border-b border-[#1a1a1a]">
-//                       <p className="text-white text-sm font-medium">
-//                         {user?.username || user?.email?.split('@')[0] || 'User'}
-//                       </p>
-//                       {user?.email && (
-//                         <p className="text-gray-400 text-xs truncate">{user.email}</p>
-//                       )}
-//                     </div>
-//                     <Link
-//                       href="/account"
-//                       className="flex items-center gap-2 px-4 py-3 text-white hover:bg-[#1a1a1a] hover:text-[#055160] transition-colors text-base"
-//                       onClick={() => setMobileMenuOpen(false)}
-//                     >
-//                       <User className="h-4 w-4" />
-//                       Account
-//                     </Link>
-//                     <button
-//                       className="flex items-center gap-2 w-full px-4 py-3 text-white hover:bg-[#1a1a1a] hover:text-[#055160] transition-colors text-base text-left"
-//                       onClick={() => {
-//                         logout()
-//                         setMobileMenuOpen(false)
-//                       }}
-//                     >
-//                       <LogOut className="h-4 w-4" />
-//                       Logout
-//                     </button>
-//                   </>
-//                 ) : (
-//                   <>
-//                     <Link
-//                       href="/auth/login"
-//                       className="flex items-center gap-2 px-4 py-3 text-white hover:bg-[#1a1a1a] hover:text-[#055160] transition-colors text-base"
-//                       onClick={() => setMobileMenuOpen(false)}
-//                     >
-//                       <LogIn className="h-4 w-4" />
-//                       Login
-//                     </Link>
-//                     <Link
-//                       href="/auth/register"
-//                       className="flex items-center gap-2 px-4 py-3 text-white hover:bg-[#1a1a1a] hover:text-[#055160] transition-colors text-base"
-//                       onClick={() => setMobileMenuOpen(false)}
-//                     >
-//                       <User className="h-4 w-4" />
-//                       Register
-//                     </Link>
-//                   </>
-//                 )}
-//               </div>
-//             </nav>
-//           </div>
-//         )}
-//       </div>
-//     </header>
-//   )
-// }
-
-
 "use client"
 
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { useState } from "react"
 import { useAuthStore } from "@/store/auth"
 import { useCartStore } from "@/store/cart"
-import { ShoppingCart, Menu, X, User, LogOut, LogIn } from "lucide-react"
+import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
+import Image from "next/image"
+import { Menu, X, User, ShoppingCart, LogOut, UserCircle } from "lucide-react"
 
 export function Header() {
-  const { isAuthenticated, user, logout, checkAuth } = useAuthStore()
-  const { getTotalItems } = useCartStore()
+  const [open, setOpen] = useState(false)
+  const { user, isAuthenticated, logout } = useAuthStore()
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    checkAuth()
-  }, [checkAuth])
+  // ✅ Subscribe directly to cart items for instant updates
+  const cartItems = useCartStore((state) => state.items)
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0a0a0a] border-b border-[#1a1a1a] shadow-md">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+    <header className="sticky top-0 z-50 bg-white border-b border-[#E6E6E6]">
+      {/* ================= MAIN BAR ================= */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-[72px]">
 
           {/* LOGO */}
-          <Link href="/" className="text-white text-2xl sm:text-3xl font-bold">
-            ZENN
+          <Link href="/" className="flex items-center h-full">
+            <Image
+              src="/assets/images/cat_logo.png"
+              alt="Caterly Logo"
+              width={140}
+              height={48}
+              className="object-contain max-h-[48px]"
+              priority
+            />
           </Link>
 
           {/* DESKTOP NAV */}
-          <nav className="hidden lg:flex items-center gap-8">
-            <Link href="/" className="text-white hover:text-[#055160]">HOME</Link>
-            <Link href="/shop" className="text-white hover:text-[#055160]">CATERING</Link>
-            <Link href="/contact" className="text-white hover:text-[#055160]">CONTACT</Link>
-          </nav>
-
-          {/* DESKTOP ACTIONS */}
-          <div className="hidden lg:flex items-center gap-5">
-            <Link href="/shop">
-              <Button className="bg-[#055160] hover:bg-[#04414d] text-white">
-                ORDER NOW
-              </Button>
+          <nav className="hidden md:flex items-center gap-10 text-[16px] font-medium text-black">
+            <Link href="/" className="hover:text-[#E03A3E]">
+              Home
             </Link>
 
-            <Link href="/cart" className="relative text-white hover:text-[#055160]">
-              <ShoppingCart className="h-5 w-5" />
-              {mounted && getTotalItems() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#055160] text-white text-xs h-5 w-5 rounded-full flex items-center justify-center">
-                  {getTotalItems()}
+            <Link href="/shop" className="hover:text-[#E03A3E]">
+              Catering
+            </Link>
+
+            <Link
+              href="/call"
+              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-[10px] font-semibold text-sm"
+            >
+              Contact
+            </Link>
+
+            {/*
+            <Link href="/venue" className="hover:text-[#E03A3E]">
+              Venue
+            </Link>
+            <Link href="/staff" className="hover:text-[#E03A3E]">
+              Staff
+            </Link>
+            */}
+          </nav>
+
+          {/* DESKTOP RIGHT */}
+          <div className="hidden md:flex items-center gap-6">
+            {/* CART */}
+            <Link
+              href="/cart"
+              className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition"
+              aria-label="Cart"
+            >
+              <ShoppingCart className="w-6 h-6 text-[#E03A3E]" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#E03A3E] text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                  {totalItems}
                 </span>
               )}
             </Link>
 
-            {/* USER DROPDOWN */}
-            {mounted && (
+            {/* PROFILE / LOGIN */}
+            {isAuthenticated && user ? (
               <DropdownMenu
                 trigger={
-                  <button className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1a1a1a] hover:bg-[#055160] text-white border border-[#2a2a2a]">
-                    <User className="h-5 w-5" />
-                  </button>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 cursor-pointer">
+                    <User className="w-6 h-6 text-[#E03A3E]" />
+                    <span className="font-medium text-black text-sm max-w-[120px] truncate">
+                      {user.username}
+                    </span>
+                  </div>
                 }
                 align="right"
               >
-                <div className="bg-[#0a0a0a] border border-[#1a1a1a] py-1">
+                {/* User Info Header */}
+                <div className="px-4 py-4 border-b border-gray-200">
+                  <div className="text-black font-semibold text-lg">
+                    {user.username}
+                  </div>
+                  <div className="text-gray-500 text-sm mt-1">
+                    {user.email || `${user.username.toLowerCase()}@example.com`}
+                  </div>
+                </div>
 
-                  {isAuthenticated ? (
-                    <>
-                      <div className="px-4 py-2 border-b border-[#1a1a1a]">
-                        <p className="text-white text-sm font-medium">
-                          {user?.username || user?.email?.split("@")[0]}
-                        </p>
-                        {user?.email && (
-                          <p className="text-xs text-gray-400 truncate">
-                            {user.email}
-                          </p>
-                        )}
-                      </div>
+                {/* Menu Items */}
+                <div className="py-1">
+                  <DropdownMenuItem asChild>
+                    <Link href="/account" className="flex items-center gap-3">
+                      <UserCircle className="w-5 h-5" />
+                      <span>Account</span>
+                    </Link>
+                  </DropdownMenuItem>
 
-                      <DropdownMenuItem
-                        className="text-white hover:bg-white hover:text-black focus:bg-white focus:text-black"
-                        asChild
-                      >
-                        <Link href="/account" className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          Account
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={logout}
-                        className="text-red-500 hover:bg-white hover:text-red-600 focus:bg-white focus:text-red-600"
-                      >
-                        <div className="flex items-center gap-2">
-                          <LogOut className="h-4 w-4" />
-                          Logout
-                        </div>
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      <DropdownMenuItem
-                        className="text-white hover:bg-white hover:text-black focus:bg-white focus:text-black"
-                        asChild
-                      >
-                        <Link href="/auth/login" className="flex items-center gap-2">
-                          <LogIn className="h-4 w-4" />
-                          Login
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        className="text-white hover:bg-white hover:text-black focus:bg-white focus:text-black"
-                        asChild
-                      >
-                        <Link href="/auth/register" className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          Register
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="text-[#E03A3E] hover:bg-gray-100"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
                 </div>
               </DropdownMenu>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition"
+                aria-label="Profile / Login"
+              >
+                <User className="w-6 h-6 text-[#E03A3E]" />
+              </Link>
             )}
           </div>
 
-          {/* MOBILE ICONS */}
-          <div className="flex lg:hidden items-center gap-3">
-            <Link href="/cart" className="relative text-white">
-              <ShoppingCart className="h-5 w-5" />
-              {mounted && getTotalItems() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#055160] text-white text-xs h-4 w-4 rounded-full flex items-center justify-center">
-                  {getTotalItems()}
-                </span>
-              )}
-            </Link>
+          {/* MOBILE MENU BUTTON */}
+          <button
+            onClick={() => setOpen(true)}
+            className="md:hidden text-[#E03A3E]"
+            aria-label="Open menu"
+          >
+            <Menu className="w-7 h-7" />
+          </button>
+        </div>
+      </div>
 
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle Menu"
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6 text-white" />
-              ) : (
-                <Menu className="h-6 w-6 text-white" />
-              )}
+      {/* ================= MOBILE MENU ================= */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-50 bg-white">
+          {/* TOP BAR */}
+          <div className="flex items-center justify-between h-[72px] px-4 border-b border-[#E6E6E6]">
+            <Image
+              src="/assets/images/cat_logo.png"
+              alt="Caterly Logo"
+              width={130}
+              height={44}
+              className="object-contain"
+            />
+            <button onClick={() => setOpen(false)} aria-label="Close menu">
+              <X className="w-7 h-7 text-[#E03A3E]" />
             </button>
           </div>
+
+          {/* LINKS */}
+          <nav className="flex flex-col px-6 pt-8 gap-6 text-[18px] font-medium text-black">
+            <Link href="/" onClick={() => setOpen(false)}>
+              Home
+            </Link>
+            <Link href="/shop" onClick={() => setOpen(false)}>
+              Catering
+            </Link>
+
+            <div className="pt-6 border-t border-gray-200">
+              <Link
+                href="/call"
+                onClick={() => setOpen(false)}
+                className="inline-block bg-[#E03A3E] text-white px-6 py-3 rounded-[12px] font-semibold text-center"
+              >
+                Contact
+              </Link>
+            </div>
+          </nav>
         </div>
-
-        {/* MOBILE MENU */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#0a0a0a] border-t border-[#1a1a1a]">
-            <nav className="flex flex-col py-4">
-
-              <Link
-                href="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-3 text-white hover:bg-white hover:text-black"
-              >
-                HOME
-              </Link>
-
-              <Link
-                href="/shop"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-3 text-white hover:bg-white hover:text-black"
-              >
-                CATERING
-              </Link>
-
-              <Link
-                href="/contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-3 text-white hover:bg-white hover:text-black"
-              >
-                CONTACT
-              </Link>
-
-              {/* MOBILE ORDER NOW */}
-              <div className="px-4 py-4 border-t border-[#1a1a1a]">
-                <Link href="/shop" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full bg-[#055160] hover:bg-[#04414d] text-white font-semibold">
-                    ORDER NOW
-                  </Button>
-                </Link>
-              </div>
-
-              {/* MOBILE AUTH */}
-              <div className="border-t border-[#1a1a1a] pt-3">
-                {isAuthenticated ? (
-                  <>
-                    <Link
-                      href="/account"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-3 text-white hover:bg-white hover:text-black"
-                    >
-                      Account
-                    </Link>
-
-                    <button
-                      onClick={() => {
-                        logout()
-                        setMobileMenuOpen(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-red-500 hover:bg-white hover:text-red-600"
-                    >
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/auth/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-3 text-white hover:bg-white hover:text-black"
-                    >
-                      Login
-                    </Link>
-
-                    <Link
-                      href="/auth/register"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-3 text-white hover:bg-white hover:text-black"
-                    >
-                      Register
-                    </Link>
-                  </>
-                )}
-              </div>
-
-            </nav>
-          </div>
-        )}
-      </div>
+      )}
     </header>
   )
 }

@@ -1,73 +1,106 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Facebook, Instagram } from "lucide-react"
-import { api } from "@/lib/api"
-import { toast } from "sonner"
+import Link from "next/link"
 
 export function Footer() {
-  const [email, setEmail] = useState("")
-  const [loading, setLoading] = useState(false)
-
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!email.trim()) {
-      toast.error("Please enter your email address")
-      return
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email.trim())) {
-      toast.error("Please enter a valid email address")
-      return
-    }
-
-    try {
-      setLoading(true)
-      const response = await api.post("/store/newsletter/subscribe", {
-        email: email.trim(),
-      })
-
-      toast.success(response.data.message || "Successfully subscribed to our newsletter!")
-      setEmail("")
-    } catch (error: any) {
-      console.error("Newsletter subscription error:", error)
-      const errorMessage = error.response?.data?.message || "Failed to subscribe. Please try again later."
-      toast.error(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
-    <footer className="bg-[#0a0a0a] text-white border-t border-[#1a1a1a]">
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          {/* Logo and Brand */}
-          <div>
-            <div className="mb-4">
-              <span className="text-white text-2xl font-bold" style={{ fontFamily: 'Albert Sans', fontWeight: 700 }}>
-                ZENN
-              </span>
+    <footer className="bg-[#5B1919] text-white font-sans">
+      {/* ================= DESKTOP ================= */}
+      <div className="hidden md:block">
+        <div className="max-w-7xl mx-auto px-10 py-14">
+          <div className="grid grid-cols-3 gap-12 items-start">
+
+            {/* LOGO + COPYRIGHT */}
+            <div>
+              <Image
+                src="/assets/images/cat_logo.png"
+                alt="Caterly Logo"
+                width={160}
+                height={70}
+                className="mb-6"
+              />
+              <p className="text-sm text-white/80">
+                2025 © All Rights Reserved Europa Pizza
+              </p>
             </div>
-            <p className="text-sm text-white/60">© Zenn Cafe. All rights reserved.</p>
-          </div>
 
-          {/* Contact Info */}
-          <div>
-            <h4 className="font-semibold mb-4 text-white" style={{ fontFamily: 'Albert Sans' }}>GET IN TOUCH WITH US</h4>
-            <ul className="space-y-2 text-sm">
-              <li className="text-white/70">Email: catering@zenncafe.com.au</li>
-            </ul>
-          </div>
+            {/* CONTACT INFO */}
+            <div>
+              <h4 className="text-lg font-semibold mb-5">
+                Contact Info
+              </h4>
+              <p className="mb-3">
+                <span className="font-semibold">Phone:</span>{" "}
+                1300 827 286
+              </p>
+              <p>
+                <span className="font-semibold">Email:</span>{" "}
+                Catering@caterly.com.au
+              </p>
+            </div>
 
+            {/* INFORMATION */}
+            <div>
+              <h4 className="text-lg font-semibold mb-5">
+                Information
+              </h4>
+              <ul className="space-y-3">
+                <li><Link href="#">Venue</Link></li>
+                <li><Link href="#">About Us</Link></li>
+                <li><Link href="#">Terms & Conditions</Link></li>
+                <li><Link href="#">Contact Us</Link></li>
+              </ul>
+            </div>
+
+          </div>
         </div>
+      </div>
+
+      {/* ================= MOBILE ================= */}
+      <div className="md:hidden px-6 py-10">
+        {/* LOGO */}
+        <div className="mb-8">
+          <Image
+            src="/assets/images/cat_logo.png"
+            alt="Caterly Logo"
+            width={150}
+            height={65}
+          />
+        </div>
+
+        {/* CONTACT INFO */}
+        <div className="mb-10">
+          <h4 className="text-xl font-semibold mb-4">
+            Contact Info
+          </h4>
+          <p className="mb-4">
+            <span className="font-semibold">Phone:</span>{" "}
+            1300 827 286
+          </p>
+          <p>
+            <span className="font-semibold">Email:</span>{" "}
+            Catering@caterly.com.au
+          </p>
+        </div>
+
+        {/* INFORMATION */}
+        <div className="mb-12">
+          <h4 className="text-xl font-semibold mb-4">
+            Information
+          </h4>
+          <ul className="space-y-4">
+            <li><Link href="#">Venue</Link></li>
+            <li><Link href="#">About Us</Link></li>
+            <li><Link href="#">Terms & Conditions</Link></li>
+            <li><Link href="#">Contact Us</Link></li>
+          </ul>
+        </div>
+
+        {/* COPYRIGHT */}
+        <p className="text-sm text-white/80">
+          2025 © All Rights Reserved Europa Pizza
+        </p>
       </div>
     </footer>
   )

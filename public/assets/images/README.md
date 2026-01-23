@@ -1,10 +1,10 @@
-# Image Assets for St. Dreux Coffee
+# Image Assets for CaterlyCoffee
 
 Place your actual images in this folder with these names:
 
 ## Authentication Pages
 - `coffee-cups-bg.jpg` - Coffee cups on wooden tray (for auth page left panel)
-- `logo.svg` - St. Dreux logo with icon
+- `logo.svg` - Caterlylogo with icon
 - `logo-white.svg` - White version of logo
 
 ## Homepage

@@ -1,4 +1,4 @@
-name: Deploy Zenn Portal
+name: Deploy Caterly Portal
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy Zenn Portal to EC2
+    name: Deploy Caterly Portal to EC2
     runs-on: ubuntu-latest
 
     steps:
@@ -27,10 +27,10 @@ jobs:
             set -e
 
             echo "📁 Moving to project directory"
-            cd /home/ubuntu/zenn/zenn_portal
+            cd /home/ubuntu/Caterly/Caterly_portal
 
             echo "🔄 Pulling latest code using GitHub PAT"
-            git pull https://kaushikaspace:${{ secrets.GH_PAT }}@github.com/kaushikaspace/zenn_portal.git main
+            git pull https://kaushikaspace:${{ secrets.GH_PAT }}@github.com/kaushikaspace/Caterly_portal.git main
 
             echo "🧹 Cleaning old build"
             rm -rf .next
@@ -48,9 +48,9 @@ jobs:
 
             echo "🚀 Restarting PM2 process"
             cd .next/standalone
-            PORT=3000 pm2 restart zenn-portal --update-env || PORT=3000 pm2 start server.js --name zenn-portal
+            PORT=3000 pm2 restart Caterly-portal --update-env || PORT=3000 pm2 start server.js --name Caterly-portal
 
             echo "💾 Saving PM2 state"
             pm2 save
 
-            echo "✅ Zenn Portal deployment completed successfully"
+            echo "✅ Caterly Portal deployment completed successfully"

@@ -5,7 +5,7 @@ This folder contains all the images and assets needed for the storefront.
 ## Required Images
 
 ### Logo
-- **logo.svg** or **logo.png** - St. Dreux Coffee logo (the white script text with icon)
+- **logo.svg** or **logo.png** - CaterlyCoffee logo (the white script text with icon)
 - **logo-dark.svg** or **logo-dark.png** - Dark version for light backgrounds
 
 ### Background Images
@@ -43,7 +43,7 @@ import Image from 'next/image'
 // For static images
 <Image 
   src="/assets/images/logo.svg" 
-  alt="St. Dreux Coffee"
+  alt="CaterlyCoffee"
   width={200}
   height={80}
 />

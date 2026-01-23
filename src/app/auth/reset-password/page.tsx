@@ -121,7 +121,7 @@ function ResetPasswordPageContent() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-[#1a1a1a] items-center justify-center overflow-hidden">
         <Image
           src="/assets/images/reg.png"
-          alt="St. Dreux Coffee"
+          alt="CaterlyCoffee"
           fill
           className="object-cover"
           priority

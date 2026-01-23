@@ -15,7 +15,7 @@ const albertSans = {
 }
 
 export const metadata: Metadata = {
-  title: "ZENN",
+  title: "Caterly",
   description: "Where quality is more than a promise. Experience the perfect harmony of flavor, creativity, and hospitality.",
   icons: {
     icon: "/favicon.ico",
@@ -40,8 +40,8 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
-          <Toaster 
-            position="top-right" 
+          <Toaster
+            position="top-right"
             richColors
             closeButton
             duration={3000}
