@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
@@ -30,11 +31,17 @@ interface Category {
 }
 
 function ShopPageContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { addItem } = useCartStore()
 
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(() => {
+    // Initialize from URL on first render
+    const categoryParam = searchParams.get('category')
+    return categoryParam ? parseInt(categoryParam) : null
+  })
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [loading, setLoading] = useState(true)
@@ -123,7 +130,10 @@ function ShopPageContent() {
               <div className="sticky top-24 space-y-6">
 
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => {
+                    setSelectedCategory(null)
+                    router.push('/shop')
+                  }}
                   className="w-full bg-[#E03A3E] text-white py-2 rounded-md text-sm font-semibold hover:bg-[#cc3236]"
                 >
                   All Menu
@@ -135,12 +145,14 @@ function ShopPageContent() {
                     {categories.map(cat => (
                       <li
                         key={cat.category_id}
-                        onClick={() => setSelectedCategory(cat.category_id)}
-                        className={`px-3 py-1.5 rounded-md cursor-pointer ${
-                          selectedCategory === cat.category_id
-                            ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
-                            : "hover:bg-gray-100 text-gray-700"
-                        }`}
+                        onClick={() => {
+                          setSelectedCategory(cat.category_id)
+                          router.push(`/shop?category=${cat.category_id}`)
+                        }}
+                        className={`px-3 py-1.5 rounded-md cursor-pointer ${selectedCategory === cat.category_id
+                          ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
+                          : "hover:bg-gray-100 text-gray-700"
+                          }`}
                       >
                         {cat.category_name}
                       </li>

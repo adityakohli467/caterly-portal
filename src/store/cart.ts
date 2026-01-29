@@ -19,6 +19,8 @@ interface CartItem {
   product_image?: string
   options?: ProductOption[]
   cart_item_id?: string // Unique ID for items with different options
+  delivery_frequency?: string // "One Time", "2 Weeks", "4 Weeks", "8 Weeks"
+  delivery_start_date?: string // ISO date string for subscription start
 }
 
 interface CartState {
@@ -26,6 +28,8 @@ interface CartState {
   addItem: (item: Omit<CartItem, "quantity" | "cart_item_id"> & { quantity?: number }) => void
   removeItem: (cartItemId: string) => void
   updateQuantity: (cartItemId: string, quantity: number) => void
+  updateDeliveryFrequency: (cartItemId: string, frequency: string) => void
+  updateDeliveryStartDate: (cartItemId: string, startDate: string) => void
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
@@ -53,7 +57,7 @@ export const useCartStore = create<CartState>()(
         const items = get().items
         const cartItemId = generateCartItemId(item.product_id, item.options)
         const quantity = item.quantity || 1
-        
+
         const existing = items.find((i) => {
           const existingId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
           return existingId === cartItemId
@@ -69,21 +73,24 @@ export const useCartStore = create<CartState>()(
             }),
           })
         } else {
-          set({ 
-            items: [...items, { 
-              ...item, 
+          set({
+            items: [...items, {
+              ...item,
               quantity,
-              cart_item_id: cartItemId
-            }] 
+              cart_item_id: cartItemId,
+              delivery_frequency: item.delivery_frequency || "One Time", // Default to One Time
+            }]
           })
         }
       },
 
       removeItem: (cartItemId) => {
-        set({ items: get().items.filter((i) => {
-          const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
-          return itemId !== cartItemId
-        }) })
+        set({
+          items: get().items.filter((i) => {
+            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
+            return itemId !== cartItemId
+          })
+        })
       },
 
       updateQuantity: (cartItemId, quantity) => {
@@ -99,6 +106,24 @@ export const useCartStore = create<CartState>()(
         }
       },
 
+      updateDeliveryFrequency: (cartItemId, frequency) => {
+        set({
+          items: get().items.map((i) => {
+            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
+            return itemId === cartItemId ? { ...i, delivery_frequency: frequency } : i
+          }),
+        })
+      },
+
+      updateDeliveryStartDate: (cartItemId, startDate) => {
+        set({
+          items: get().items.map((i) => {
+            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
+            return itemId === cartItemId ? { ...i, delivery_start_date: startDate } : i
+          }),
+        })
+      },
+
       clearCart: () => {
         set({ items: [] })
       },
@@ -109,7 +134,7 @@ export const useCartStore = create<CartState>()(
 
       getItemPrice: (item) => {
         let basePrice = Number.parseFloat(item.product_price)
-        
+
         // Add option prices
         if (item.options && item.options.length > 0) {
           for (const option of item.options) {
@@ -124,7 +149,7 @@ export const useCartStore = create<CartState>()(
             }
           }
         }
-        
+
         return basePrice
       },
 

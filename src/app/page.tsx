@@ -35,7 +35,7 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 1. HERO SECTION */}
       {/* ================================================= */}
-      <section className="relative w-full h-[788px] overflow-hidden bg-white">
+      <section className="relative w-full h-[500px] md:h-[788px] overflow-hidden bg-white">
 
         {/* BACKGROUND IMAGE */}
         <Image
@@ -48,10 +48,10 @@ export default function HomePage() {
 
         {/* CONTENT */}
         <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="flex flex-col items-center text-center max-w-[900px] px-6 gap-[24px]">
+          <div className="flex flex-col items-center text-center max-w-[900px] px-4 md:px-6 gap-4 md:gap-[24px]">
 
             {/* HEADING */}
-            <h1 className="text-[56px] leading-[1.2] font-semibold text-black">
+            <h1 className="text-[32px] md:text-[56px] leading-[1.2] font-semibold text-black">
               Crafting{" "}
               <span className="text-[#E03A3E] italic font-semibold">
                 unforgettable
@@ -61,13 +61,13 @@ export default function HomePage() {
             </h1>
 
             {/* SUBTEXT */}
-            <p className="text-[16px] text-[#6B6B6B] max-w-[620px]">
+            <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[620px] px-4">
               Elevating every event with refined flavors, flawless presentation,
               and enduring impressions.
             </p>
 
             {/* BUTTONS */}
-            <div className="flex items-center gap-4 mt-2">
+            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-2 w-full sm:w-auto px-4">
               <button
                 className="
             bg-[#E03A3E]
@@ -78,27 +78,32 @@ export default function HomePage() {
             rounded-md
             text-sm
             font-semibold
+            w-full sm:w-auto
           "
               >
                 Book Now
               </button>
 
-              <button
-                className="
-            bg-white
-            border
-            border-[#E6E6E6]
-            hover:bg-gray-100
-            text-black
-            px-6
-            py-3
-            rounded-md
-            text-sm
-            font-semibold
-          "
-              >
-                View Menu
-              </button>
+              <Link href="/shop" passHref legacyBehavior>
+                <button
+                  className="
+              bg-white
+              border
+              border-[#E6E6E6]
+              hover:bg-gray-100
+              text-black
+              px-6
+              py-3
+              rounded-md
+              text-sm
+              font-semibold
+              cursor-pointer
+              w-full sm:w-auto
+            "
+                >
+                  View Menu
+                </button>
+              </Link>
             </div>
 
           </div>
@@ -110,27 +115,27 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 2. WHO WE ARE */}
       {/* ================================================= */}
-      <section className="bg-white py-16">
-        <div className="max-w-[1440px] mx-auto px-[120px]">
+      <section className="bg-white py-12 md:py-16">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
 
           {/* SECTION HEADER */}
-          <div className="text-center mb-20">
-            <h2 className="text-[32px] font-semibold text-black mb-4">
+          <div className="text-center mb-12 md:mb-20">
+            <h2 className="text-[24px] md:text-[32px] font-semibold text-black mb-3 md:mb-4">
               Our Services
             </h2>
-            <p className="text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto">
+            <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto px-4">
               From intimate gatherings to large scale events,
-              <br />
+              <br className="hidden md:block" />
               we've got you covered.
             </p>
           </div>
 
           {/* CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-[64px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-[64px]">
 
             {/* CARD 1 */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-              <div className="relative h-[260px] rounded-xl overflow-hidden mb-6">
+            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center">
+              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
                 <Image
                   src="/assets/images/c1.png"
                   alt="Catering Services"
@@ -157,8 +162,8 @@ export default function HomePage() {
             </div>
 
             {/* CARD 2 */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-              <div className="relative h-[260px] rounded-xl overflow-hidden mb-6">
+            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center">
+              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
                 <Image
                   src="/assets/images/c2.jpg"
                   alt="Venue Bookings"
@@ -185,8 +190,8 @@ export default function HomePage() {
             </div>
 
             {/* CARD 3 */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-              <div className="relative h-[260px] rounded-xl overflow-hidden mb-6">
+            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center">
+              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
                 <Image
                   src="/assets/images/c3.jpg"
                   alt="Staff Hire"
@@ -220,23 +225,23 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 3. CATERING EXCELLENCE */}
       {/* ================================================= */}
-      <section className="bg-white py-24">
-        <div className="max-w-[1440px] mx-auto px-[120px]">
+      <section className="bg-white py-12 md:py-24">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
 
           {/* HEADER */}
-          <div className="text-center mb-20">
-            <h2 className="text-[36px] font-semibold text-black mb-4">
+          <div className="text-center mb-12 md:mb-20">
+            <h2 className="text-[28px] md:text-[36px] font-semibold text-black mb-3 md:mb-4">
               Our Catering Services
             </h2>
-            <p className="text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto leading-relaxed">
+            <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto leading-relaxed px-4">
               From intimate gatherings to large corporate events, we offer a range
-              <br />
+              <br className="hidden md:block" />
               of catering services to meet your needs.
             </p>
           </div>
 
           {/* CARDS GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-[40px] gap-y-[64px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-x-[40px] md:gap-y-[64px]">
 
             {[
               {
@@ -325,7 +330,7 @@ export default function HomePage() {
       {/* 4. SERVICES / OFFERINGS */}
       {/* ================================================= */}
       <section
-        className="relative w-full py-[120px] bg-white overflow-hidden"
+        className="relative w-full py-12 md:py-20 lg:py-[120px] bg-white overflow-hidden"
         style={{
           backgroundImage: "url('/assets/images/frame.png')",
           backgroundSize: "cover",
@@ -333,24 +338,24 @@ export default function HomePage() {
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="relative max-w-[1440px] mx-auto px-[120px]">
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-[80px]">
+        <div className="relative max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-8 md:gap-12 lg:gap-[80px]">
 
             {/* LEFT CONTENT */}
             <div>
-              <h2 className="text-[32px] font-semibold text-black mb-6">
+              <h2 className="text-[24px] md:text-[28px] lg:text-[32px] font-semibold text-black mb-4 md:mb-6">
                 Who we are
               </h2>
 
-              <p className="text-[15px] text-[#333333] leading-relaxed mb-4 max-w-[520px]">
-                For over 15 years, we’ve been crafting exceptional catering experiences
+              <p className="text-[14px] md:text-[15px] text-[#333333] leading-relaxed mb-3 md:mb-4 max-w-[520px]">
+                For over 15 years, we've been crafting exceptional catering experiences
                 with a focus on fresh, seasonal ingredients and impeccable service.
                 Our team of passionate culinary experts creates memorable food
                 experiences for every occasion.
               </p>
 
-              <p className="text-[15px] text-[#333333] leading-relaxed max-w-[520px]">
-                We believe that great food brings people together. Whether you’re
+              <p className="text-[14px] md:text-[15px] text-[#333333] leading-relaxed max-w-[520px]">
+                We believe that great food brings people together. Whether you're
                 planning a corporate lunch, an elegant wedding, or an intimate dinner
                 party, we approach each event with creativity, attention to detail,
                 and a commitment to exceeding your expectations.
@@ -358,7 +363,7 @@ export default function HomePage() {
             </div>
 
             {/* RIGHT IMAGE */}
-            <div className="relative w-[652px] h-[380px] rounded-lg overflow-hidden">
+            <div className="relative w-full h-[280px] md:h-[380px] lg:w-[652px] rounded-lg overflow-hidden">
               <Image
                 src="/assets/images/c9.jpg"
                 alt="Product Image"
@@ -376,21 +381,21 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 5. EXPERIENCE SECTION */}
       {/* ================================================= */}
-      <section className="bg-white py-[120px]">
-        <div className="max-w-[1440px] mx-auto px-[120px]">
+      <section className="bg-white py-12 md:py-[120px]">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
 
           {/* HEADER */}
-          <div className="text-center mb-[80px]">
-            <h2 className="text-[36px] font-semibold text-black mb-4">
+          <div className="text-center mb-12 md:mb-[80px]">
+            <h2 className="text-[28px] md:text-[36px] font-semibold text-black mb-3 md:mb-4">
               Why Choose Us
             </h2>
-            <p className="text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto">
+            <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto px-4">
               From intimate gatherings to large scale events, we've got you covered
             </p>
           </div>
 
           {/* FEATURES */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-[80px] text-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-[80px] text-center">
 
             {/* ITEM 1 */}
             <div className="flex flex-col items-center">
@@ -487,23 +492,23 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 6. TESTIMONIALS */}
       {/* ================================================= */}
-      <section className="py-24 bg-white">
-        <div className="max-w-[1400px] mx-auto px-6 text-center">
+      <section className="py-12 md:py-24 bg-white">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 text-center">
 
           {/* Heading */}
-          <h2 className="text-[36px] font-semibold text-black mb-4">
+          <h2 className="text-[28px] md:text-[36px] font-semibold text-black mb-3 md:mb-4">
             Event Gallery
           </h2>
 
           {/* Subheading */}
-          <p className="text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto mb-16">
+          <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto mb-8 md:mb-16 px-4">
             Browse our portfolio of past events and get inspired for your next gathering.
           </p>
 
           {/* Gallery Images */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-16">
             {visibleImages.map((img, idx) => (
-              <div key={idx} className="relative h-[420px] rounded-xl overflow-hidden">
+              <div key={idx} className="relative h-[280px] md:h-[420px] rounded-xl overflow-hidden">
                 <Image
                   src={img}
                   alt={`Gallery image ${currentIndex + idx + 1}`}
@@ -544,8 +549,8 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 7. GALLERY */}
       {/* ================================================= */}
-      <section className="py-24 bg-white">
-        <div className="max-w-[1440px] mx-auto px-6">
+      <section className="py-12 md:py-24 bg-white">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-6">
 
           {/* CTA Wrapper */}
           <div
@@ -553,9 +558,9 @@ export default function HomePage() {
         relative
         rounded-2xl
         overflow-hidden
-        px-6
-        py-20
-        md:px-16
+        px-4 md:px-6
+        py-12 md:py-20
+        lg:px-16
         text-center
         flex
         items-center
@@ -575,12 +580,12 @@ export default function HomePage() {
             <div className="relative z-10 max-w-[900px] mx-auto">
 
               {/* Heading */}
-              <h2 className="text-[36px] md:text-[44px] font-semibold text-white mb-4 leading-tight">
+              <h2 className="text-[24px] md:text-[36px] lg:text-[44px] font-semibold text-white mb-3 md:mb-4 leading-tight">
                 Let&apos;s Make Your Event Delicious
               </h2>
 
               {/* Description */}
-              <p className="text-white/80 text-[16px] md:text-[17px] mb-10">
+              <p className="text-white/80 text-[14px] md:text-[16px] lg:text-[17px] mb-6 md:mb-10 px-4">
                 Ready to create an unforgettable culinary experience for your guests? Contact us today to start planning.
               </p>
 
@@ -631,18 +636,18 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 8. CALL TO ACTION */}
       {/* ================================================= */}
-      <section className="py-24 bg-white">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch border rounded-xl overflow-hidden">
+      <section className="py-12 md:py-24 bg-white">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-12 items-stretch border rounded-xl overflow-hidden">
 
             {/* LEFT : FORM */}
-            <div className="p-10">
+            <div className="p-6 md:p-10">
 
               {/* Heading */}
-              <h2 className="text-[28px] font-semibold text-black mb-2">
+              <h2 className="text-[24px] md:text-[28px] font-semibold text-black mb-2">
                 Request a Quote
               </h2>
-              <p className="text-gray-600 text-sm mb-8 max-w-md">
+              <p className="text-gray-600 text-sm mb-6 md:mb-8 max-w-md">
                 Fill out the form and our team will get back to you within 24 hours to
                 discuss your catering needs.
               </p>

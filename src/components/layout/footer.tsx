@@ -40,16 +40,32 @@ export function Footer() {
               </p>
             </div>
 
-            {/* INFORMATION */}
+            {/* INFORMATION (MATCHES HEADER) */}
             <div>
               <h4 className="text-lg font-semibold mb-5">
                 Information
               </h4>
               <ul className="space-y-3">
-                <li><Link href="#">Venue</Link></li>
-                <li><Link href="#">About Us</Link></li>
-                <li><Link href="#">Terms & Conditions</Link></li>
-                <li><Link href="#">Contact Us</Link></li>
+                <li>
+                  <Link href="/" className="hover:text-white/80">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop" className="hover:text-white/80">
+                    Catering
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/call" className="hover:text-white/80">
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-white/80">
+                    Terms & Conditions
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -84,16 +100,32 @@ export function Footer() {
           </p>
         </div>
 
-        {/* INFORMATION */}
+        {/* INFORMATION (MATCHES HEADER) */}
         <div className="mb-12">
           <h4 className="text-xl font-semibold mb-4">
             Information
           </h4>
           <ul className="space-y-4">
-            <li><Link href="#">Venue</Link></li>
-            <li><Link href="#">About Us</Link></li>
-            <li><Link href="#">Terms & Conditions</Link></li>
-            <li><Link href="#">Contact Us</Link></li>
+            <li>
+              <Link href="/" className="hover:text-white/80">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/shop" className="hover:text-white/80">
+                Catering
+              </Link>
+            </li>
+            <li>
+              <Link href="/call" className="hover:text-white/80">
+                Contact
+              </Link>
+            </li>
+            <li>
+              <Link href="/terms" className="hover:text-white/80">
+                Terms & Conditions
+              </Link>
+            </li>
           </ul>
         </div>
 

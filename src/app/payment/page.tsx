@@ -16,7 +16,7 @@ function PaymentPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get("order_id")
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, checkAuth } = useAuthStore()
   const { clearCart } = useCartStore()
 
   const [order, setOrder] = useState<any>(null)
@@ -24,12 +24,26 @@ function PaymentPageContent() {
   const [loadingOrder, setLoadingOrder] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/auth/login?redirect=/payment" + (orderId ? `?order_id=${orderId}` : ""))
-      return
+    const verifyAuth = async () => {
+      // First, try to restore auth from localStorage
+      try {
+        await checkAuth()
+      } catch (error) {
+        console.error("Auth check error:", error)
+      }
+
+      // Now check if authenticated (after checkAuth has run)
+      const currentAuthState = useAuthStore.getState()
+      if (!currentAuthState.isAuthenticated) {
+        router.push("/auth/login?redirect=/payment" + (orderId ? `?order_id=${orderId}` : ""))
+        return
+      }
+
+      if (orderId) fetchOrder()
     }
-    if (orderId) fetchOrder()
-  }, [isAuthenticated, orderId])
+
+    verifyAuth()
+  }, [orderId])
 
   const fetchOrder = async () => {
     try {
@@ -58,10 +72,10 @@ function PaymentPageContent() {
 
   if (!isAuthenticated) return null
 
-  // ✅ CORRECT GST LOGIC (GST only on subtotal)
-  const subtotal = Number(order?.subtotal || order?.order_total || 0)
+  // Recalculate GST correctly (backend may have wrong calculation)
+  const subtotal = Number(order?.subtotal || 0)
   const deliveryFee = Number(order?.delivery_fee || 0)
-  const gst = subtotal * 0.1 // 10% GST only on subtotal
+  const gst = subtotal * 0.1 // Always 10% of subtotal
   const finalTotal = subtotal + gst + deliveryFee
 
   return (

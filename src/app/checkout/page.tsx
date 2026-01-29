@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -48,8 +48,9 @@ interface Coupon {
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, updateQuantity, removeItem, getTotalPrice, getItemPrice, addItem, clearCart } = useCartStore()
+  const { items, updateQuantity, removeItem, getTotalPrice, getItemPrice, addItem, clearCart, updateDeliveryFrequency, updateDeliveryStartDate } = useCartStore()
   const { isAuthenticated, user, customer, checkAuth } = useAuthStore()
+  const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([])
@@ -59,11 +60,14 @@ export default function CheckoutPage() {
   const [validatingCoupon, setValidatingCoupon] = useState(false)
   const [shippingMethod, setShippingMethod] = useState("standard")
   const [shipToDifferentAddress, setShipToDifferentAddress] = useState(false)
-  const [subscriptionFrequency, setSubscriptionFrequency] = useState("One Time")
-  const [deliveryStartDate, setDeliveryStartDate] = useState("")
   const [deliveryNotes, setDeliveryNotes] = useState("")
   const [deliveryNotesImage, setDeliveryNotesImage] = useState<File | null>(null)
   const [deliveryNotesImagePreview, setDeliveryNotesImagePreview] = useState<string | null>(null)
+
+  // Fix hydration error - only render prices after client-side mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const [billingData, setBillingData] = useState({
     firstName: "",
@@ -100,37 +104,48 @@ export default function CheckoutPage() {
   useEffect(() => {
     // Only run once on mount
     const verifyAuth = async () => {
-      if (!isAuthenticated) {
-        router.push("/auth/login?redirect=/checkout")
-        return
-      }
-
-      // Verify token is still valid
+      // First, try to restore auth from localStorage
       try {
         await checkAuth()
-        // If checkAuth fails, it will clear auth state
-        if (!useAuthStore.getState().isAuthenticated) {
-          router.push("/auth/login?redirect=/checkout")
-          return
-        }
       } catch (error) {
-        // Token expired or invalid - redirect to login
-        router.push("/auth/login?redirect=/checkout")
-        return
+        // checkAuth handles errors internally, but we catch here just in case
+        console.error("Auth check error:", error)
       }
 
-      if (items.length === 0) {
-        router.push("/cart")
+      // Now check if authenticated (after checkAuth has run)
+      const currentAuthState = useAuthStore.getState()
+      if (!currentAuthState.isAuthenticated) {
+        router.push("/auth/login?redirect=/checkout")
         return
       }
 
       fetchRelatedProducts()
       fetchCoupons()
-      const currentUser = useAuthStore.getState().user
-      if (currentUser?.email) {
+
+      // Auto-fill billing data from customer information
+      const currentUser = currentAuthState.user
+      const currentCustomer = currentAuthState.customer
+
+      if (currentUser || currentCustomer) {
+        // Split full name into first and last name
+        const fullName = currentCustomer?.firstname && currentCustomer?.lastname
+          ? `${currentCustomer.firstname} ${currentCustomer.lastname}`
+          : currentCustomer?.firstname || ""
+
+        const nameParts = fullName.trim().split(" ")
+        const firstName = nameParts[0] || ""
+        const lastName = nameParts.slice(1).join(" ") || ""
+
         setBillingData(prev => ({
           ...prev,
-          email: currentUser.email || "",
+          firstName: firstName,
+          lastName: lastName,
+          email: currentUser?.email || currentCustomer?.email || "",
+          phone: currentCustomer?.telephone || "",
+          streetAddress: currentCustomer?.address_line1 || "",
+          suburb: currentCustomer?.suburb || "",
+          state: currentCustomer?.state || "",
+          postcode: currentCustomer?.postal_code || currentCustomer?.postcode || "",
         }))
       }
     }
@@ -348,7 +363,10 @@ export default function CheckoutPage() {
       const orderItems = items.map(item => ({
         product_id: item.product_id,
         quantity: item.quantity,
+        price: getItemPrice(item), // Include calculated price with options
         options: item.options || [],
+        delivery_frequency: item.delivery_frequency || "One Time", // Per-item frequency
+        delivery_start_date: item.delivery_frequency && item.delivery_frequency !== "One Time" ? item.delivery_start_date : null, // Per-item start date
       }))
 
       const totals = calculateTotal()
@@ -376,8 +394,6 @@ export default function CheckoutPage() {
         payment_method: "card",
         coupon_code: couponApplied?.code || null,
         postcode: billingData.postcode,
-        delivery_frequency: subscriptionFrequency, // Send subscription frequency
-        delivery_start_date: subscriptionFrequency !== "One Time" ? deliveryStartDate : null, // Only send date if subscription
         notes: deliveryNotes || null,
       }
 
@@ -422,7 +438,12 @@ export default function CheckoutPage() {
     }
   }
 
-  const totals = calculateTotal()
+  const totals = useMemo(() => calculateTotal(), [
+    items,
+    customer,
+    couponApplied,
+    shippingMethod,
+  ])
 
   return (
     <div className="flex flex-col bg-white">
@@ -534,7 +555,7 @@ export default function CheckoutPage() {
                       <div>
                         <Label htmlFor="billing-country" className="text-black">Country Region</Label>
                         <Select value={billingData.country} onValueChange={(value) => setBillingData({ ...billingData, country: value })}>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -576,7 +597,7 @@ export default function CheckoutPage() {
                       <div>
                         <Label htmlFor="billing-state" className="text-black">State <span className="text-red-500">*</span></Label>
                         <Select value={billingData.state} onValueChange={(value) => setBillingData({ ...billingData, state: value })}>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                             <SelectValue placeholder="Select State" />
                           </SelectTrigger>
                           <SelectContent>
@@ -666,7 +687,7 @@ export default function CheckoutPage() {
                         <div>
                           <Label htmlFor="shipping-country" className="text-black">Country Region</Label>
                           <Select value={shippingData.country} onValueChange={(value) => setShippingData({ ...shippingData, country: value })}>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -706,7 +727,7 @@ export default function CheckoutPage() {
                         <div>
                           <Label htmlFor="shipping-state" className="text-black">State</Label>
                           <Select value={shippingData.state} onValueChange={(value) => setShippingData({ ...shippingData, state: value })}>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                               <SelectValue placeholder="Select State" />
                             </SelectTrigger>
                             <SelectContent>
@@ -892,42 +913,41 @@ export default function CheckoutPage() {
                                 </div>
                               </div>
                             </div>
+
+                            {/* Per-Item Delivery Frequency */}
+                            <div className="mt-3 space-y-2">
+                              <Label className="text-xs text-gray-700">Delivery Frequency</Label>
+                              <Select
+                                value={item.delivery_frequency || "One Time"}
+                                onValueChange={(value) => updateDeliveryFrequency(cartItemId, value)}
+                              >
+                                <SelectTrigger className="h-8 text-xs bg-white border-gray-300 text-gray-900">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="One Time">One Time</SelectItem>
+                                  <SelectItem value="2 Weeks">Every 2 Weeks</SelectItem>
+                                  <SelectItem value="4 Weeks">Every 4 Weeks</SelectItem>
+                                  <SelectItem value="8 Weeks">Every 8 Weeks</SelectItem>
+                                </SelectContent>
+                              </Select>
+
+                              {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
+                                <div className="animate-in fade-in slide-in-from-top-2">
+                                  <Label className="text-xs text-gray-700">Start Date</Label>
+                                  <Input
+                                    type="date"
+                                    min={new Date().toISOString().split('T')[0]}
+                                    value={item.delivery_start_date || ""}
+                                    onChange={(e) => updateDeliveryStartDate(cartItemId, e.target.value)}
+                                    className="h-8 text-xs bg-white text-gray-900"
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )
                       })}
-                    </div>
-
-                    {/* Subscribe & Deliver Section */}
-                    <div className="mb-6">
-                      <Label className="mb-2 block text-gray-900">Delivery Frequency</Label>
-                      <Select value={subscriptionFrequency} onValueChange={setSubscriptionFrequency}>
-                        <SelectTrigger className="bg-white text-gray-900">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="One Time">One Time</SelectItem>
-                          <SelectItem value="2 Weeks">Every 2 Weeks</SelectItem>
-                          <SelectItem value="4 Weeks">Every 4 Weeks</SelectItem>
-                          <SelectItem value="8 Weeks">Every 8 Weeks</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      {subscriptionFrequency !== "One Time" && (
-                        <div className="mt-4 animate-in fade-in slide-in-from-top-2">
-                          <Label className="mb-2 block text-gray-900">Start Date of Delivery</Label>
-                          <Input
-                            type="date"
-                            min={new Date().toISOString().split('T')[0]}
-                            value={deliveryStartDate}
-                            onChange={(e) => setDeliveryStartDate(e.target.value)}
-                            required={subscriptionFrequency !== "One Time"}
-                            className="w-full bg-white text-gray-900"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Please select when you would like your subscription to start.
-                          </p>
-                        </div>
-                      )}
                     </div>
 
                     {/* Coupon Code Section */}
@@ -985,44 +1005,57 @@ export default function CheckoutPage() {
                         </div>
                       )}
 
-                      {!couponApplied && availableCoupons.length > 0 && (
+                      {!couponApplied && (
                         <div className="mt-4">
                           <button
                             type="button"
                             onClick={() => setShowCoupons(!showCoupons)}
                             className="text-sm text-[#E03A3E] hover:text-[#cc3236] font-medium mb-2 flex items-center gap-1"
                           >
+                            <Tag className="w-4 h-4" />
                             {showCoupons ? "Hide" : "View"} Available Coupons
+                            {availableCoupons.length > 0 && (
+                              <span className="ml-1 bg-red-100 text-[#E03A3E] text-xs px-2 py-0.5 rounded-full">
+                                {availableCoupons.length}
+                              </span>
+                            )}
                           </button>
 
                           {showCoupons && (
                             <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar animate-in fade-in slide-in-from-top-1">
-                              {availableCoupons.map((coupon) => (
-                                <div
-                                  key={coupon.id || coupon.code}
-                                  onClick={() => {
-                                    setCouponCode(coupon.code)
-                                  }}
-                                  className="border border-dashed border-gray-300 rounded-md p-2 hover:bg-red-50 hover:border-[#E03A3E] cursor-pointer transition-colors flex items-center gap-3 group"
-                                >
-                                  <div className="bg-red-100 text-[#E03A3E] p-1.5 rounded group-hover:bg-red-200 transition-colors">
-                                    <Tag className="w-4 h-4" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-center">
-                                      <span className="font-bold text-sm text-gray-800 truncate">{coupon.code}</span>
-                                      <span className="text-xs font-medium bg-gray-100 px-2 py-0.5 rounded text-gray-600">
-                                        {coupon.type === 'percentage' || coupon.type === 'P'
-                                          ? `${parseFloat(coupon.value)}% OFF`
-                                          : `$${parseFloat(coupon.value)} OFF`}
-                                      </span>
+                              {availableCoupons.length > 0 ? (
+                                availableCoupons.map((coupon) => (
+                                  <div
+                                    key={coupon.id || coupon.code}
+                                    onClick={() => {
+                                      setCouponCode(coupon.code)
+                                    }}
+                                    className="border border-dashed border-gray-300 rounded-md p-2 hover:bg-red-50 hover:border-[#E03A3E] cursor-pointer transition-colors flex items-center gap-3 group"
+                                  >
+                                    <div className="bg-red-100 text-[#E03A3E] p-1.5 rounded group-hover:bg-red-200 transition-colors">
+                                      <Tag className="w-4 h-4" />
                                     </div>
-                                    {coupon.description && (
-                                      <p className="text-xs text-gray-500 truncate mt-0.5">{coupon.description}</p>
-                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex justify-between items-center">
+                                        <span className="font-bold text-sm text-gray-800 truncate">{coupon.code}</span>
+                                        <span className="text-xs font-medium bg-gray-100 px-2 py-0.5 rounded text-gray-600">
+                                          {coupon.type === 'percentage' || coupon.type === 'P'
+                                            ? `${parseFloat(coupon.value)}% OFF`
+                                            : `$${parseFloat(coupon.value)} OFF`}
+                                        </span>
+                                      </div>
+                                      {coupon.description && (
+                                        <p className="text-xs text-gray-500 truncate mt-0.5">{coupon.description}</p>
+                                      )}
+                                    </div>
                                   </div>
+                                ))
+                              ) : (
+                                <div className="text-center py-4 px-3 bg-gray-50 rounded-md border border-dashed border-gray-300">
+                                  <p className="text-sm text-gray-600">No coupons available at the moment</p>
+                                  <p className="text-xs text-gray-500 mt-1">Check back later for special offers!</p>
                                 </div>
-                              ))}
+                              )}
                             </div>
                           )}
                         </div>
@@ -1033,13 +1066,13 @@ export default function CheckoutPage() {
                     <div className="space-y-2 mb-6 pb-6 border-b border-[#F2CACA] text-black">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal</span>
-                        <span>${totals.subtotal.toFixed(2)}</span>
+                        <span>${mounted ? totals.subtotal.toFixed(2) : '0.00'}</span>
                       </div>
 
                       {totals.wholesaleDiscount > 0 && (
                         <div className="flex justify-between text-sm text-blue-600">
                           <span>Wholesale Discount</span>
-                          <span>- ${totals.wholesaleDiscount.toFixed(2)}</span>
+                          <span>- ${mounted ? totals.wholesaleDiscount.toFixed(2) : '0.00'}</span>
                         </div>
                       )}
 
@@ -1048,26 +1081,26 @@ export default function CheckoutPage() {
                           <span>
                             Coupon Discount {couponApplied?.code && `(${couponApplied.code})`}
                           </span>
-                          <span>- ${totals.couponDiscount.toFixed(2)}</span>
+                          <span>- ${mounted ? totals.couponDiscount.toFixed(2) : '0.00'}</span>
                         </div>
                       )}
 
                       <div className="flex justify-between text-sm">
                         <span>GST (10%)</span>
-                        <span>${totals.gst.toFixed(2)}</span>
+                        <span>${mounted ? totals.gst.toFixed(2) : '0.00'}</span>
                       </div>
 
                       {totals.shippingFee > 0 && (
                         <div className="flex justify-between text-sm">
                           <span>Shipping</span>
-                          <span>${totals.shippingFee.toFixed(2)}</span>
+                          <span>${mounted ? totals.shippingFee.toFixed(2) : '0.00'}</span>
                         </div>
                       )}
                     </div>
 
                     <div className="flex justify-between text-lg font-bold mb-6 text-black">
                       <span>Total</span>
-                      <span>${totals.total.toFixed(2)}</span>
+                      <span>${mounted ? totals.total.toFixed(2) : '0.00'}</span>
                     </div>
 
                     <Button
@@ -1086,7 +1119,7 @@ export default function CheckoutPage() {
             </div>
           </form>
         </div>
-      </section>
-    </div>
+      </section >
+    </div >
   )
 }

@@ -50,19 +50,16 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     const verifyAuth = async () => {
-      if (!isAuthenticated) {
-        router.push("/auth/login")
-        return
-      }
-      
-      // Verify token is still valid
+      // First, try to restore auth from localStorage
       try {
         await checkAuth()
-        if (!useAuthStore.getState().isAuthenticated) {
-          router.push("/auth/login")
-          return
-        }
       } catch (error) {
+        console.error("Auth check error:", error)
+      }
+
+      // Now check if authenticated (after checkAuth has run)
+      const currentAuthState = useAuthStore.getState()
+      if (!currentAuthState.isAuthenticated) {
         router.push("/auth/login")
         return
       }
@@ -71,9 +68,9 @@ export default function OrderDetailPage() {
         fetchOrder()
       }
     }
-    
+
     verifyAuth()
-  }, [orderId, isAuthenticated, router, checkAuth])
+  }, [orderId, router, checkAuth])
 
   const fetchOrder = async () => {
     try {
@@ -157,7 +154,7 @@ export default function OrderDetailPage() {
             Back to Orders
           </Button>
         </Link>
-        
+
         {/* Payment Pending Alert */}
         {isPaymentPending && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -171,8 +168,8 @@ export default function OrderDetailPage() {
                   </p>
                 </div>
               </div>
-              <Button 
-                onClick={handleMakePayment} 
+              <Button
+                onClick={handleMakePayment}
                 className="bg-primary hover:bg-primary/90 text-white"
                 size="lg"
               >
@@ -289,7 +286,7 @@ export default function OrderDetailPage() {
                     ${parseFloat(order.subtotal || order.order_total || '0').toFixed(2)}
                   </span>
                 </div>
-                
+
                 {/* Wholesale Discount */}
                 {order.wholesale_discount && parseFloat(order.wholesale_discount) > 0 && (
                   <div className="flex justify-between text-blue-600">
@@ -299,7 +296,7 @@ export default function OrderDetailPage() {
                     </span>
                   </div>
                 )}
-                
+
                 {/* Coupon Discount */}
                 {order.coupon_discount && parseFloat(order.coupon_discount) > 0 && (
                   <div className="flex justify-between text-green-600">
@@ -311,7 +308,7 @@ export default function OrderDetailPage() {
                     </span>
                   </div>
                 )}
-                
+
                 {/* After Discount */}
                 {order.after_discount && (
                   <div className="flex justify-between">
@@ -321,7 +318,7 @@ export default function OrderDetailPage() {
                     </span>
                   </div>
                 )}
-                
+
                 {/* GST */}
                 {order.gst && parseFloat(order.gst) > 0 && (
                   <div className="flex justify-between">
@@ -331,7 +328,7 @@ export default function OrderDetailPage() {
                     </span>
                   </div>
                 )}
-                
+
                 {/* Shipping */}
                 {order.delivery_fee && parseFloat(order.delivery_fee) > 0 && (
                   <div className="flex justify-between">
@@ -341,7 +338,7 @@ export default function OrderDetailPage() {
                     </span>
                   </div>
                 )}
-                
+
                 {/* Total */}
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">

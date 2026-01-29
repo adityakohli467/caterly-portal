@@ -202,7 +202,7 @@ export default function CartPage() {
 
                 <Button
                   variant="outline"
-                  className="w-full border-[#E03A3E] text-[#E03A3E] hover:bg-[#FDECEC]"
+                  className="w-full bg-white border-[#E03A3E] text-[#E03A3E] hover:bg-[#FDECEC]"
                   onClick={() => router.push("/shop")}
                 >
                   Continue Shopping

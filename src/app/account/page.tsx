@@ -54,21 +54,16 @@ export default function AccountPage() {
 
   useEffect(() => {
     const verifyAuth = async () => {
-      if (!isAuthenticated) {
-        router.push("/auth/login")
-        return
-      }
-
-      // Verify token is still valid
+      // First, try to restore auth from localStorage
       try {
         await checkAuth()
-        // If checkAuth fails, it will clear auth state and we'll redirect
-        if (!useAuthStore.getState().isAuthenticated) {
-          router.push("/auth/login")
-          return
-        }
       } catch (error) {
-        // Token expired or invalid - redirect to login
+        console.error("Auth check error:", error)
+      }
+
+      // Now check if authenticated (after checkAuth has run)
+      const currentAuthState = useAuthStore.getState()
+      if (!currentAuthState.isAuthenticated) {
         router.push("/auth/login")
         return
       }
@@ -78,7 +73,7 @@ export default function AccountPage() {
     }
 
     verifyAuth()
-  }, [isAuthenticated, currentPage, router, checkAuth])
+  }, [currentPage, router, checkAuth])
 
   const fetchOrders = async () => {
     try {
