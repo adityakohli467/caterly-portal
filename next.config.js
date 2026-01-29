@@ -13,6 +13,7 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   images: {
+    unoptimized: true,
     domains: [
       'localhost',
       'via.placeholder.com',
