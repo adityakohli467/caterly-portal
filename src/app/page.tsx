@@ -636,14 +636,13 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 8. CALL TO ACTION */}
       {/* ================================================= */}
-      <section className="py-12 md:py-24 bg-white">
+      {/* <section className="py-12 md:py-24 bg-white">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-12 items-stretch border rounded-xl overflow-hidden">
 
-            {/* LEFT : FORM */}
             <div className="p-6 md:p-10">
 
-              {/* Heading */}
+  
               <h2 className="text-[24px] md:text-[28px] font-semibold text-black mb-2">
                 Request a Quote
               </h2>
@@ -652,10 +651,9 @@ export default function HomePage() {
                 discuss your catering needs.
               </p>
 
-              {/* FORM */}
+     
               <form className="space-y-6">
 
-                {/* First & Last Name */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-black">First Name</label>
@@ -675,7 +673,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Email */}
+                
                 <div>
                   <label className="text-sm font-medium text-black">Email</label>
                   <input
@@ -685,7 +683,7 @@ export default function HomePage() {
                   />
                 </div>
 
-                {/* Phone */}
+              
                 <div>
                   <label className="text-sm font-medium text-black">Phone</label>
                   <input
@@ -695,7 +693,7 @@ export default function HomePage() {
                   />
                 </div>
 
-                {/* Delivery Time & Guests */}
+              
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-black">
@@ -720,7 +718,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Event Type & Contact Time */}
+           
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-black">
@@ -745,7 +743,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Message */}
+             
                 <div>
                   <label className="text-sm font-medium text-black">Message</label>
                   <textarea
@@ -755,7 +753,7 @@ export default function HomePage() {
                   />
                 </div>
 
-                {/* Captcha */}
+             
                 <div className="flex items-center gap-4">
                   <div className="border-2 border-dashed border-[#E03A3E] px-6 py-3 text-black font-semibold rounded-md">
                     3282
@@ -767,7 +765,7 @@ export default function HomePage() {
                   />
                 </div>
 
-                {/* Submit */}
+               
                 <button
                   type="submit"
                   className="
@@ -788,7 +786,6 @@ export default function HomePage() {
               </form>
             </div>
 
-            {/* RIGHT : IMAGE */}
             <div className="relative hidden lg:block">
               <img
                 src="/assets/images/c14.jpg"
@@ -800,7 +797,7 @@ export default function HomePage() {
 
           </div>
         </div>
-      </section>
+      </section> */}
 
     </div>
   )
