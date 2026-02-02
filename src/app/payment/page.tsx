@@ -10,7 +10,7 @@ import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { CheckCircle2, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { PinPaymentForm } from "@/components/PinPaymentForm"
+import { FatZebraPaymentForm } from "@/components/FatZebraPaymentForm"
 
 function PaymentPageContent() {
   const router = useRouter()
@@ -72,11 +72,20 @@ function PaymentPageContent() {
 
   if (!isAuthenticated) return null
 
-  // Recalculate GST correctly (backend may have wrong calculation)
-  const subtotal = Number(order?.subtotal || 0)
+  // Use 'total' from backend as it appears to be the correct value (e.g. 46.00), 
+  // whereas 'calculated_total' and 'subtotal' are artificially inflated (e.g. 118, 108).
+  const finalTotal = Number(order?.total || order?.calculated_total || 0)
+
+  // Use delivery fee from backend
   const deliveryFee = Number(order?.delivery_fee || 0)
-  const gst = subtotal * 0.1 // Always 10% of subtotal
-  const finalTotal = subtotal + gst + deliveryFee
+
+  // Derive logical subtotal to ensure the UI is consistent (Total - Delivery = Subtotal)
+  // We ignore order.subtotal (108) because it is incorrect.
+  const subtotal = Math.max(0, finalTotal - deliveryFee)
+
+  // Estimate GST from the corrected subtotal for display purposes (10%)
+  // We cannot use order.gst (11.69) because it is based on the inflated subtotal (108).
+  const gst = subtotal * 0.1
 
   return (
     <div className="min-h-screen bg-white">
@@ -115,7 +124,7 @@ function PaymentPageContent() {
                   </div>
                 ) : (
                   <div className="payment-form-wrapper text-black">
-                    <PinPaymentForm
+                    <FatZebraPaymentForm
                       orderId={parseInt(orderId || "0")}
                       amount={finalTotal}
                       onSuccess={handlePaymentSuccess}
@@ -147,15 +156,19 @@ function PaymentPageContent() {
                       <span>${subtotal.toFixed(2)}</span>
                     </div>
 
-                    <div className="flex justify-between">
-                      <span>GST (10%)</span>
-                      <span>${gst.toFixed(2)}</span>
-                    </div>
+                    {gst > 0 && (
+                      <div className="flex justify-between">
+                        <span>GST (10%)</span>
+                        <span>${gst.toFixed(2)}</span>
+                      </div>
+                    )}
 
-                    <div className="flex justify-between">
-                      <span>Delivery Fee</span>
-                      <span>${deliveryFee.toFixed(2)}</span>
-                    </div>
+                    {deliveryFee > 0 && (
+                      <div className="flex justify-between">
+                        <span>Delivery Fee</span>
+                        <span>${deliveryFee.toFixed(2)}</span>
+                      </div>
+                    )}
 
                     <div className="border-t pt-4">
                       <div className="flex justify-between text-lg font-bold">

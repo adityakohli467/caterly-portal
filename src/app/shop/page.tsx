@@ -11,6 +11,7 @@ import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { LoadingWithLogo } from "@/components/loading-with-logo"
 import { getProductImageUrl } from "@/lib/product-utils"
+import { Search } from "lucide-react"
 
 interface Product {
   product_id: number
@@ -180,16 +181,14 @@ function ShopPageContent() {
                 </div>
 
                 <div className="relative w-full sm:w-[320px]">
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search Products"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full border border-[#F1C6C6] rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
+                    className="w-full border border-[#F1C6C6] rounded-lg pl-10 pr-4 py-2.5 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
                   />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#E03A3E]">
-                    🔍
-                  </span>
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#E03A3E]" />
                 </div>
               </div>
 
