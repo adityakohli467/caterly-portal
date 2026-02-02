@@ -14,6 +14,7 @@ interface FatZebraPaymentFormProps {
 }
 
 export function FatZebraPaymentForm({ orderId, amount, onSuccess, onError }: FatZebraPaymentFormProps) {
+    console.log('FatZebraPaymentForm initialized with orderId:', orderId, 'and amount:', amount)
     const [loading, setLoading] = useState(false)
 
     const handlePayment = async () => {
@@ -22,33 +23,11 @@ export function FatZebraPaymentForm({ orderId, amount, onSuccess, onError }: Fat
         try {
             console.log('Initiating payment for order:', orderId)
 
-            // Call backend API with authentication to get Fat Zebra payment URL
-            const response = await api.get(`/store/payment/${orderId}/fatzebra`)
-
-            console.log('Response received:', response.data)
-
-            // Extract payment URL from response
-            // Backend should return JSON with payment_url field
-            let paymentUrl = null
-
-            if (response.data?.payment_url) {
-                paymentUrl = response.data.payment_url
-            } else if (response.data?.paymentUrl) {
-                paymentUrl = response.data.paymentUrl
-            } else if (response.data?.url) {
-                paymentUrl = response.data.url
-            } else if (typeof response.data === 'string' && response.data.startsWith('http')) {
-                paymentUrl = response.data
-            }
-
-            if (paymentUrl) {
-                console.log('Redirecting to Fat Zebra:', paymentUrl)
-                // Redirect to Fat Zebra payment page
-                window.location.href = paymentUrl
-            } else {
-                console.error('Payment URL not found in response:', response.data)
-                throw new Error("Payment URL not received from server")
-            }
+            // Navigate the browser to the backend redirect endpoint which returns HTML that forwards to Fat Zebra
+            // This avoids CORS / AJAX / auth token issues and behaves like a normal browser redirect
+            window.location.href = `/store/payment/${orderId}/fatzebra/redirect`
+            // Browser will navigate away; keep loading state until unload
+            return
         } catch (error: any) {
             setLoading(false)
             console.error('Payment error:', error)
