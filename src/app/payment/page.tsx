@@ -15,7 +15,9 @@ import { FatZebraPaymentForm } from "@/components/FatZebraPaymentForm"
 function PaymentPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const orderId = searchParams.get("order_id")
+  const orderIdParam = searchParams.get("order_id")
+  const orderId = orderIdParam ? parseInt(orderIdParam) : null
+  
   const { isAuthenticated, checkAuth } = useAuthStore()
   const { clearCart } = useCartStore()
 
@@ -24,6 +26,8 @@ function PaymentPageContent() {
   const [loadingOrder, setLoadingOrder] = useState(true)
 
   useEffect(() => {
+    console.log("PaymentPage: Initializing with order_id:", orderIdParam, "parsed:", orderId)
+
     const verifyAuth = async () => {
       // First, try to restore auth from localStorage
       try {
@@ -35,20 +39,26 @@ function PaymentPageContent() {
       // Now check if authenticated (after checkAuth has run)
       const currentAuthState = useAuthStore.getState()
       if (!currentAuthState.isAuthenticated) {
-        router.push("/auth/login?redirect=/payment" + (orderId ? `?order_id=${orderId}` : ""))
+        router.push("/auth/login?redirect=/payment" + (orderIdParam ? `?order_id=${orderIdParam}` : ""))
         return
       }
 
-      if (orderId) fetchOrder()
+      if (orderId) {
+        fetchOrder(orderId)
+      } else {
+        setLoadingOrder(false)
+        toast.error("Invalid or missing order ID")
+      }
     }
 
     verifyAuth()
-  }, [orderId])
+  }, [orderIdParam])
 
-  const fetchOrder = async () => {
+  const fetchOrder = async (id: number) => {
     try {
       setLoadingOrder(true)
-      const response = await api.get(`/store/orders/${orderId}`)
+      const response = await api.get(`/store/orders/${id}`)
+      console.log("Fetched order:", response.data.order)
       setOrder(response.data.order)
     } catch (error) {
       console.error("Failed to fetch order:", error)
@@ -58,11 +68,19 @@ function PaymentPageContent() {
     }
   }
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (returnedOrderId?: number) => {
     setPaymentSuccess(true)
     clearCart()
+    // Use the returned order ID if provided, otherwise fall back to the state orderId
+    const targetOrderId = returnedOrderId || orderId
+    
     setTimeout(() => {
-      router.push(`/payment/success?order_id=${orderId}`)
+      if (targetOrderId) {
+        console.log("Redirecting to success with order_id:", targetOrderId)
+        router.push(`/payment/success?order_id=${targetOrderId}`)
+      } else {
+        router.push(`/payment/success`)
+      }
     }, 1500)
   }
 
@@ -116,6 +134,18 @@ function PaymentPageContent() {
                     <Loader2 className="h-10 w-10 animate-spin mb-4 text-[#E03A3E]" />
                     Loading payment gateway...
                   </div>
+                ) : !orderId ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-red-500">
+                     <p className="text-lg font-bold">Invalid Order ID</p>
+                     <p className="text-sm">Please return to your orders and try again.</p>
+                     <Button 
+                       variant="outline" 
+                       className="mt-4"
+                       onClick={() => router.push('/account')}
+                     >
+                       Go to Orders
+                     </Button>
+                  </div>
                 ) : paymentSuccess ? (
                   <div className="text-center py-10">
                     <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
@@ -125,9 +155,9 @@ function PaymentPageContent() {
                 ) : (
                   <div className="payment-form-wrapper text-black">
                     <FatZebraPaymentForm
-                      orderId={parseInt(orderId || "0")}
+                      orderId={orderId}
                       amount={finalTotal}
-                      onSuccess={handlePaymentSuccess}
+                      onSuccess={() => console.log("FatZebra: onSuccess called (ignored)")}
                       onError={handlePaymentError}
                     />
                   </div>
