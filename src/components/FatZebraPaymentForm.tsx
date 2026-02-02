@@ -24,8 +24,11 @@ export function FatZebraPaymentForm({ orderId, amount, onSuccess, onError }: Fat
             console.log('Initiating payment for order:', orderId)
 
             // Navigate the browser to the backend redirect endpoint which returns HTML that forwards to Fat Zebra
-            // This avoids CORS / AJAX / auth token issues and behaves like a normal browser redirect
-            window.location.href = `/store/payment/${orderId}/fatzebra/redirect`
+            // Use NEXT_PUBLIC_API_URL or default to localhost:9000 (matching api.ts)
+            const backendBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000").replace(/\/$/, '')
+            const redirectUrl = `${backendBase}/store/payment/${orderId}/fatzebra/redirect`
+            console.log('Redirecting browser to backend redirect URL:', redirectUrl)
+            window.location.href = redirectUrl
             // Browser will navigate away; keep loading state until unload
             return
         } catch (error: any) {
