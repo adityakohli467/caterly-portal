@@ -29,11 +29,11 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
 
   useEffect(() => {
     let script: HTMLScriptElement | null = null
-    
+
     const initializePin = async () => {
       try {
         let key: string | null = null
-        
+
         // Try to get publishable key from backend
         try {
           const response = await api.get(`/store/payment/${orderId}/pin-key`)
@@ -50,22 +50,22 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
             throw new Error(errorMsg)
           }
         }
-        
+
         if (!key) {
           throw new Error("Pin Payments publishable key not found")
         }
-        
+
         setPublishableKey(key)
-        
+
         // Function to initialize Pin after script loads
         const initPinLibrary = (attempt = 0): boolean => {
           // Check multiple ways Pin.js might expose itself
           const Pin = (window as any).Pin || (globalThis as any).Pin || (window as any).pinpayments
-          
+
           if (!Pin) {
             return false
           }
-          
+
           // Try different initialization methods
           if (typeof Pin.setPublishableKey === 'function') {
             try {
@@ -76,7 +76,7 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
               // Silent fail, try next method
             }
           }
-          
+
           // Try setting as property
           if (attempt === 0 && !Pin.publishableKey) {
             try {
@@ -89,7 +89,7 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
               // Silent fail, try next method
             }
           }
-          
+
           if (typeof Pin.configure === 'function') {
             try {
               Pin.configure({ publishableKey: key! })
@@ -99,7 +99,7 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
               // Silent fail, try next method
             }
           }
-          
+
           if (typeof Pin.init === 'function') {
             try {
               Pin.init({ publishableKey: key! })
@@ -109,21 +109,21 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
               // Silent fail, try next method
             }
           }
-          
+
           // Maybe Pin.js v2 doesn't need initialization - try to use createToken directly
           if (typeof Pin.createToken === 'function') {
             setPinInitialized(true)
             return true
           }
-          
+
           return false
         }
-        
+
         // Check if Pin.js is already loaded
         if (initPinLibrary()) {
           return
         }
-        
+
         // Check if script is already in the document
         const existingScript = document.querySelector('script[src="https://cdn.pinpayments.com/pin.v2.js"]')
         if (existingScript) {
@@ -144,14 +144,14 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
           }, 100)
           return
         }
-        
+
         // Load Pin.js script
         script = document.createElement("script")
         script.src = "https://cdn.pinpayments.com/pin.v2.js"
         script.type = "text/javascript"
         script.async = true
         script.defer = true
-        
+
         script.onload = () => {
           // Retry initialization with multiple attempts
           let retries = 0
@@ -167,12 +167,12 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
             }
           }, 200)
         }
-        
+
         script.onerror = () => {
           toast.error("Failed to load Pin Payments script. Please check your internet connection.")
           onError("Failed to load Pin.js script")
         }
-        
+
         // Append to head instead of body (recommended by Pin Payments)
         document.head.appendChild(script)
       } catch (error: any) {
@@ -202,7 +202,7 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Get Pin.js library
     const Pin = (window as any).Pin || (globalThis as any).Pin
     if (!pinInitialized || !Pin || typeof Pin.createToken !== 'function') {
@@ -234,6 +234,7 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
         api.post(`/store/payment/${orderId}/charge`, {
           card_token: cardToken,
           ip_address: ipAddress,
+          amount: amount, // Pass the total amount to charge
         })
           .then(() => {
             setLoading(false)
@@ -340,7 +341,7 @@ export function PinPaymentForm({ orderId, amount, onSuccess, onError }: PinPayme
       <Button
         type="submit"
         disabled={loading || !pinInitialized}
-        className="w-full bg-[rgba(220, 53, 69, 1)] hover:bg-[rgba(200, 35, 51, 1)] text-white"
+        className="w-full !bg-[#E03A3E] !hover:bg-[#cc3236] text-white"
         size="lg"
         style={{ fontFamily: 'Albert Sans', fontWeight: 600 }}
       >
