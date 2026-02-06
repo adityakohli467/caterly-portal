@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   title: "Caterly",
   description: "Where quality is more than a promise. Experience the perfect harmony of flavor, creativity, and hospitality.",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-icon.png",
+    icon: "/assets/images/cat_logo.png",
+    apple: "/assets/images/cat_logo.png",
   },
 }
 

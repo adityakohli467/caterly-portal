@@ -17,7 +17,7 @@ function PaymentPageContent() {
   const searchParams = useSearchParams()
   const orderIdParam = searchParams.get("order_id")
   const orderId = orderIdParam ? parseInt(orderIdParam) : null
-  
+
   const { isAuthenticated, checkAuth } = useAuthStore()
   const { clearCart } = useCartStore()
 
@@ -73,7 +73,7 @@ function PaymentPageContent() {
     clearCart()
     // Use the returned order ID if provided, otherwise fall back to the state orderId
     const targetOrderId = returnedOrderId || orderId
-    
+
     setTimeout(() => {
       if (targetOrderId) {
         console.log("Redirecting to success with order_id:", targetOrderId)
@@ -136,15 +136,15 @@ function PaymentPageContent() {
                   </div>
                 ) : !orderId ? (
                   <div className="flex flex-col items-center justify-center py-12 text-red-500">
-                     <p className="text-lg font-bold">Invalid Order ID</p>
-                     <p className="text-sm">Please return to your orders and try again.</p>
-                     <Button 
-                       variant="outline" 
-                       className="mt-4"
-                       onClick={() => router.push('/account')}
-                     >
-                       Go to Orders
-                     </Button>
+                    <p className="text-lg font-bold">Invalid Order ID</p>
+                    <p className="text-sm">Please return to your orders and try again.</p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => router.push('/account')}
+                    >
+                      Go to Orders
+                    </Button>
                   </div>
                 ) : paymentSuccess ? (
                   <div className="text-center py-10">
