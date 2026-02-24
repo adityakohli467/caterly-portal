@@ -10,14 +10,14 @@ import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { CheckCircle2, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { FatZebraPaymentForm } from "@/components/FatZebraPaymentForm"
+
 
 function PaymentPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderIdParam = searchParams.get("order_id")
   const orderId = orderIdParam ? parseInt(orderIdParam) : null
-  
+
   const { isAuthenticated, checkAuth } = useAuthStore()
   const { clearCart } = useCartStore()
 
@@ -68,25 +68,7 @@ function PaymentPageContent() {
     }
   }
 
-  const handlePaymentSuccess = (returnedOrderId?: number) => {
-    setPaymentSuccess(true)
-    clearCart()
-    // Use the returned order ID if provided, otherwise fall back to the state orderId
-    const targetOrderId = returnedOrderId || orderId
-    
-    setTimeout(() => {
-      if (targetOrderId) {
-        console.log("Redirecting to success with order_id:", targetOrderId)
-        router.push(`/payment/success?order_id=${targetOrderId}`)
-      } else {
-        router.push(`/payment/success`)
-      }
-    }, 1500)
-  }
 
-  const handlePaymentError = (error: string) => {
-    console.error("Payment error:", error)
-  }
 
   if (!isAuthenticated) return null
 
@@ -136,15 +118,15 @@ function PaymentPageContent() {
                   </div>
                 ) : !orderId ? (
                   <div className="flex flex-col items-center justify-center py-12 text-red-500">
-                     <p className="text-lg font-bold">Invalid Order ID</p>
-                     <p className="text-sm">Please return to your orders and try again.</p>
-                     <Button 
-                       variant="outline" 
-                       className="mt-4"
-                       onClick={() => router.push('/account')}
-                     >
-                       Go to Orders
-                     </Button>
+                    <p className="text-lg font-bold">Invalid Order ID</p>
+                    <p className="text-sm">Please return to your orders and try again.</p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => router.push('/account')}
+                    >
+                      Go to Orders
+                    </Button>
                   </div>
                 ) : paymentSuccess ? (
                   <div className="text-center py-10">
@@ -153,13 +135,9 @@ function PaymentPageContent() {
                     <p className="text-gray-600">Redirecting...</p>
                   </div>
                 ) : (
-                  <div className="payment-form-wrapper text-black">
-                    <FatZebraPaymentForm
-                      orderId={orderId}
-                      amount={finalTotal}
-                      onSuccess={() => console.log("FatZebra: onSuccess called (ignored)")}
-                      onError={handlePaymentError}
-                    />
+                  <div className="payment-form-wrapper text-black text-center py-8">
+                    <p className="text-lg font-medium">Payment gateway is being updated.</p>
+                    <p className="text-sm text-gray-500 mt-2">Please contact support if you need assistance with your payment.</p>
                   </div>
                 )}
 
