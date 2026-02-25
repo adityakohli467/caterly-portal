@@ -107,7 +107,7 @@ function RegisterPageContent() {
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <img
-              src="/assets/images/cat_logo.png"
+              src="/assets/images/cat.svg"
               alt="Caterly logo"
               className="w-[160px]"
             />
@@ -126,7 +126,7 @@ function RegisterPageContent() {
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <Image
-            src="/assets/images/cat_logo.png"
+            src="/assets/images/cat.svg"
             alt="Caterly logo"
             width={240}
             height={202}
@@ -256,7 +256,7 @@ function RegisterPageContent() {
             <Button
               type="submit"
               disabled={loading}
-              className="mt-6 w-full h-[52px] rounded-[12px] bg-[#2F54EB] hover:bg-[#2343c9] text-white text-[16px] font-semibold"
+              className="mt-6 w-full h-[52px] rounded-[12px] bg-[#e03a3e] hover:bg-[#e03a39] text-white text-[16px] font-semibold"
             >
               {loading ? "Creating account..." : "Sign Up"}
             </Button>
