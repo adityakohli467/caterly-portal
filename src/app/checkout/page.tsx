@@ -914,37 +914,7 @@ export default function CheckoutPage() {
                               </div>
                             </div>
 
-                            {/* Per-Item Delivery Frequency */}
-                            <div className="mt-3 space-y-2">
-                              <Label className="text-xs text-gray-700">Delivery Frequency</Label>
-                              <Select
-                                value={item.delivery_frequency || "One Time"}
-                                onValueChange={(value) => updateDeliveryFrequency(cartItemId, value)}
-                              >
-                                <SelectTrigger className="h-8 text-xs bg-white border-gray-300 text-gray-900">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="One Time">One Time</SelectItem>
-                                  <SelectItem value="2 Weeks">Every 2 Weeks</SelectItem>
-                                  <SelectItem value="4 Weeks">Every 4 Weeks</SelectItem>
-                                  <SelectItem value="8 Weeks">Every 8 Weeks</SelectItem>
-                                </SelectContent>
-                              </Select>
 
-                              {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
-                                <div className="animate-in fade-in slide-in-from-top-2">
-                                  <Label className="text-xs text-gray-700">Start Date</Label>
-                                  <Input
-                                    type="date"
-                                    min={new Date().toISOString().split('T')[0]}
-                                    value={item.delivery_start_date || ""}
-                                    onChange={(e) => updateDeliveryStartDate(cartItemId, e.target.value)}
-                                    className="h-8 text-xs bg-white text-gray-900"
-                                  />
-                                </div>
-                              )}
-                            </div>
                           </div>
                         )
                       })}

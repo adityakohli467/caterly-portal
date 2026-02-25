@@ -206,7 +206,8 @@ function ShopPageContent() {
                   {products.map(product => (
                     <div
                       key={product.product_id}
-                      className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden"
+                      onClick={() => router.push(`/shop/${product.product_id}`)}
+                      className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
                     >
                       <img
                         src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
@@ -227,12 +228,20 @@ function ShopPageContent() {
                               ? product.discounted_price
                               : product.product_price}
                           </span>
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
-                          >
-                            Order
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); router.push(`/shop/${product.product_id}`) }}
+                              className="border border-[#E03A3E] text-[#E03A3E] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-[#FFF1F1] transition"
+                            >
+                              View Details
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
+                              className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
+                            >
+                              Order
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
