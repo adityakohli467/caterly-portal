@@ -10,13 +10,14 @@ import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { CheckCircle2, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { FatZebraPaymentForm } from "@/components/FatZebraPaymentForm"
+
 
 function PaymentPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderIdParam = searchParams.get("order_id")
   const orderId = orderIdParam ? parseInt(orderIdParam) : null
+
 
   const { isAuthenticated, checkAuth } = useAuthStore()
   const { clearCart } = useCartStore()
@@ -68,25 +69,19 @@ function PaymentPageContent() {
     }
   }
 
-  const handlePaymentSuccess = (returnedOrderId?: number) => {
-    setPaymentSuccess(true)
-    clearCart()
-    // Use the returned order ID if provided, otherwise fall back to the state orderId
-    const targetOrderId = returnedOrderId || orderId
+  /* Automatic redirect disabled to favor direct card form
+  useEffect(() => {
+    if (!loadingOrder && order && order.payment_status !== 'paid' && !paymentSuccess) {
+      const timer = setTimeout(() => {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+        window.location.href = `${baseUrl}/store/payment/${orderId}/fatzebra-hpp`;
+      }, 1500); 
+      return () => clearTimeout(timer);
+    }
+  }, [loadingOrder, order, paymentSuccess, orderId]);
+  */
 
-    setTimeout(() => {
-      if (targetOrderId) {
-        console.log("Redirecting to success with order_id:", targetOrderId)
-        router.push(`/payment/success?order_id=${targetOrderId}`)
-      } else {
-        router.push(`/payment/success`)
-      }
-    }, 1500)
-  }
 
-  const handlePaymentError = (error: string) => {
-    console.error("Payment error:", error)
-  }
 
   if (!isAuthenticated) return null
 
@@ -145,21 +140,199 @@ function PaymentPageContent() {
                     >
                       Go to Orders
                     </Button>
+                    <p className="text-lg font-bold">Invalid Order ID</p>
+                    <p className="text-sm">Please return to your orders and try again.</p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => router.push('/account')}
+                    >
+                      Go to Orders
+                    </Button>
                   </div>
                 ) : paymentSuccess ? (
                   <div className="text-center py-10">
                     <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
                     <h3 className="text-xl font-bold text-black">Payment Successful!</h3>
-                    <p className="text-gray-600">Redirecting...</p>
+                    <p className="text-gray-600">Your order has been paid. Redirecting...</p>
+                  </div>
+                ) : order?.payment_status === 'paid' ? (
+                  <div className="text-center py-10">
+                    <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
+                    <h3 className="text-xl font-bold text-black">This order is already paid.</h3>
+                    <Button
+                      className="mt-4 bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                      onClick={() => router.push(`/orders/${orderId}`)}
+                    >
+                      View Order Details
+                    </Button>
                   </div>
                 ) : (
-                  <div className="payment-form-wrapper text-black">
-                    <FatZebraPaymentForm
-                      orderId={orderId}
-                      amount={finalTotal}
-                      onSuccess={() => console.log("FatZebra: onSuccess called (ignored)")}
-                      onError={handlePaymentError}
-                    />
+                  <div className="payment-form-wrapper text-black max-w-xl mx-auto py-4">
+                    <h2 className="text-xl font-bold mb-6 text-left">Payment Details</h2>
+
+                    <div className="space-y-6">
+                      {/* Card Number */}
+                      <div className="space-y-1.5 flex flex-col">
+                        <label className="text-sm font-medium text-gray-700 text-left">Card number</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            id="card_number"
+                            className="w-full rounded-lg border border-gray-200 p-3.5 pr-36 transition-all focus:ring-2 focus:ring-[#E03A3E]/10 focus:border-[#E03A3E] outline-none text-base tracking-wider"
+                            placeholder="1234 1234 1234 1234"
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/\D/g, '');
+                              if (value.length > 16) value = value.slice(0, 16);
+                              const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                              e.target.value = formatted;
+
+                              // Visual detection logic
+                              const visa = document.getElementById('visa-icon');
+                              const mc = document.getElementById('mc-icon');
+                              const amex = document.getElementById('amex-icon');
+                              const disc = document.getElementById('disc-icon');
+
+                              [visa, mc, amex, disc].forEach(el => el?.classList.add('opacity-30', 'grayscale'));
+
+                              if (value.startsWith('4')) visa?.classList.remove('opacity-30', 'grayscale');
+                              else if (value.startsWith('5')) mc?.classList.remove('opacity-30', 'grayscale');
+                              else if (value.startsWith('3')) amex?.classList.remove('opacity-30', 'grayscale');
+                              else if (value.startsWith('6')) disc?.classList.remove('opacity-30', 'grayscale');
+                            }}
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                            <img id="visa-icon" src="https://img.icons8.com/color/48/visa.png" className="h-6 transition-all" alt="Visa" />
+                            <img id="mc-icon" src="https://img.icons8.com/color/48/mastercard.png" className="h-6 transition-all" alt="Mastercard" />
+                            <img id="amex-icon" src="https://img.icons8.com/color/48/amex.png" className="h-6 transition-all" alt="Amex" />
+                            <img id="disc-icon" src="https://img.icons8.com/color/48/discover.png" className="h-6 transition-all" alt="Discover" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Expiration */}
+                        <div className="space-y-1.5 flex flex-col">
+                          <label className="text-sm font-medium text-gray-700 text-left">Expiration date</label>
+                          <input
+                            type="text"
+                            id="card_expiry"
+                            className="w-full rounded-lg border border-gray-200 p-3.5 transition-all focus:ring-2 focus:ring-[#E03A3E]/10 focus:border-[#E03A3E] outline-none"
+                            placeholder="MM / YY"
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/\D/g, '');
+                              if (value.length > 4) value = value.slice(0, 4);
+                              if (value.length >= 2) {
+                                e.target.value = value.slice(0, 2) + ' / ' + value.slice(2);
+                              } else {
+                                e.target.value = value;
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Security Code */}
+                        <div className="space-y-1.5 flex flex-col">
+                          <label className="text-sm font-medium text-gray-700 text-left">Security code</label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              id="cvv"
+                              className="w-full rounded-lg border border-gray-200 p-3.5 pr-10 transition-all focus:ring-2 focus:ring-[#E03A3E]/10 focus:border-[#E03A3E] outline-none"
+                              placeholder="CVC"
+                              maxLength={4}
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
+                              <svg width="28" height="20" viewBox="0 0 24 16" className="text-gray-400">
+                                <path fill="currentColor" opacity="0.2" d="M2 0h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2z" />
+                                <rect y="3" width="24" height="3" fill="currentColor" />
+                                <rect x="16" y="10" width="5" height="3" rx="1" fill="white" />
+                                <text x="16.5" y="12.5" fontSize="3" fontWeight="bold" fill="currentColor">123</text>
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Country */}
+                      <div className="space-y-1.5 flex flex-col">
+                        <label className="text-sm font-medium text-gray-700 text-left">Country</label>
+                        <select
+                          id="country"
+                          className="w-full rounded-lg border border-gray-200 p-3.5 appearance-none bg-white focus:ring-2 focus:ring-[#E03A3E]/10 focus:border-[#E03A3E] outline-none cursor-pointer"
+                        >
+                          <option value="AU">Australia</option>
+                          <option value="IN">India</option>
+                          <option value="US">United States</option>
+                          <option value="GB">United Kingdom</option>
+                        </select>
+                      </div>
+
+                      <div className="pt-4">
+                        <Button
+                          id="pay-button"
+                          className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white py-4 rounded-lg text-lg font-semibold transition-all shadow-lg active:scale-[0.98]"
+                          onClick={async () => {
+                            const button = document.getElementById('pay-button') as HTMLButtonElement;
+                            const cardNumber = (document.getElementById('card_number') as HTMLInputElement).value.replace(/\s/g, '');
+                            const expiryInput = (document.getElementById('card_expiry') as HTMLInputElement).value;
+                            const cvv = (document.getElementById('cvv') as HTMLInputElement).value;
+
+                            // Format MM / YY to MM/YYYY for Fat Zebra
+                            const expiryParts = expiryInput.split('/').map(p => p.trim());
+                            let cardExpiry = "";
+                            if (expiryParts.length === 2) {
+                              const month = expiryParts[0].padStart(2, '0');
+                              let year = expiryParts[1];
+                              if (year.length === 2) year = '20' + year;
+                              cardExpiry = `${month}/${year}`;
+                            }
+
+                            if (!cardNumber || !cardExpiry || !cvv) {
+                              toast.error("Please fill in all card details correctly");
+                              return;
+                            }
+
+                            try {
+                              button.disabled = true;
+                              button.innerText = "Processing...";
+
+                              const res = await api.post(`/store/payment/${orderId}/fatzebra-charge`, {
+                                card_holder: order?.customer_order_name || 'Customer',
+                                card_number: cardNumber,
+                                card_expiry: cardExpiry,
+                                cvv: cvv,
+                                ip_address: '127.0.0.1'
+                              });
+
+                              if (res.data.success) {
+                                setPaymentSuccess(true);
+                                toast.success("Payment successful!");
+                                clearCart();
+                                setTimeout(() => {
+                                  router.push(`/orders/${orderId}`);
+                                }, 3000);
+                              } else {
+                                toast.error(res.data.message || "Payment failed");
+                                button.disabled = false;
+                                button.innerText = "Pay Now";
+                              }
+                            } catch (err: any) {
+                              console.error("Payment error:", err);
+                              toast.error(err.response?.data?.message || "Payment gateway error");
+                              button.disabled = false;
+                              button.innerText = "Pay Now";
+                            }
+                          }}
+                        >
+                          Submit Payment
+                        </Button>
+                      </div>
+
+                      <p className="text-[11px] text-center text-gray-400 mt-6 leading-relaxed px-4">
+                        By providing your card information, you allow CATERLY to charge your card for future payments in accordance with their terms.
+                      </p>
+                    </div>
                   </div>
                 )}
 
