@@ -68,6 +68,18 @@ function PaymentPageContent() {
     }
   }
 
+  /* Automatic redirect disabled to favor direct card form
+  useEffect(() => {
+    if (!loadingOrder && order && order.payment_status !== 'paid' && !paymentSuccess) {
+      const timer = setTimeout(() => {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+        window.location.href = `${baseUrl}/store/payment/${orderId}/fatzebra-hpp`;
+      }, 1500); 
+      return () => clearTimeout(timer);
+    }
+  }, [loadingOrder, order, paymentSuccess, orderId]);
+  */
+
 
 
   if (!isAuthenticated) return null
@@ -132,12 +144,119 @@ function PaymentPageContent() {
                   <div className="text-center py-10">
                     <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
                     <h3 className="text-xl font-bold text-black">Payment Successful!</h3>
-                    <p className="text-gray-600">Redirecting...</p>
+                    <p className="text-gray-600">Your order has been paid. Redirecting...</p>
+                  </div>
+                ) : order?.payment_status === 'paid' ? (
+                  <div className="text-center py-10">
+                    <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
+                    <h3 className="text-xl font-bold text-black">This order is already paid.</h3>
+                    <Button
+                      className="mt-4 bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                      onClick={() => router.push(`/orders/${orderId}`)}
+                    >
+                      View Order Details
+                    </Button>
                   </div>
                 ) : (
-                  <div className="payment-form-wrapper text-black text-center py-8">
-                    <p className="text-lg font-medium">Payment gateway is being updated.</p>
-                    <p className="text-sm text-gray-500 mt-2">Please contact support if you need assistance with your payment.</p>
+                  <div className="payment-form-wrapper text-black max-w-md mx-auto py-4">
+                    <h3 className="text-xl font-bold mb-6 text-center">Credit Card Payment</h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-left">Card Holder Name</label>
+                        <input
+                          type="text"
+                          id="card_holder"
+                          className="w-full rounded-md border border-gray-300 p-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] outline-none"
+                          placeholder="John Doe"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-left">Card Number</label>
+                        <input
+                          type="text"
+                          id="card_number"
+                          className="w-full rounded-md border border-gray-300 p-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] outline-none"
+                          placeholder="4111 1111 1111 1111"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-left">Expiry (MM/YYYY)</label>
+                          <input
+                            type="text"
+                            id="card_expiry"
+                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] outline-none"
+                            placeholder="12/2026"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-left">CVV</label>
+                          <input
+                            type="text"
+                            id="cvv"
+                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] outline-none"
+                            placeholder="123"
+                          />
+                        </div>
+                      </div>
+
+                      <Button
+                        id="pay-button"
+                        className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white py-6 text-lg h-auto mt-6"
+                        onClick={async () => {
+                          const button = document.getElementById('pay-button') as HTMLButtonElement;
+                          const cardHolder = (document.getElementById('card_holder') as HTMLInputElement).value;
+                          const cardNumber = (document.getElementById('card_number') as HTMLInputElement).value.replace(/\s/g, '');
+                          const cardExpiry = (document.getElementById('card_expiry') as HTMLInputElement).value;
+                          const cvv = (document.getElementById('cvv') as HTMLInputElement).value;
+
+                          if (!cardHolder || !cardNumber || !cardExpiry || !cvv) {
+                            toast.error("Please fill in all card details");
+                            return;
+                          }
+
+                          try {
+                            button.disabled = true;
+                            button.innerText = "Processing...";
+
+                            const res = await api.post(`/store/payment/${orderId}/fatzebra-charge`, {
+                              card_holder: cardHolder,
+                              card_number: cardNumber,
+                              card_expiry: cardExpiry,
+                              cvv: cvv,
+                              ip_address: '127.0.0.1' // In production, this should be the real client IP
+                            });
+
+                            if (res.data.success) {
+                              setPaymentSuccess(true);
+                              toast.success("Payment successful!");
+                              clearCart();
+                              setTimeout(() => {
+                                router.push(`/orders/${orderId}`);
+                              }, 3000);
+                            } else {
+                              toast.error(res.data.message || "Payment failed");
+                              button.disabled = false;
+                              button.innerText = "Pay Now";
+                            }
+                          } catch (err: any) {
+                            console.error("Payment error:", err);
+                            toast.error(err.response?.data?.message || "Payment gateway error");
+                            button.disabled = false;
+                            button.innerText = "Pay Now";
+                          }
+                        }}
+                      >
+                        Pay Now
+                      </Button>
+
+                      <p className="text-xs text-center text-gray-500 mt-4">
+                        Securely processed by Fat Zebra. We do not store your card details.
+                      </p>
+                    </div>
                   </div>
                 )}
 
