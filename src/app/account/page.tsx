@@ -257,7 +257,7 @@ export default function AccountPage() {
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full bg-white border-[#E03A3E] text-[#E03A3E]"
+                        className="w-full bg-[#e03a3e] border-[#e03a3e] text-[white] hover:bg-[#e03a39]"
                       >
                         <Lock className="h-4 w-4 mr-2" />
                         Update Password
@@ -332,7 +332,7 @@ export default function AccountPage() {
                   {/* Logout */}
                   <Button
                     variant="outline"
-                    className="w-full bg-white border-[#E03A3E] text-[#E03A3E]"
+                    className="w-full bg-[#e03a3e] border-[#e03a3e] text-[white] hover:bg-[#e03a39]"
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -536,7 +536,7 @@ export default function AccountPage() {
                                     `/payment?order_id=${order.order_id}`
                                   )
                                 }}
-                                className="ml-4 bg-primary hover:bg-primary/90"
+                                className="ml-4 bg-[#e03a3e] hover:bg-primary/90"
                                 size="sm"
                               >
                                 <CreditCard className="h-4 w-4 mr-2" />
@@ -601,12 +601,14 @@ export default function AccountPage() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   </div>
                 ) : subscriptions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <p className="mb-4">No active subscriptions</p>
-                    <Link href="/shop?purchaseType=subscription">
-                      <Button>Browse Subscriptions</Button>
-                    </Link>
-                  </div>
+               <div className="text-center py-8 text-gray-500">
+  <p className="mb-4">No active subscriptions</p>
+  <Link href="/shop?purchaseType=subscription">
+    <Button className="bg-[#e03a3e] hover:bg-[#c83236] text-white">
+      Browse Subscriptions
+    </Button>
+  </Link>
+</div>
                 ) : (
                   <div className="space-y-4">
                     {subscriptions.map((subscription) => (
