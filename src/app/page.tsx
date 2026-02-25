@@ -492,7 +492,7 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 6. TESTIMONIALS */}
       {/* ================================================= */}
-      <section className="py-12 md:py-24 bg-white">
+      <section className="py-12 md:py-2 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 text-center">
 
           {/* Heading */}

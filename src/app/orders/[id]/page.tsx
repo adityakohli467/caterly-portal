@@ -90,10 +90,10 @@ export default function OrderDetailPage() {
     <div className="w-full min-h-screen bg-white text-black">
       <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Back */}
-        <Link href="/orders">
+        <Link href="/account">
           <Button
             variant="outline"
-            className="mb-6 border-gray-300 text-gray-700 hover:bg-gray-100"
+            className="mb-6 border-gray-300 text-white bg-red-500"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
@@ -178,15 +178,17 @@ export default function OrderDetailPage() {
                 <span className="text-black">Subtotal</span>
                 <span className="text-black">${order.subtotal}</span>
               </div>
-
+              {/* 
               <div className="flex justify-between text-black">
                 <span className="text-black">Wholesale Discount</span>
                 <span className="text-black">- $0.00</span>
-              </div>
+              </div> */}
 
               <div className="flex justify-between text-black">
-                <span className="text-black">Coupon</span>
-                <span className="text-black">- $0.00</span>
+                <span className="text-black">
+                  Coupon{order.coupon_code ? ` (${order.coupon_code})` : ''}
+                </span>
+                <span className="text-black">- ${parseFloat(order.coupon_discount || '0').toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between text-black">
