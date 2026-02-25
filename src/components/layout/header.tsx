@@ -24,7 +24,7 @@ export function Header() {
           {/* LOGO (SAME SIZE EVERYWHERE) */}
           <Link href="/" className="flex items-center h-full">
             <Image
-              src="/assets/images/cat_logo.png"
+              src="/assets/images/cat.svg"
               alt="Caterly Logo"
               width={140}
               height={48}
@@ -37,6 +37,7 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-10 text-[16px] font-medium text-black">
             <Link href="/" className="hover:text-[#E03A3E]">Home</Link>
             <Link href="/shop" className="hover:text-[#E03A3E]">Catering</Link>
+            <Link href="/blogs" className="hover:text-[#E03A3E]">Blogs</Link>
 
             <Link
               href="/call"
@@ -160,6 +161,7 @@ export function Header() {
             <nav className="flex flex-col gap-6 text-[16px] font-medium text-black">
               <Link href="/" onClick={() => setOpen(false)}>Home</Link>
               <Link href="/shop" onClick={() => setOpen(false)}>Catering</Link>
+              <Link href="/blogs" onClick={() => setOpen(false)}>Blogs</Link>
 
               <Link
                 href="/call"

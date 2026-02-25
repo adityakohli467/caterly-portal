@@ -124,7 +124,17 @@ export default function ProductDetailPage({
         headers,
       });
       console.log("Product detail API response:", response.data);
-      setProduct(response.data.product);
+      const prod = response.data.product;
+      setProduct(prod);
+      // Log options/values for debugging
+      if (prod?.options?.length) {
+        prod.options.forEach((opt: any) => {
+          console.log(
+            `OPTION [${opt.option_id}] "${opt.option_name}" type="${opt.option_type}" values(${opt.values?.length ?? 0}):`,
+            opt.values
+          );
+        });
+      }
       // Reset to first image when product changes
       setSelectedImageIndex(0);
     } catch (error: any) {
@@ -136,7 +146,7 @@ export default function ProductDetailPage({
       } else if (error.response?.status !== 401) {
         toast.error(
           error.response?.data?.message ||
-            "Failed to load product. Please try again."
+          "Failed to load product. Please try again."
         );
       }
       // Don't redirect on auth errors - product should still be viewable
@@ -211,10 +221,10 @@ export default function ProductDetailPage({
       day === 1 || day === 21 || day === 31
         ? "st"
         : day === 2 || day === 22
-        ? "nd"
-        : day === 3 || day === 23
-        ? "rd"
-        : "th";
+          ? "nd"
+          : day === 3 || day === 23
+            ? "rd"
+            : "th";
     return `${day}${suffix} ${month}, ${year}`;
   };
 
@@ -359,13 +369,13 @@ export default function ProductDetailPage({
           <nav className="flex items-center gap-2 text-sm">
             <Link
               href="/"
-              className="text-gray-600 hover:text-[#2952E6] flex items-center gap-1"
+              className="text-gray-600 hover:text-[#E03A3E] flex items-center gap-1"
             >
               <Home className="w-4 h-4" />
               Home
             </Link>
             <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-            <Link href="/shop" className="text-gray-600 hover:text-[#2952E6]">
+            <Link href="/shop" className="text-gray-600 hover:text-[#E03A3E]">
               Product Catalogue
             </Link>
             {mainCategory && (
@@ -409,16 +419,15 @@ export default function ProductDetailPage({
                   return mainImage ? (
                     <Image
                       src={mainImage}
-                      alt={`${product.product_name} - Image ${
-                        selectedImageIndex + 1
-                      }`}
+                      alt={`${product.product_name} - Image ${selectedImageIndex + 1
+                        }`}
                       fill
                       className="object-cover "
                       priority
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center">
-                      <span className="text-white/40 text-lg">
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500 text-lg">
                         {product.product_name}
                       </span>
                     </div>
@@ -470,18 +479,16 @@ export default function ProductDetailPage({
                         <button
                           key={index}
                           onClick={() => setSelectedImageIndex(index)}
-                          className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                            selectedImageIndex === index
-                              ? "border-[#2952E6] ring-2 ring-[#2952E6] ring-offset-2"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
+                          className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
+                            ? "border-[#E03A3E] ring-2 ring-[#E03A3E] ring-offset-2"
+                            : "border-gray-200 hover:border-gray-300"
+                            }`}
                           aria-label={`View image ${index + 1}`}
                         >
                           <Image
                             src={url}
-                            alt={`${product.product_name} thumbnail ${
-                              index + 1
-                            }`}
+                            alt={`${product.product_name} thumbnail ${index + 1
+                              }`}
                             fill
                             className="object-cover"
                           />
@@ -502,13 +509,13 @@ export default function ProductDetailPage({
 
               <div className="flex items-center gap-3 mb-6">
                 {product.has_discount &&
-                product.original_price &&
-                product.discounted_price ? (
+                  product.original_price &&
+                  product.discounted_price ? (
                   <div className="flex items-center gap-3">
                     <span className="text-xl text-gray-500 line-through">
                       ${product.original_price.toFixed(2)}
                     </span>
-                    <div className="text-2xl font-bold text-[#2952E6]">
+                    <div className="text-2xl font-bold text-[#E03A3E]">
                       ${product.discounted_price.toFixed(2)}
                     </div>
                     {product.discount_percentage && (
@@ -518,7 +525,7 @@ export default function ProductDetailPage({
                     )}
                   </div>
                 ) : (
-                  <div className="text-2xl font-bold text-[#2952E6]">
+                  <div className="text-2xl font-bold text-[#E03A3E]">
                     ${parseFloat(product.product_price).toFixed(2)}
                   </div>
                 )}
@@ -573,51 +580,143 @@ export default function ProductDetailPage({
               {/* Product Options */}
               {product.options && product.options.length > 0 && (
                 <div className="space-y-4 mb-6">
-                  {product.options.map((option) => (
-                    <div key={option.option_id}>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
-                        {option.option_name}
-                        {option.required && (
-                          <span className="text-red-500 ml-1">*</span>
+                  {product.options.map((option) => {
+                    const rawType = (option.option_type || "").toLowerCase().trim();
+                    // Normalise type aliases
+                    const optionType =
+                      rawType === "radio" || rawType === "radio_button"
+                        ? "radio"
+                        : rawType === "checkbox" || rawType === "check" || rawType === "check_button"
+                          ? "checkbox"
+                          : rawType === "text" || rawType === "textarea" || rawType === "input"
+                            ? "text"
+                            : rawType === "dropdown" || rawType === "select" || rawType === "select_box"
+                              ? "dropdown"
+                              : "radio"; // fallback: treat unknown types as radio
+
+                    const getPriceDisplay = (value: any) => {
+                      const displayPrice =
+                        value.has_discount && value.discounted_option_price
+                          ? value.discounted_option_price
+                          : Number.parseFloat(value.product_option_price || "0");
+                      return displayPrice > 0 ? ` (+$${displayPrice.toFixed(2)})` : "";
+                    };
+
+                    const values: any[] = Array.isArray(option.values) ? option.values : [];
+
+                    return (
+                      <div key={option.option_id}>
+                        <label className="text-sm font-medium text-gray-700 mb-3 block">
+                          {option.option_name}
+                          {option.required && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
+                        </label>
+
+                        {/* RADIO — traditional radio buttons stacked vertically */}
+                        {optionType === "radio" && (
+                          <div className="flex flex-col gap-2">
+                            {values.map((value: any) => {
+                              const isSelected = selectedOptions[option.option_id] === value.option_value_id;
+                              return (
+                                <label
+                                  key={value.option_value_id}
+                                  className="flex items-center gap-3 cursor-pointer group"
+                                  onClick={() =>
+                                    setSelectedOptions((prev) => ({
+                                      ...prev,
+                                      [option.option_id]: value.option_value_id,
+                                    }))
+                                  }
+                                >
+                                  <span
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected
+                                      ? "border-[#E03A3E]"
+                                      : "border-gray-300 group-hover:border-[#E03A3E]"
+                                      }`}
+                                  >
+                                    {isSelected && (
+                                      <span className="w-2.5 h-2.5 rounded-full bg-[#E03A3E]" />
+                                    )}
+                                  </span>
+                                  <span className={`text-sm ${isSelected ? "text-black font-medium" : "text-gray-700"}`}>
+                                    {value.option_value}
+                                    {getPriceDisplay(value)}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
                         )}
-                      </label>
-                      <select
-                        value={selectedOptions[option.option_id] || ""}
-                        onChange={(e) => {
-                          setSelectedOptions({
-                            ...selectedOptions,
-                            [option.option_id]: Number.parseInt(e.target.value),
-                          });
-                        }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2952E6] focus:border-[#2952E6] text-black"
-                        required={option.required}
-                      >
-                        <option value="">Select {option.option_name}</option>
-                        {option.values.map((value: any) => {
-                          // Use discounted price if available, otherwise use regular price
-                          const displayPrice =
-                            value.has_discount && value.discounted_option_price
-                              ? value.discounted_option_price
-                              : Number.parseFloat(
-                                  value.product_option_price || "0"
-                                );
-                          const priceDisplay =
-                            displayPrice > 0
-                              ? ` (+$${displayPrice.toFixed(2)})`
-                              : "";
-                          return (
-                            <option
-                              key={value.option_value_id}
-                              value={value.option_value_id}
-                            >
-                              {value.option_value}
-                              {priceDisplay}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                  ))}
+
+                        {/* CHECKBOX — toggleable pill buttons */}
+                        {optionType === "checkbox" && (
+                          <div className="flex flex-wrap gap-2">
+                            {values.map((value: any) => {
+                              const isSelected = selectedOptions[option.option_id] === value.option_value_id;
+                              return (
+                                <button
+                                  key={value.option_value_id}
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedOptions((prev) => ({
+                                      ...prev,
+                                      [option.option_id]: isSelected ? 0 : value.option_value_id,
+                                    }))
+                                  }
+                                  className={`px-5 py-2.5 rounded-lg text-sm font-medium border-2 transition-all ${isSelected
+                                    ? "bg-[#E03A3E] border-[#E03A3E] text-white"
+                                    : "bg-white border-gray-200 text-gray-700 hover:border-[#E03A3E] hover:text-[#E03A3E]"
+                                    }`}
+                                >
+                                  {value.option_value}
+                                  {getPriceDisplay(value)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* TEXT — text input */}
+                        {optionType === "text" && (
+                          <input
+                            type="text"
+                            placeholder={`Enter ${option.option_name}`}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] text-black text-sm"
+                            onChange={(_e) => {
+                              // Store text value; for text options you may need a separate state
+                            }}
+                          />
+                        )}
+
+                        {/* DROPDOWN — select */}
+                        {optionType === "dropdown" && (
+                          <select
+                            value={selectedOptions[option.option_id] || ""}
+                            onChange={(e) => {
+                              setSelectedOptions((prev) => ({
+                                ...prev,
+                                [option.option_id]: Number.parseInt(e.target.value),
+                              }));
+                            }}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] text-black text-sm"
+                            required={option.required}
+                          >
+                            <option value="">Select {option.option_name}</option>
+                            {values.map((value: any) => (
+                              <option
+                                key={value.option_value_id}
+                                value={value.option_value_id}
+                              >
+                                {value.option_value}
+                                {getPriceDisplay(value)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
@@ -653,8 +752,8 @@ export default function ProductDetailPage({
                     {product.has_discount && product.discounted_price
                       ? `$${product.discounted_price.toFixed(2)}`
                       : `$${Number.parseFloat(product.product_price).toFixed(
-                          2
-                        )}`}
+                        2
+                      )}`}
                   </div>
                 </div>
               </div>
@@ -676,7 +775,7 @@ export default function ProductDetailPage({
                       type="radio"
                       checked={purchaseType === "onetime"}
                       onChange={() => setPurchaseType("onetime")}
-                      className="w-4 h-4 text-[#2952E6]"
+                      className="w-4 h-4 text-[#E03A3E]"
                     />
                     <span className="text-black">One-time Purchase</span>
                   </label>
@@ -688,7 +787,7 @@ export default function ProductDetailPage({
                       type="radio"
                       checked={purchaseType === "subscription"}
                       onChange={() => setPurchaseType("subscription")}
-                      className="w-4 h-4 text-[#2952E6]"
+                      className="w-4 h-4 text-[#E03A3E]"
                     />
                     <span className="font-medium text-black">
                       Subscribe & Deliver every
@@ -711,7 +810,7 @@ export default function ProductDetailPage({
 
               <Button
                 size="lg"
-                className="w-full py-6 bg-[#2952E6] hover:bg-[#1e3fb3] text-white font-semibold text-lg"
+                className="w-full py-6 bg-[#E03A3E] hover:bg-[#cc3236] text-white font-semibold text-lg"
                 onClick={handleAddToCart}
               >
                 Add to Cart ({quantity})
@@ -724,14 +823,14 @@ export default function ProductDetailPage({
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
               <TabsTrigger
                 value="description"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#2952E6] data-[state=active]:text-white"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E]"
               >
                 Description
               </TabsTrigger>
               {product.show_specifications && (
                 <TabsTrigger
                   value="specifications"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#2952E6] data-[state=active]:text-white"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E]"
                 >
                   Specifications
                 </TabsTrigger>
@@ -739,7 +838,7 @@ export default function ProductDetailPage({
               {product.show_other_info && (
                 <TabsTrigger
                   value="other"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#2952E6] data-[state=active]:text-white"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E]"
                 >
                   Other Info
                 </TabsTrigger>
@@ -804,35 +903,40 @@ export default function ProductDetailPage({
             ) : (
               <div className="grid md:grid-cols-3 gap-6 mb-12">
                 {reviews.map((review) => (
-                  <Card key={review.review_id}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-4">
+                  <div key={review.review_id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#E03A3E]/10 flex items-center justify-center">
+                          <span className="text-[#E03A3E] font-semibold text-sm">
+                            {review.reviewer_name?.charAt(0)?.toUpperCase() || "?"}
+                          </span>
+                        </div>
                         <div>
-                          <p className="font-semibold text-white">
+                          <p className="font-semibold text-black">
                             {review.reviewer_name}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs text-gray-400">
                             {formatDate(review.created_at)}
                           </p>
                         </div>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 ${
-                                star <= review.rating
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
                       </div>
-                      <p className="text-white text-sm leading-relaxed">
-                        {review.review_text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <svg
+                            key={star}
+                            width="16" height="16" viewBox="0 0 24 24"
+                            fill={star <= review.rating ? "#E03A3E" : "#E6E6E6"}
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-[14px] text-[#333] leading-relaxed">
+                      "{review.review_text}"
+                    </p>
+                  </div>
                 ))}
               </div>
             )}
@@ -847,89 +951,93 @@ export default function ProductDetailPage({
             </div>
 
             {/* Write Review */}
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 text-white">
-                  Review this product
-                </h3>
+            <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100">
+              <h3 className="text-xl font-bold text-black mb-6">
+                Review this product
+              </h3>
 
-                <div className="mb-6">
-                  <p className="text-sm font-medium text-gray-700 mb-2 text-white">
-                    Click to rate
-                  </p>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => setRating(star)}
-                        className="focus:outline-none"
+              <div className="mb-6">
+                <p className="text-sm font-medium text-black mb-2">
+                  Click to rate
+                </p>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className="focus:outline-none transition-transform hover:scale-110"
+                    >
+                      <svg
+                        width="28" height="28" viewBox="0 0 24 24"
+                        fill={star <= rating ? "#E03A3E" : "#E6E6E6"}
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="cursor-pointer"
                       >
-                        <Star
-                          className={`w-8 h-8 ${
-                            star <= rating
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <div className="mb-6">
-                  <Textarea
-                    placeholder="Write your review here, what did you like the most?"
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    className="min-h-32 resize-none"
-                    disabled={submittingReview}
-                  />
-                  {reviewText.length > 0 && reviewText.length < 10 && (
-                    <p className="text-sm text-red-500 mt-1">
-                      Review must be at least 10 characters ({reviewText.length}
-                      /10)
-                    </p>
-                  )}
-                </div>
+              <div className="mb-6">
+                <label className="text-sm font-medium text-black block mb-2">Your Review</label>
+                <textarea
+                  placeholder="Write your review here, what did you like the most?"
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  rows={4}
+                  className={`w-full border rounded-lg px-4 py-3 text-sm text-black placeholder:text-gray-400 resize-none focus:outline-none focus:ring-1 ${reviewText.length > 0 && reviewText.length < 10
+                    ? "border-[#E03A3E] focus:ring-[#E03A3E]"
+                    : "border-[#FDECEC] focus:ring-[#E03A3E]"
+                    }`}
+                  disabled={submittingReview}
+                />
+                {reviewText.length > 0 && reviewText.length < 10 && (
+                  <p className="text-xs text-[#E03A3E] mt-1">
+                    Please write at least 10 characters ({reviewText.length}/10)
+                  </p>
+                )}
+              </div>
 
-                <div className="mb-4">
-                  <label className="text-sm font-medium  mb-2 block text-white">
-                    Your Name (Optional)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Enter your name"
-                    value={reviewerName}
-                    onChange={(e) => setReviewerName(e.target.value)}
-                    disabled={submittingReview}
-                    className="mb-2"
-                  />
-                </div>
+              <div className="mb-4">
+                <label className="text-sm font-medium text-black mb-2 block">
+                  Your Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={reviewerName}
+                  onChange={(e) => setReviewerName(e.target.value)}
+                  disabled={submittingReview}
+                  className="w-full border border-[#FDECEC] rounded-lg px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
+                />
+              </div>
 
-                <div className="mb-6">
-                  <label className="text-sm font-medium  mb-2 block text-white">
-                    Your Email (Optional)
-                  </label>
-                  <Input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={reviewerEmail}
-                    onChange={(e) => setReviewerEmail(e.target.value)}
-                    disabled={submittingReview}
-                  />
-                </div>
+              <div className="mb-6">
+                <label className="text-sm font-medium text-black mb-2 block">
+                  Your Email (Optional)
+                </label>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={reviewerEmail}
+                  onChange={(e) => setReviewerEmail(e.target.value)}
+                  disabled={submittingReview}
+                  className="w-full border border-[#FDECEC] rounded-lg px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
+                />
+              </div>
 
-                <Button
-                  onClick={handleSubmitReview}
-                  className="bg-[#2952E6] hover:bg-[#1e3fb3]"
-                  disabled={
-                    submittingReview || !rating || reviewText.trim().length < 10
-                  }
-                >
-                  {submittingReview ? "Submitting..." : "Submit Review"}
-                </Button>
-              </CardContent>
-            </Card>
+              <button
+                onClick={handleSubmitReview}
+                className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2.5 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                disabled={
+                  submittingReview || !rating || reviewText.trim().length < 10
+                }
+              >
+                {submittingReview ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
           </div>
 
           {/* You May Also Like */}
@@ -939,18 +1047,18 @@ export default function ProductDetailPage({
                 You may also Like
               </h2>
               <Link href="/shop">
-                <Button className="bg-[#2952E6] hover:bg-[#1e3fb3]">
+                <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2.5 rounded-md text-sm font-semibold transition">
                   View All
-                </Button>
+                </button>
               </Link>
             </div>
 
             <div className="text-center py-8 text-gray-500">
               <p>Related products will be displayed here</p>
               <Link href="/shop">
-                <Button variant="outline" className="mt-4">
+                <button className="border border-[#E03A3E] text-[#E03A3E] px-6 py-2.5 rounded-md text-sm font-semibold hover:bg-[#FFF1F1] transition mt-4">
                   Browse All Products
-                </Button>
+                </button>
               </Link>
             </div>
           </div>

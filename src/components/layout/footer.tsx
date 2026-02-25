@@ -14,7 +14,7 @@ export function Footer() {
             {/* LOGO + COPYRIGHT */}
             <div>
               <Image
-                src="/assets/images/cat_logo.png"
+                src="/assets/images/cat.svg"
                 alt="Caterly Logo"
                 width={160}
                 height={70}
@@ -78,7 +78,7 @@ export function Footer() {
         {/* LOGO */}
         <div className="mb-8">
           <Image
-            src="/assets/images/cat_logo.png"
+            src="/assets/images/cat.svg"
             alt="Caterly Logo"
             width={150}
             height={65}
@@ -131,7 +131,7 @@ export function Footer() {
 
         {/* COPYRIGHT */}
         <p className="text-sm text-white/80">
-          2025 © All Rights Reserved Europa Pizza
+          2025 © All Rights Reserved Caterly
         </p>
       </div>
     </footer>
