@@ -75,6 +75,38 @@ export default function HomePage() {
     }
   }
 
+  // Quote form state
+  const generateCaptcha = () => Math.floor(1000 + Math.random() * 9000).toString()
+  const [captchaCode, setCaptchaCode] = useState(() => generateCaptcha())
+  const [quoteForm, setQuoteForm] = useState({
+    name: "",
+    contact: "",
+    email: "",
+    deliveryDateTime: "",
+    occasion: "",
+    message: "",
+    captchaInput: "",
+  })
+  const [submittingQuote, setSubmittingQuote] = useState(false)
+
+  const handleQuoteSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (quoteForm.captchaInput !== captchaCode) {
+      toast.error("Captcha does not match. Please try again.")
+      setCaptchaCode(generateCaptcha())
+      setQuoteForm(prev => ({ ...prev, captchaInput: "" }))
+      return
+    }
+    setSubmittingQuote(true)
+    // Simulate submission
+    setTimeout(() => {
+      toast.success("Your quote request has been submitted! We'll be in touch within 24 hours.")
+      setQuoteForm({ name: "", contact: "", email: "", deliveryDateTime: "", occasion: "", message: "", captchaInput: "" })
+      setCaptchaCode(generateCaptcha())
+      setSubmittingQuote(false)
+    }, 800)
+  }
+
   // Gallery state
   const galleryImages = [
     "/assets/images/c10.jpg",
@@ -907,13 +939,13 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 8. CALL TO ACTION */}
       {/* ================================================= */}
-      {/* <section className="py-12 md:py-24 bg-white">
+      <section className="py-12 md:py-24 bg-white">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-12 items-stretch border rounded-xl overflow-hidden">
 
             <div className="p-6 md:p-10">
 
-  
+
               <h2 className="text-[24px] md:text-[28px] font-semibold text-black mb-2">
                 Request a Quote
               </h2>
@@ -922,136 +954,124 @@ export default function HomePage() {
                 discuss your catering needs.
               </p>
 
-     
-              <form className="space-y-6">
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-black">First Name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter Here"
-                      className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-black">Last Name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter Here"
-                      className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
-                    />
-                  </div>
+              <form className="space-y-5" onSubmit={handleQuoteSubmit}>
+
+                {/* Name */}
+                <div>
+                  <label className="text-sm font-medium text-black">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={quoteForm.name}
+                    onChange={(e) => setQuoteForm({ ...quoteForm, name: e.target.value })}
+                    placeholder="Enter your full name"
+                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  />
                 </div>
 
-                
+                {/* Contact */}
+                <div>
+                  <label className="text-sm font-medium text-black">Contact</label>
+                  <input
+                    type="tel"
+                    required
+                    value={quoteForm.contact}
+                    onChange={(e) => setQuoteForm({ ...quoteForm, contact: e.target.value })}
+                    placeholder="Enter your phone number"
+                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  />
+                </div>
+
+                {/* Email */}
                 <div>
                   <label className="text-sm font-medium text-black">Email</label>
                   <input
                     type="email"
-                    placeholder="Enter Here"
+                    required
+                    value={quoteForm.email}
+                    onChange={(e) => setQuoteForm({ ...quoteForm, email: e.target.value })}
+                    placeholder="Enter your email address"
                     className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
                   />
                 </div>
 
-              
+                {/* Delivery Date and Time */}
                 <div>
-                  <label className="text-sm font-medium text-black">Phone</label>
+                  <label className="text-sm font-medium text-black">Delivery Date and Time</label>
                   <input
-                    type="tel"
-                    placeholder="Enter Here"
-                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+                    type="datetime-local"
+                    required
+                    value={quoteForm.deliveryDateTime}
+                    onChange={(e) => setQuoteForm({ ...quoteForm, deliveryDateTime: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#E03A3E]"
                   />
                 </div>
 
-              
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-black">
-                      Delivery Time
-                    </label>
-                    <select className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-600 focus:outline-none focus:border-[#E03A3E]">
-                      <option>Select</option>
-                      <option>Morning</option>
-                      <option>Afternoon</option>
-                      <option>Evening</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-black">
-                      Number of Guests
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Enter Here"
-                      className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
-                    />
-                  </div>
+                {/* Occasion */}
+                <div>
+                  <label className="text-sm font-medium text-black">Occasion</label>
+                  <select
+                    required
+                    value={quoteForm.occasion}
+                    onChange={(e) => setQuoteForm({ ...quoteForm, occasion: e.target.value })}
+                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-600 focus:outline-none focus:border-[#E03A3E]"
+                  >
+                    <option value="">Select Occasion</option>
+                    <option>Wedding</option>
+                    <option>Corporate Event</option>
+                    <option>Birthday Party</option>
+                    <option>Anniversary</option>
+                    <option>Private Dinner</option>
+                    <option>Graduation</option>
+                    <option>Other</option>
+                  </select>
                 </div>
 
-           
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-black">
-                      Select Event Type
-                    </label>
-                    <select className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-600 focus:outline-none focus:border-[#E03A3E]">
-                      <option>Select</option>
-                      <option>Corporate</option>
-                      <option>Wedding</option>
-                      <option>Private Event</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-black">
-                      Suitable Contact Time
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Here"
-                      className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
-                    />
-                  </div>
-                </div>
-
-             
+                {/* Message */}
                 <div>
                   <label className="text-sm font-medium text-black">Message</label>
                   <textarea
-                    placeholder="Tell us about your event"
+                    required
                     rows={4}
-                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+                    value={quoteForm.message}
+                    onChange={(e) => setQuoteForm({ ...quoteForm, message: e.target.value })}
+                    placeholder="Tell us about your event..."
+                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#E03A3E]"
                   />
                 </div>
 
-             
-                <div className="flex items-center gap-4">
-                  <div className="border-2 border-dashed border-[#E03A3E] px-6 py-3 text-black font-semibold rounded-md">
-                    3282
+                {/* Captcha */}
+                <div>
+                  <label className="text-sm font-medium text-black">Captcha</label>
+                  <div className="mt-1 flex items-center gap-3">
+                    <div className="flex items-center justify-center min-w-[90px] border-2 border-dashed border-[#E03A3E] px-5 py-3 rounded-md select-none">
+                      <span className="text-[#E03A3E] font-bold text-lg tracking-widest">{captchaCode}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCaptchaCode(generateCaptcha())}
+                      className="text-xs text-[#E03A3E] underline whitespace-nowrap"
+                    >
+                      Refresh
+                    </button>
+                    <input
+                      type="text"
+                      required
+                      value={quoteForm.captchaInput}
+                      onChange={(e) => setQuoteForm({ ...quoteForm, captchaInput: e.target.value })}
+                      placeholder="Enter captcha"
+                      className="flex-1 rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Enter Captcha"
-                    className="flex-1 rounded-md border border-[#F2CACA] px-4 py-3 text-sm focus:outline-none focus:border-[#E03A3E]"
-                  />
                 </div>
 
-               
                 <button
                   type="submit"
-                  className="
-              w-full
-              bg-[#E03A3E]
-              hover:bg-[#cc3236]
-              text-white
-              py-4
-              rounded-md
-              text-sm
-              font-semibold
-              transition
-            "
+                  disabled={submittingQuote}
+                  className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white py-4 rounded-md text-sm font-semibold transition disabled:opacity-50"
                 >
-                  Submit
+                  {submittingQuote ? "Submitting..." : "Submit Request"}
                 </button>
 
               </form>
@@ -1068,7 +1088,7 @@ export default function HomePage() {
 
           </div>
         </div>
-      </section> */}
+      </section>
 
     </div>
   )
