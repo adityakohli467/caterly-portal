@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -10,27 +10,45 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useAuthStore } from "@/store/auth"
 import { toast } from "sonner"
 
+const FORM_STORAGE_KEY = "caterly_register_form"
+
+const defaultForm = {
+  fullName: "",
+  phoneNumber: "",
+  email: "",
+  address: "",
+  suburb: "",
+  state: "",
+  postalCode: "",
+  password: "",
+  confirmPassword: "",
+  agree: false,
+}
+
 function RegisterPageContent() {
   const router = useRouter()
   const register = useAuthStore((state) => state.register)
 
-  const [form, setForm] = useState({
-    fullName: "",
-    phoneNumber: "",
-    email: "",
-    address: "",
-    suburb: "",
-    state: "",
-    postalCode: "",
-    password: "",
-    confirmPassword: "",
-    agree: false,
+  // Initialize form directly from sessionStorage (lazy initializer avoids race conditions)
+  const [form, setForm] = useState(() => {
+    if (typeof window === "undefined") return defaultForm
+    try {
+      const saved = sessionStorage.getItem(FORM_STORAGE_KEY)
+      if (saved) return { ...defaultForm, ...JSON.parse(saved) }
+    } catch { }
+    return defaultForm
   })
-
   const [loading, setLoading] = useState(false)
 
+  // Persist form data to sessionStorage on every change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(form))
+    } catch { }
+  }, [form])
+
   const handleChange = (key: string, value: any) => {
-    setForm({ ...form, [key]: value })
+    setForm((prev: typeof defaultForm) => ({ ...prev, [key]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,6 +102,9 @@ function RegisterPageContent() {
       }
 
       await register(registrationData)
+
+      // Clear saved form data after successful registration
+      sessionStorage.removeItem(FORM_STORAGE_KEY)
 
       toast.success("Registration successful!")
       router.push("/")

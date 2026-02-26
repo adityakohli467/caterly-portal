@@ -2,16 +2,19 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/store/cart"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { LoadingWithLogo } from "@/components/loading-with-logo"
 import { getProductImageUrl } from "@/lib/product-utils"
-import { Search } from "lucide-react"
+import { Search, ChevronRight } from "lucide-react"
+
+interface ProductCategory {
+  category_id: number
+  category_name: string
+  parent_category_id?: number | null
+}
 
 interface Product {
   product_id: number
@@ -24,11 +27,14 @@ interface Product {
   discount_percentage?: number
   product_image?: string
   product_images?: Array<{ image_url: string } | string> | null
+  categories?: ProductCategory[]
 }
 
 interface Category {
   category_id: number
   category_name: string
+  parent_category_id?: number | null
+  children?: Category[]
 }
 
 function ShopPageContent() {
@@ -39,13 +45,12 @@ function ShopPageContent() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<number | null>(() => {
-    // Initialize from URL on first render
-    const categoryParam = searchParams.get('category')
-    return categoryParam ? parseInt(categoryParam) : null
+    const c = searchParams.get('category')
+    return c ? parseInt(c) : null
   })
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
 
   // Debounce search
@@ -58,25 +63,63 @@ function ShopPageContent() {
   const fetchCategories = async () => {
     try {
       const res = await api.get("/store/products/categories")
-      const all = res.data.categories || []
-      const filtered = all.filter(
-        (cat: Category) => cat.category_name?.toLowerCase() !== "catering packages"
-      )
-      setCategories(filtered)
+      setCategories(res.data.categories || [])
     } catch (err) {
       console.error("Failed to fetch categories", err)
     }
   }
 
+  // Is this category id a parent (has children)?
+  const getParentCategory = (id: number): Category | null => {
+    const cat = categories.find(c => c.category_id === id)
+    return (cat && cat.children && cat.children.length > 0) ? cat : null
+  }
+
+  // Get the parent of a given child category id
+  const getParentOfChild = (childId: number): Category | null =>
+    categories.find(c => c.children?.some(ch => ch.category_id === childId)) || null
+
+  // Find category name by id (searches parents + their children)
+  const findCategoryById = (id: number): Category | undefined => {
+    for (const cat of categories) {
+      if (cat.category_id === id) return cat
+      const child = cat.children?.find(c => c.category_id === id)
+      if (child) return child
+    }
+    return undefined
+  }
+
   const fetchProducts = async () => {
     try {
       setLoading(true)
+      setProducts([])
       const params: any = { limit: 50 }
-      if (selectedCategory) params.category_id = selectedCategory
-      if (debouncedSearch) params.search = debouncedSearch
+
+      if (debouncedSearch) {
+        params.search = debouncedSearch
+      } else if (selectedCategory) {
+        // For a child subcategory: fetch with the parent's category_id
+        const parent = getParentOfChild(selectedCategory)
+        params.category_id = parent ? parent.category_id : selectedCategory
+      }
 
       const res = await api.get("/store/products", { params })
-      setProducts(res.data.products || [])
+      let fetched: Product[] = res.data.products || []
+
+      // Filter client-side by subcategory if product has categories data
+      if (selectedCategory && !debouncedSearch) {
+        const isParent = getParentCategory(selectedCategory)
+        const parent = getParentOfChild(selectedCategory)
+        if (!isParent && parent) {
+          // child selected: filter to that subcategory
+          const filtered = fetched.filter(p =>
+            p.categories?.some(c => c.category_id === selectedCategory)
+          )
+          if (filtered.length > 0) fetched = filtered
+        }
+      }
+
+      setProducts(fetched)
     } catch (err) {
       console.error("Failed to fetch products", err)
       setProducts([])
@@ -86,29 +129,77 @@ function ShopPageContent() {
     }
   }
 
-  useEffect(() => {
-    fetchCategories()
-  }, [])
+  useEffect(() => { fetchCategories() }, [])
 
   useEffect(() => {
-    fetchProducts()
-  }, [selectedCategory, debouncedSearch])
+    if (categories.length > 0 || selectedCategory === null) {
+      fetchProducts()
+    }
+  }, [selectedCategory, debouncedSearch, categories])
 
   const handleAddToCart = (product: Product) => {
     const priceToUse =
       product.has_discount && product.discounted_price
         ? product.discounted_price.toString()
         : product.product_price
-
     addItem({
       product_id: product.product_id,
       product_name: product.product_name,
       product_price: priceToUse,
       product_image: getProductImageUrl(product),
     })
-
     toast.success(`${product.product_name} added to cart`)
   }
+
+  const selectCategory = (id: number) => {
+    setSelectedCategory(id)
+    router.push(`/shop?category=${id}`)
+  }
+
+  // Determine view mode
+  const selectedCatName = selectedCategory
+    ? findCategoryById(selectedCategory)?.category_name ?? "Products"
+    : "All Products"
+
+  const ProductCard = ({ product }: { product: Product }) => (
+    <div
+      onClick={() => router.push(`/shop/${product.product_id}`)}
+      className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
+    >
+      <img
+        src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
+        alt={product.product_name}
+        className="w-full h-44 object-cover"
+      />
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900">{product.product_name}</h3>
+        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+          {product.product_description}
+        </p>
+        <div className="flex items-center justify-between mt-3">
+          <span className="text-lg font-semibold text-gray-900">
+            ${product.has_discount && product.discounted_price
+              ? product.discounted_price
+              : product.product_price}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); router.push(`/shop/${product.product_id}`) }}
+              className="border border-[#E03A3E] text-[#E03A3E] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-[#FFF1F1] transition"
+            >
+              View Details
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
+              className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
+            >
+              Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="bg-white min-h-screen">
@@ -116,9 +207,7 @@ function ShopPageContent() {
       {/* HEADER */}
       <section className="w-full bg-white border-b">
         <div className="container mx-auto px-4 py-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            Catering
-          </h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Catering</h1>
         </div>
       </section>
 
@@ -129,12 +218,8 @@ function ShopPageContent() {
             {/* LEFT SIDEBAR */}
             <aside className="lg:col-span-1">
               <div className="sticky top-24 space-y-6">
-
                 <button
-                  onClick={() => {
-                    setSelectedCategory(null)
-                    router.push('/shop')
-                  }}
+                  onClick={() => { setSelectedCategory(null); router.push('/shop') }}
                   className="w-full bg-[#E03A3E] text-white py-2 rounded-md text-sm font-semibold hover:bg-[#cc3236]"
                 >
                   All Menu
@@ -143,24 +228,42 @@ function ShopPageContent() {
                 <div>
                   <h4 className="text-sm font-bold text-gray-900 mb-3">Categories</h4>
                   <ul className="space-y-1 text-sm">
-                    {categories.map(cat => (
-                      <li
-                        key={cat.category_id}
-                        onClick={() => {
-                          setSelectedCategory(cat.category_id)
-                          router.push(`/shop?category=${cat.category_id}`)
-                        }}
-                        className={`px-3 py-1.5 rounded-md cursor-pointer ${selectedCategory === cat.category_id
-                          ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
-                          : "hover:bg-gray-100 text-gray-700"
-                          }`}
-                      >
-                        {cat.category_name}
-                      </li>
-                    ))}
+                    {categories
+                      .filter(cat => !cat.parent_category_id)
+                      .map(parent => (
+                        <li key={parent.category_id}>
+                          {/* Parent */}
+                          <div
+                            onClick={() => selectCategory(parent.category_id)}
+                            className={`px-3 py-1.5 rounded-md cursor-pointer font-semibold ${selectedCategory === parent.category_id
+                              ? "bg-[#FFF1F1] text-[#E03A3E]"
+                              : "hover:bg-gray-100 text-gray-800"
+                              }`}
+                          >
+                            {parent.category_name}
+                          </div>
+
+                          {/* Children — always visible, indented */}
+                          {parent.children && parent.children.length > 0 && (
+                            <ul className="mt-1 ml-3 space-y-0.5 border-l-2 border-gray-100 pl-3">
+                              {parent.children.map(child => (
+                                <li
+                                  key={child.category_id}
+                                  onClick={() => selectCategory(child.category_id)}
+                                  className={`px-2 py-1 rounded-md cursor-pointer text-xs ${selectedCategory === child.category_id
+                                    ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
+                                    : "hover:bg-gray-100 text-gray-600"
+                                    }`}
+                                >
+                                  {child.category_name}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      ))}
                   </ul>
                 </div>
-
               </div>
             </aside>
 
@@ -171,15 +274,12 @@ function ShopPageContent() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
                 <div>
                   <h2 className="text-3xl font-bold text-black leading-tight">
-                    {selectedCategory
-                      ? categories.find(c => c.category_id === selectedCategory)?.category_name
-                      : "All Products"}
+                    {selectedCatName}
                   </h2>
                   <p className="text-gray-500 text-sm mt-1">
                     Crafted with passion, enjoyed in every bite. Taste the difference!
                   </p>
                 </div>
-
                 <div className="relative w-full sm:w-[320px]">
                   <Input
                     type="text"
@@ -192,71 +292,24 @@ function ShopPageContent() {
                 </div>
               </div>
 
-              {/* PRODUCT GRID */}
               {loading ? (
                 <LoadingWithLogo message="Loading products..." size="lg" />
               ) : searchLoading ? (
                 <LoadingWithLogo message="Searching products..." size="md" />
               ) : products.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  No products found
-                </div>
+                <div className="text-center py-12 text-gray-500">No products found</div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {products.map(product => (
-                    <div
-                      key={product.product_id}
-                      onClick={() => router.push(`/shop/${product.product_id}`)}
-                      className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
-                    >
-                      <img
-                        src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
-                        alt={product.product_name}
-                        className="w-full h-44 object-cover"
-                      />
-                      <div className="p-4">
-                        <h3 className="font-semibold text-gray-900">
-                          {product.product_name}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                          {product.product_description}
-                        </p>
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="text-lg font-semibold text-gray-900">
-                            $
-                            {product.has_discount && product.discounted_price
-                              ? product.discounted_price
-                              : product.product_price}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); router.push(`/shop/${product.product_id}`) }}
-                              className="border border-[#E03A3E] text-[#E03A3E] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-[#FFF1F1] transition"
-                            >
-                              View Details
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
-                              className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
-                            >
-                              Order
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <ProductCard key={product.product_id} product={product} />
                   ))}
                 </div>
               )}
 
-              {/* PAGINATION UI PLACEHOLDER */}
+              {/* PAGINATION PLACEHOLDER */}
               <div className="flex justify-center gap-3 mt-10">
-                <button className="w-10 h-10 bg-gray-100 text-gray-400 rounded-md cursor-not-allowed">
-                  ←
-                </button>
-                <button className="w-10 h-10 bg-[#E03A3E] text-white rounded-md hover:bg-[#cc3236]">
-                  →
-                </button>
+                <button className="w-10 h-10 bg-gray-100 text-gray-400 rounded-md cursor-not-allowed">←</button>
+                <button className="w-10 h-10 bg-[#E03A3E] text-white rounded-md hover:bg-[#cc3236]">→</button>
               </div>
 
             </main>
