@@ -212,7 +212,7 @@ export default function CheckoutPage() {
     }
 
     const afterDiscount = afterWholesaleDiscount - couponDiscount
-    const shippingFee = shippingMethod === "standard" ? 10 : 0
+    const shippingFee = shippingMethod === "standard" ? 50 : 0
     const gst = afterDiscount * 0.1 // 10% GST
     const total = afterDiscount + gst + shippingFee
 
@@ -524,7 +524,7 @@ export default function CheckoutPage() {
                 {/* Billing Details */}
                 <Card className="border-[#F2CACA] bg-white">
                   <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Billing Details</h2>
+                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Delivery Details</h2>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -558,7 +558,7 @@ export default function CheckoutPage() {
                         />
                       </div>
 
-                      <div>
+                      {/* <div>
                         <Label htmlFor="billing-country" className="text-black">Country Region</Label>
                         <Select value={billingData.country} onValueChange={(value) => setBillingData({ ...billingData, country: value })}>
                           <SelectTrigger className="bg-white border-gray-300 text-gray-900">
@@ -569,10 +569,10 @@ export default function CheckoutPage() {
                             <SelectItem value="New Zealand">New Zealand</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
+                      </div> */}
 
                       <div>
-                        <Label htmlFor="billing-street" className="text-black">House number & street name <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="billing-street" className="text-black">Street Address <span className="text-red-500">*</span></Label>
                         <Input
                           id="billing-street"
                           value={billingData.streetAddress}
@@ -607,14 +607,14 @@ export default function CheckoutPage() {
                             <SelectValue placeholder="Select State" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="NSW">NSW</SelectItem>
+                            {/* <SelectItem value="NSW">NSW</SelectItem> */}
                             <SelectItem value="VIC">VIC</SelectItem>
-                            <SelectItem value="QLD">QLD</SelectItem>
+                            {/* <SelectItem value="QLD">QLD</SelectItem>
                             <SelectItem value="SA">SA</SelectItem>
                             <SelectItem value="WA">WA</SelectItem>
                             <SelectItem value="TAS">TAS</SelectItem>
                             <SelectItem value="NT">NT</SelectItem>
-                            <SelectItem value="ACT">ACT</SelectItem>
+                            <SelectItem value="ACT">ACT</SelectItem> */}
                           </SelectContent>
                         </Select>
                       </div>
@@ -643,134 +643,7 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-                {/* Ship to Different Address */}
-                <Card className="border-[#F2CACA] bg-white">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center space-x-2 mb-6">
-                      <input
-                        type="radio"
-                        id="ship-different"
-                        checked={shipToDifferentAddress}
-                        onChange={(e) => setShipToDifferentAddress(e.target.checked)}
-                        className="w-4 h-4"
-                      />
-                      <Label htmlFor="ship-different" className="font-normal cursor-pointer text-lg text-black">
-                        Ship to a different Address?
-                      </Label>
-                    </div>
 
-                    {shipToDifferentAddress && (
-                      <div className="space-y-4 pl-6 border-l-2 border-gray-200">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="shipping-firstname" className="text-black">First Name</Label>
-                            <Input
-                              id="shipping-firstname"
-                              value={shippingData.firstName}
-                              onChange={(e) => setShippingData({ ...shippingData, firstName: e.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="shipping-lastname" className="text-black">Last Name</Label>
-                            <Input
-                              id="shipping-lastname"
-                              value={shippingData.lastName}
-                              onChange={(e) => setShippingData({ ...shippingData, lastName: e.target.value })}
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-phone" className="text-black">Phone</Label>
-                          <Input
-                            id="shipping-phone"
-                            type="tel"
-                            value={shippingData.phone}
-                            onChange={(e) => setShippingData({ ...shippingData, phone: e.target.value })}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-country" className="text-black">Country Region</Label>
-                          <Select value={shippingData.country} onValueChange={(value) => setShippingData({ ...shippingData, country: value })}>
-                            <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Australia">Australia</SelectItem>
-                              <SelectItem value="New Zealand">New Zealand</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-street" className="text-black">House number & street name</Label>
-                          <Input
-                            id="shipping-street"
-                            value={shippingData.streetAddress}
-                            onChange={(e) => setShippingData({ ...shippingData, streetAddress: e.target.value })}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-apartment" className="text-black">Apartment, suite, unit, etc (optional)</Label>
-                          <Input
-                            id="shipping-apartment"
-                            value={shippingData.apartment}
-                            onChange={(e) => setShippingData({ ...shippingData, apartment: e.target.value })}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-suburb" className="text-black">Suburb</Label>
-                          <Input
-                            id="shipping-suburb"
-                            value={shippingData.suburb}
-                            onChange={(e) => setShippingData({ ...shippingData, suburb: e.target.value })}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-state" className="text-black">State</Label>
-                          <Select value={shippingData.state} onValueChange={(value) => setShippingData({ ...shippingData, state: value })}>
-                            <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                              <SelectValue placeholder="Select State" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="NSW">NSW</SelectItem>
-                              <SelectItem value="VIC">VIC</SelectItem>
-                              <SelectItem value="QLD">QLD</SelectItem>
-                              <SelectItem value="SA">SA</SelectItem>
-                              <SelectItem value="WA">WA</SelectItem>
-                              <SelectItem value="TAS">TAS</SelectItem>
-                              <SelectItem value="NT">NT</SelectItem>
-                              <SelectItem value="ACT">ACT</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-postcode" className="text-black">Postcode</Label>
-                          <Input
-                            id="shipping-postcode"
-                            value={shippingData.postcode}
-                            onChange={(e) => setShippingData({ ...shippingData, postcode: e.target.value })}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="shipping-email" className="text-black">Email Address</Label>
-                          <Input
-                            id="shipping-email"
-                            type="email"
-                            value={shippingData.email}
-                            onChange={(e) => setShippingData({ ...shippingData, email: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
 
                 {/* Delivery Notes */}
                 <Card className="border-[#F2CACA] bg-white">
@@ -788,7 +661,7 @@ export default function CheckoutPage() {
                           className="mt-2"
                         />
                       </div>
-                      <div>
+                      {/* <div>
                         <Label htmlFor="delivery-notes-image" className="text-black">Attach Image (Optional)</Label>
                         <div className="mt-2">
                           {deliveryNotesImagePreview ? (
@@ -827,7 +700,7 @@ export default function CheckoutPage() {
                             </label>
                           )}
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </CardContent>
                 </Card>
@@ -872,7 +745,26 @@ export default function CheckoutPage() {
                                 {item.product_name}
                               </h3>
 
-                              <div className="flex items-center justify-between">
+                              {/* Display Options & Frequency */}
+                              {(item.options && item.options.length > 0 || item.delivery_frequency && item.delivery_frequency !== "One Time") && (
+                                <div className="mb-2 space-y-1">
+                                  {item.options?.map((opt, idx) => (
+                                    <div key={idx} className="text-xs text-gray-600 flex justify-between">
+                                      <span>{opt.option_name}: {opt.option_value}</span>
+                                      {parseFloat(opt.option_price) > 0 && (
+                                        <span>({opt.option_price_prefix}${parseFloat(opt.option_price).toFixed(2)})</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
+                                    <div className="text-xs text-blue-600 font-medium pt-1">
+                                      Delivery: {item.delivery_frequency}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="flex items-center justify-between mt-2">
                                 <div className="flex items-center border rounded border-gray-300">
                                   <Button
                                     type="button"
@@ -920,37 +812,7 @@ export default function CheckoutPage() {
                               </div>
                             </div>
 
-                            {/* Per-Item Delivery Frequency */}
-                            <div className="mt-3 space-y-2">
-                              <Label className="text-xs text-gray-700">Delivery Frequency</Label>
-                              <Select
-                                value={item.delivery_frequency || "One Time"}
-                                onValueChange={(value) => updateDeliveryFrequency(cartItemId, value)}
-                              >
-                                <SelectTrigger className="h-8 text-xs bg-white border-gray-300 text-gray-900">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="One Time">One Time</SelectItem>
-                                  <SelectItem value="2 Weeks">Every 2 Weeks</SelectItem>
-                                  <SelectItem value="4 Weeks">Every 4 Weeks</SelectItem>
-                                  <SelectItem value="8 Weeks">Every 8 Weeks</SelectItem>
-                                </SelectContent>
-                              </Select>
 
-                              {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
-                                <div className="animate-in fade-in slide-in-from-top-2">
-                                  <Label className="text-xs text-gray-700">Start Date</Label>
-                                  <Input
-                                    type="date"
-                                    min={new Date().toISOString().split('T')[0]}
-                                    value={item.delivery_start_date || ""}
-                                    onChange={(e) => updateDeliveryStartDate(cartItemId, e.target.value)}
-                                    className="h-8 text-xs bg-white text-gray-900"
-                                  />
-                                </div>
-                              )}
-                            </div>
                           </div>
                         )
                       })}
@@ -1090,18 +952,18 @@ export default function CheckoutPage() {
                           <span>- ${mounted ? totals.couponDiscount.toFixed(2) : '0.00'}</span>
                         </div>
                       )}
-
+                      {totals.shippingFee > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Delivery Fee</span>
+                          <span>${mounted ? totals.shippingFee.toFixed(2) : '0.00'}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-sm">
                         <span>GST (10%)</span>
                         <span>${mounted ? totals.gst.toFixed(2) : '0.00'}</span>
                       </div>
 
-                      {totals.shippingFee > 0 && (
-                        <div className="flex justify-between text-sm">
-                          <span>Shipping</span>
-                          <span>${mounted ? totals.shippingFee.toFixed(2) : '0.00'}</span>
-                        </div>
-                      )}
+
                     </div>
 
                     <div className="flex justify-between text-lg font-bold mb-6 text-black">

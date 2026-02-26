@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Lock, CreditCard } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { useAuthStore } from "@/store/auth"
 
 interface FatZebraPaymentFormProps {
     orderId: number
@@ -16,6 +17,7 @@ interface FatZebraPaymentFormProps {
 export function FatZebraPaymentForm({ orderId, amount, onSuccess, onError }: FatZebraPaymentFormProps) {
     console.log('FatZebraPaymentForm initialized with orderId:', orderId, 'and amount:', amount)
     const [loading, setLoading] = useState(false)
+    const { token } = useAuthStore()
 
     const handlePayment = async () => {
         setLoading(true)
@@ -23,11 +25,22 @@ export function FatZebraPaymentForm({ orderId, amount, onSuccess, onError }: Fat
         try {
             console.log('Initiating payment for order:', orderId)
 
-            // Navigate the browser to the backend redirect endpoint which returns HTML that forwards to Fat Zebra
-            // Use NEXT_PUBLIC_API_URL or default to localhost:9000 (matching api.ts)
+            // Check if we have a valid token
+            if (!token) {
+                toast.error("Session expired. Please login again.")
+                window.location.href = `/auth/login?redirect=/payment?order_id=${orderId}`
+                return
+            }
+
+            // Use the browser-friendly /fatzebra/redirect endpoint
+            // This endpoint expects direct browser navigation and will redirect to Fat Zebra
             const backendBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000").replace(/\/$/, '')
-            const redirectUrl = `${backendBase}/store/payment/${orderId}/fatzebra/redirect`
-            console.log('Redirecting browser to backend redirect URL:', redirectUrl)
+
+            // Include token as query parameter since direct browser navigation doesn't send Authorization header
+            const redirectUrl = `${backendBase}/store/payment/${orderId}/fatzebra/redirect?token=${encodeURIComponent(token)}`
+            console.log('Redirecting browser to:', redirectUrl)
+
+            // Navigate directly to the backend redirect endpoint
             window.location.href = redirectUrl
             // Browser will navigate away; keep loading state until unload
             return

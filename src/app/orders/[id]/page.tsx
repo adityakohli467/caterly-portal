@@ -16,6 +16,8 @@ interface OrderItem {
   quantity: number
   price: string
   total: string
+  delivery_frequency?: string
+  options?: any[] | string
 }
 
 interface Order {
@@ -120,29 +122,55 @@ export default function OrderDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {order.items?.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center py-4 border-b last:border-b-0"
-                  >
-                    <div>
-                      <p className="font-semibold text-black">
-                        {item.product_name}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Qty: {item.quantity}
-                      </p>
+                {order.items?.map((item, index) => {
+                  let parsedOptions: any[] = []
+                  if (typeof item.options === 'string') {
+                    try { parsedOptions = JSON.parse(item.options) } catch (e) { }
+                  } else if (Array.isArray(item.options)) {
+                    parsedOptions = item.options
+                  }
+
+                  return (
+                    <div
+                      key={index}
+                      className="flex justify-between items-start py-4 border-b last:border-b-0"
+                    >
+                      <div>
+                        <p className="font-semibold text-black">
+                          {item.product_name}
+                        </p>
+
+                        {/* Display Options & Frequency */}
+                        {(parsedOptions.length > 0 || (item.delivery_frequency && item.delivery_frequency !== "One Time")) && (
+                          <div className="mt-1 mb-2 space-y-1">
+                            {parsedOptions.map((opt, idx) => (
+                              <div key={idx} className="text-xs text-gray-600 flex justify-between pr-4">
+                                <span>- {opt.name || opt.option_name}: {opt.value || opt.option_value}</span>
+                              </div>
+                            ))}
+                            {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
+                              <div className="text-xs text-blue-600 font-medium">
+                                Delivery: {item.delivery_frequency}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <p className="text-sm text-gray-600 mt-1">
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-black">
+                          ${parseFloat(item.total).toFixed(2)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          ${parseFloat(item.price).toFixed(2)} each
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-black">
-                        ${parseFloat(item.total).toFixed(2)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        ${parseFloat(item.price).toFixed(2)} each
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </CardContent>
             </Card>
 

@@ -60,7 +60,7 @@ function LoginPageContent() {
           {/* LOGO */}
           <div className="absolute inset-0 flex items-center justify-center">
             <img
-              src="/assets/images/cat_logo.png"
+              src="/assets/images/cat.svg"
               alt="Caterly logo"
               className="w-[160px] h-auto"
             />
@@ -80,7 +80,7 @@ function LoginPageContent() {
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <Image
-              src="/assets/images/cat_logo.png"
+              src="/assets/images/cat.svg"
               alt="Caterly logo"
               width={240}
               height={202}

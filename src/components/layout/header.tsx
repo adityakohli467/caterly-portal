@@ -24,7 +24,7 @@ export function Header() {
           {/* LOGO (SAME SIZE EVERYWHERE) */}
           <Link href="/" className="flex items-center h-full">
             <Image
-              src="/assets/images/cat_logo.png"
+              src="/assets/images/cat.svg"
               alt="Caterly Logo"
               width={140}
               height={48}
@@ -37,6 +37,7 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-10 text-[16px] font-medium text-black">
             <Link href="/" className="hover:text-[#E03A3E]">Home</Link>
             <Link href="/shop" className="hover:text-[#E03A3E]">Catering</Link>
+            <Link href="/blogs" className="hover:text-[#E03A3E]">Blogs</Link>
 
             <Link
               href="/call"
@@ -54,7 +55,7 @@ export function Header() {
           {/* DESKTOP RIGHT */}
           <div className="hidden md:flex items-center gap-6">
             <Link
-              href="/cart"
+              href={isAuthenticated ? "/checkout" : "/cart"}
               className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
             >
               <ShoppingCart className="w-6 h-6 text-[#E03A3E]" />
@@ -115,7 +116,7 @@ export function Header() {
           <div className="md:hidden flex items-center gap-3">
             {/* Cart Icon */}
             <Link
-              href="/cart"
+              href={isAuthenticated ? "/checkout" : "/cart"}
               className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
             >
               <ShoppingCart className="w-6 h-6 text-[#E03A3E]" />
@@ -160,6 +161,7 @@ export function Header() {
             <nav className="flex flex-col gap-6 text-[16px] font-medium text-black">
               <Link href="/" onClick={() => setOpen(false)}>Home</Link>
               <Link href="/shop" onClick={() => setOpen(false)}>Catering</Link>
+              <Link href="/blogs" onClick={() => setOpen(false)}>Blogs</Link>
 
               <Link
                 href="/call"
@@ -172,7 +174,7 @@ export function Header() {
 
             <div className="flex items-center gap-6 pt-6">
               <Link
-                href="/cart"
+                href={isAuthenticated ? "/checkout" : "/cart"}
                 onClick={() => setOpen(false)}
                 className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
               >
