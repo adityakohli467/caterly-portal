@@ -112,41 +112,37 @@ export default function CheckoutPage() {
         console.error("Auth check error:", error)
       }
 
-      // Now check if authenticated (after checkAuth has run)
-      const currentAuthState = useAuthStore.getState()
-      if (!currentAuthState.isAuthenticated) {
-        router.push("/auth/login?redirect=/checkout")
-        return
-      }
-
       fetchRelatedProducts()
       fetchCoupons()
 
-      // Auto-fill billing data from customer information
-      const currentUser = currentAuthState.user
-      const currentCustomer = currentAuthState.customer
+      const currentAuthState = useAuthStore.getState()
+      if (currentAuthState.isAuthenticated) {
+        // Auto-fill billing data from customer information
+        const currentUser = currentAuthState.user
+        const currentCustomer = currentAuthState.customer
 
-      if (currentUser || currentCustomer) {
-        // Split full name into first and last name
-        const fullName = currentCustomer?.firstname && currentCustomer?.lastname
-          ? `${currentCustomer.firstname} ${currentCustomer.lastname}`
-          : currentCustomer?.firstname || ""
+        if (currentUser || currentCustomer) {
+          // Split full name into first and last name
+          const fullName = currentCustomer?.firstname && currentCustomer?.lastname
+            ? `${currentCustomer.firstname} ${currentCustomer.lastname}`
+            : currentCustomer?.firstname || ""
 
-        const nameParts = fullName.trim().split(" ")
-        const firstName = nameParts[0] || ""
-        const lastName = nameParts.slice(1).join(" ") || ""
+          const nameParts = fullName.trim().split(" ")
+          const firstName = nameParts[0] || ""
+          const lastName = nameParts.slice(1).join(" ") || ""
 
-        setBillingData(prev => ({
-          ...prev,
-          firstName: firstName,
-          lastName: lastName,
-          email: currentUser?.email || currentCustomer?.email || "",
-          phone: currentCustomer?.telephone || "",
-          streetAddress: currentCustomer?.address_line1 || "",
-          suburb: currentCustomer?.suburb || "",
-          state: currentCustomer?.state || "",
-          postcode: currentCustomer?.postal_code || currentCustomer?.postcode || "",
-        }))
+          setBillingData(prev => ({
+            ...prev,
+            firstName: firstName,
+            lastName: lastName,
+            email: currentUser?.email || currentCustomer?.email || "",
+            phone: currentCustomer?.telephone || "",
+            streetAddress: currentCustomer?.address_line1 || "",
+            suburb: currentCustomer?.suburb || "",
+            state: currentCustomer?.state || "",
+            postcode: currentCustomer?.postal_code || currentCustomer?.postcode || "",
+          }))
+        }
       }
     }
 
@@ -156,10 +152,10 @@ export default function CheckoutPage() {
 
   // Separate effect for cart items check
   useEffect(() => {
-    if (items.length === 0 && isAuthenticated) {
+    if (items.length === 0) {
       router.push("/cart")
     }
-  }, [items.length, isAuthenticated, router])
+  }, [items.length, router])
 
   const fetchRelatedProducts = async () => {
     try {
@@ -389,6 +385,10 @@ export default function CheckoutPage() {
 
       const orderPayload: any = {
         items: orderItems,
+        firstname: billingData.firstName,
+        lastname: billingData.lastName,
+        email: billingData.email,
+        telephone: billingData.phone,
         delivery_address: deliveryAddress,
         delivery_fee: totals.shippingFee,
         payment_method: "card",
@@ -397,7 +397,13 @@ export default function CheckoutPage() {
         notes: deliveryNotes || null,
       }
 
-      const response = await api.post("/store/orders", orderPayload)
+      // Use different endpoints for authenticated vs guest checkout
+      let response;
+      if (isAuthenticated) {
+        response = await api.post("/store/orders", orderPayload);
+      } else {
+        response = await api.post("/store/orders/guest", orderPayload);
+      }
 
       // Upload delivery notes image after order is created (silently fail if error)
       if (deliveryNotesImage && response.data.order_id) {
