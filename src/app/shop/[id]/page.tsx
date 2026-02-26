@@ -353,13 +353,16 @@ export default function ProductDetailPage({
     }
   };
 
-  // Get main category for breadcrumb
-  const mainCategory =
-    product?.categories?.find((cat) => !cat.parent_category_id) ||
-    product?.categories?.[0];
+  // Build breadcrumb: find sub-category (has parent) and its parent category
   const subCategory = product?.categories?.find(
-    (cat) => cat.parent_category_id
+    (cat) => cat.parent_category_id !== null && cat.parent_category_id !== undefined
   );
+  // Find the parent of the sub-category in the categories array, or fall back to a root category
+  const mainCategory = subCategory
+    ? product?.categories?.find((cat) => cat.category_id === subCategory.parent_category_id) ||
+    product?.categories?.find((cat) => !cat.parent_category_id)
+    : product?.categories?.find((cat) => !cat.parent_category_id) ||
+    product?.categories?.[0];
 
   return (
     <div className="flex flex-col bg-white">
@@ -381,17 +384,23 @@ export default function ProductDetailPage({
             {mainCategory && (
               <>
                 <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">
+                <Link
+                  href={`/shop?category=${mainCategory.category_id}`}
+                  className="text-gray-600 hover:text-[#E03A3E]"
+                >
                   {mainCategory.category_name}
-                </span>
+                </Link>
               </>
             )}
             {subCategory && (
               <>
                 <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600">
+                <Link
+                  href={`/shop?category=${subCategory.category_id}`}
+                  className="text-gray-600 hover:text-[#E03A3E]"
+                >
                   {subCategory.category_name}
-                </span>
+                </Link>
               </>
             )}
             <ChevronRightIcon className="w-4 h-4 text-gray-400" />
@@ -538,10 +547,7 @@ export default function ProductDetailPage({
                 </p>
               )}
 
-              {/* Full Description */}
-              <p className="text-gray-700 leading-relaxed mb-6">
-                {product.product_description}
-              </p>
+
 
               {/* Roast Level - Only show if defined in backend */}
               {/* {product.roast_level && (
@@ -795,14 +801,36 @@ export default function ProductDetailPage({
                   </label>
                   {purchaseType === "subscription" && (
                     <>
-                      <select className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-black">
-                        <option>2 Weeks</option>
-                        <option>4 Weeks</option>
-                        <option>8 Weeks</option>
-                      </select>
-                      <p className="text-sm text-gray-600">
-                        Get 10% off every recurring order
-                      </p>
+                      {/* Frequency */}
+                      <div className="mb-3">
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          Frequency
+                        </label>
+                        <select
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm
+                            focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] transition-colors"
+                        >
+                          <option value="2w">Every 2 Weeks</option>
+                          <option value="4w">Every 4 Weeks</option>
+                          <option value="8w">Every 8 Weeks</option>
+                        </select>
+                      </div>
+
+                      {/* Start Date */}
+                      <div className="mb-3">
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          Start Date
+                        </label>
+                        <input
+                          type="date"
+                          min={new Date().toISOString().split("T")[0]}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm
+                            focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] transition-colors
+                            [color-scheme:light]"
+                          style={{ colorScheme: "light", accentColor: "#E03A3E" }}
+                        />
+                      </div>
+
                     </>
                   )}
                 </div>
@@ -849,9 +877,15 @@ export default function ProductDetailPage({
               <h3 className="text-xl font-bold text-gray-900 mb-4">
                 Product Description
               </h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
-                {product.product_description}
-              </p>
+              <div className="text-gray-700 leading-relaxed mb-4">
+                {product.product_description
+                  .split('\n')
+                  .map((line, i) => (
+                    <p key={i} className={line.trim() === '' ? 'mt-2' : ''}>
+                      {line || '\u00A0'}
+                    </p>
+                  ))}
+              </div>
             </TabsContent>
 
             {product.show_specifications && (
