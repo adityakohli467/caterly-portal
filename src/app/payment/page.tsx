@@ -39,29 +39,35 @@ function PaymentPageContent() {
 
       // Now check if authenticated (after checkAuth has run)
       const currentAuthState = useAuthStore.getState()
-      if (!currentAuthState.isAuthenticated) {
-        router.push("/auth/login?redirect=/payment" + (orderIdParam ? `?order_id=${orderIdParam}` : ""))
+
+      // If not authenticated AND no order ID, redirect to login
+      if (!currentAuthState.isAuthenticated && !orderIdParam) {
+        router.push("/auth/login?redirect=/payment")
         return
       }
 
       if (orderId) {
-        fetchOrder(orderId)
+        fetchOrder(orderId, currentAuthState.isAuthenticated)
       } else {
         setLoadingOrder(false)
-        toast.error("Invalid or missing order ID")
+        if (currentAuthState.isAuthenticated) {
+          toast.error("Invalid or missing order ID")
+        }
       }
     }
 
     verifyAuth()
   }, [orderIdParam])
 
-  const fetchOrder = async (id: number) => {
+  const fetchOrder = async (id: number, authenticated: boolean) => {
     try {
       setLoadingOrder(true)
-      const response = await api.get(`/store/orders/${id}`)
+      // Use guest endpoint if not authenticated
+      const endpoint = authenticated ? `/store/orders/${id}` : `/store/orders/guest/${id}`
+      const response = await api.get(endpoint)
       console.log("Fetched order:", response.data.order)
       setOrder(response.data.order)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch order:", error)
       toast.error("Failed to load order details")
     } finally {
@@ -83,18 +89,22 @@ function PaymentPageContent() {
 
 
 
-  if (!isAuthenticated) return null
+  // if (!isAuthenticated) return null
 
-  // Use 'total' from backend as it appears to be the correct value (e.g. 46.00), 
-  // whereas 'calculated_total' and 'subtotal' are artificially inflated (e.g. 118, 108).
-  const finalTotal = Number(order?.total || order?.calculated_total || 0)
+  const parsePrice = (val: any) => {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    return parseFloat(String(val).replace(/[^\d.-]/g, '')) || 0;
+  }
+
+  // Use 'order_total', 'total', or 'calculated_total' from backend 
+  const finalTotal = parsePrice(order?.total || order?.order_total || order?.calculated_total)
 
   // Use delivery fee from backend
-  const deliveryFee = Number(order?.delivery_fee || 0)
+  const deliveryFee = parsePrice(order?.delivery_fee)
 
-  // Derive logical subtotal to ensure the UI is consistent (Total - Delivery = Subtotal)
-  // We ignore order.subtotal (108) because it is incorrect.
-  const subtotal = Math.max(0, finalTotal - deliveryFee)
+  // Use subtotal from backend if available, otherwise calculate from finalTotal
+  const subtotal = order?.subtotal ? parsePrice(order.subtotal) : Math.max(0, finalTotal - deliveryFee)
 
   // Estimate GST from the corrected subtotal for display purposes (10%)
   // We cannot use order.gst (11.69) because it is based on the inflated subtotal (108).

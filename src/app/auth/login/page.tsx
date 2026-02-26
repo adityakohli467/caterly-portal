@@ -96,6 +96,8 @@ function LoginPageContent() {
             setFormData={setFormData}
             handleSubmit={handleSubmit}
             loading={loading}
+            redirect={redirect}
+            router={router}
           />
         </div>
       </div>
@@ -107,6 +109,8 @@ function LoginPageContent() {
           setFormData={setFormData}
           handleSubmit={handleSubmit}
           loading={loading}
+          redirect={redirect}
+          router={router}
         />
       </div>
     </div>
@@ -119,6 +123,8 @@ function FormSection({
   setFormData,
   handleSubmit,
   loading,
+  redirect,
+  router,
 }: any) {
   return (
     <div className="w-full max-w-[420px]">
@@ -126,46 +132,46 @@ function FormSection({
         Login
       </h1>
 
-  <form onSubmit={handleSubmit} className="space-y-5">
-  <div className="space-y-2">
-    <label className="text-[16px] font-semibold text-black">
-      Email
-    </label>
-    <Input
-      placeholder="Enter Here"
-      value={formData.username}
-      onChange={(e) =>
-        setFormData({ ...formData, username: e.target.value })
-      }
-      className="h-[48px] rounded-[10px] border border-[#F2CFCF] text-black"
-      required
-    />
-  </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <label className="text-[16px] font-semibold text-black">
+            Email
+          </label>
+          <Input
+            placeholder="Enter Here"
+            value={formData.username}
+            onChange={(e) =>
+              setFormData({ ...formData, username: e.target.value })
+            }
+            className="h-[48px] rounded-[10px] border border-[#F2CFCF] text-black"
+            required
+          />
+        </div>
 
-  <div className="space-y-2">
-    <label className="text-[16px] font-semibold text-black">
-      Password
-    </label>
-    <Input
-      type="password"
-      placeholder="Enter Here"
-      value={formData.password}
-      onChange={(e) =>
-        setFormData({ ...formData, password: e.target.value })
-      }
-      className="h-[48px] rounded-[10px] border border-[#F2CFCF] text-black"
-      required
-    />
-  </div>
+        <div className="space-y-2">
+          <label className="text-[16px] font-semibold text-black">
+            Password
+          </label>
+          <Input
+            type="password"
+            placeholder="Enter Here"
+            value={formData.password}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+            className="h-[48px] rounded-[10px] border border-[#F2CFCF] text-black"
+            required
+          />
+        </div>
 
-  <Button
-    type="submit"
-    disabled={loading}
-    className="h-[52px] w-full rounded-[12px] bg-[#E03A3E] text-white text-[16px] font-semibold"
-  >
-    {loading ? "Logging in..." : "Login"}
-  </Button>
-</form>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-[52px] w-full rounded-[12px] bg-[#E03A3E] text-white text-[16px] font-semibold"
+        >
+          {loading ? "Logging in..." : "Login"}
+        </Button>
+      </form>
 
 
       <p className="mt-6 text-[14px] text-gray-500">
@@ -174,6 +180,20 @@ function FormSection({
           Register now
         </Link>
       </p>
+
+      {redirect && (redirect.includes('checkout') || redirect.includes('cart')) && (
+        <div className="mt-8 border-t border-[#F2CFCF] pt-6">
+          <p className="text-[14px] text-gray-500 mb-4 text-center">Or continue without an account</p>
+          <Button
+            type="button"
+            onClick={() => router.push('/checkout')}
+            variant="outline"
+            className="h-[52px] w-full rounded-[12px] border-[#E03A3E] text-[#E03A3E] hover:bg-[#FDECEC] text-[16px] font-semibold"
+          >
+            Checkout as Guest
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

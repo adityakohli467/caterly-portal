@@ -13,10 +13,6 @@ export default function CartPage() {
   const { isAuthenticated } = useAuthStore()
 
   const handleCheckout = () => {
-    if (!isAuthenticated) {
-      router.push("/auth/login?redirect=/cart")
-      return
-    }
     router.push("/checkout")
   }
 
