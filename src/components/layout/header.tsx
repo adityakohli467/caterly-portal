@@ -55,7 +55,7 @@ export function Header() {
           {/* DESKTOP RIGHT */}
           <div className="hidden md:flex items-center gap-6">
             <Link
-              href="/cart"
+              href={isAuthenticated ? "/checkout" : "/cart"}
               className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
             >
               <ShoppingCart className="w-6 h-6 text-[#E03A3E]" />
@@ -116,7 +116,7 @@ export function Header() {
           <div className="md:hidden flex items-center gap-3">
             {/* Cart Icon */}
             <Link
-              href="/cart"
+              href={isAuthenticated ? "/checkout" : "/cart"}
               className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
             >
               <ShoppingCart className="w-6 h-6 text-[#E03A3E]" />
@@ -174,7 +174,7 @@ export function Header() {
 
             <div className="flex items-center gap-6 pt-6">
               <Link
-                href="/cart"
+                href={isAuthenticated ? "/checkout" : "/cart"}
                 onClick={() => setOpen(false)}
                 className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
               >

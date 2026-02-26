@@ -35,11 +35,11 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.post("/store/auth/login", { username, password })
           const { token, user, customer } = response.data
-          
+
           if (!token) {
             throw new Error("No token received from server")
           }
-          
+
           // Store in state and localStorage (Zustand persist will handle localStorage)
           set({
             user,
@@ -54,7 +54,7 @@ export const useAuthStore = create<AuthState>()(
             const expires = new Date()
             expires.setTime(expires.getTime() + (4 * 60 * 60 * 1000)) // 4 hours
             document.cookie = `caterly-auth=${token}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`
-            
+
             // Also ensure localStorage has the token (backup)
             try {
               const authData = JSON.stringify({
@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
               console.warn("Failed to save auth to localStorage:", e)
             }
           }
-          
+
           // Wait a moment to ensure state is persisted
           await new Promise(resolve => setTimeout(resolve, 100))
         } catch (error: any) {
@@ -84,18 +84,45 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.post("/store/auth/register", data)
           const { token, user, customer } = response.data
-          
+
           if (token && typeof window !== "undefined") {
+            // Merge registration address fields into customer so checkout
+            // can pre-fill them immediately as the default address.
+            const enrichedCustomer = {
+              ...customer,
+              address_line1: data.address_line1 || customer?.address_line1 || "",
+              suburb: data.suburb || customer?.suburb || "",
+              state: data.state || customer?.state || "",
+              postal_code: data.postal_code || customer?.postal_code || "",
+            }
+
             // Store in state and localStorage
             set({
               user,
-              customer,
+              customer: enrichedCustomer,
               token,
               isAuthenticated: true,
             })
 
             // Also set a cookie for middleware (4 hours expiration to match JWT)
             document.cookie = `caterly-auth=${token}; path=/; max-age=${60 * 60 * 4}; SameSite=Lax`
+
+            // Silently attempt to save address as default via profile API
+            // (best-effort — registration is not blocked if this fails)
+            try {
+              await api.post(
+                "/store/customer/update",
+                {
+                  address_line1: data.address_line1,
+                  suburb: data.suburb,
+                  state: data.state,
+                  postal_code: data.postal_code,
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+              )
+            } catch {
+              // Silently ignore — address is already stored in local state above
+            }
           }
         } catch (error: any) {
           const message = error.response?.data?.message || "Registration failed"
@@ -120,7 +147,7 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: async () => {
         // Get token from both state and localStorage (in case state hasn't hydrated)
         let token = get().token
-        
+
         // If no token in state, try to get from localStorage
         if (!token && typeof window !== 'undefined') {
           try {
@@ -158,7 +185,7 @@ export const useAuthStore = create<AuthState>()(
               token: null,
               isAuthenticated: false,
             })
-            
+
             // Clear storage
             if (typeof document !== 'undefined') {
               localStorage.removeItem('caterly-auth')

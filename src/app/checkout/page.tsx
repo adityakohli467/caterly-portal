@@ -216,7 +216,7 @@ export default function CheckoutPage() {
     }
 
     const afterDiscount = afterWholesaleDiscount - couponDiscount
-    const shippingFee = shippingMethod === "standard" ? 10 : 0
+    const shippingFee = shippingMethod === "standard" ? 50 : 0
     const gst = afterDiscount * 0.1 // 10% GST
     const total = afterDiscount + gst + shippingFee
 
@@ -637,7 +637,7 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-       
+
 
                 {/* Delivery Notes */}
                 <Card className="border-[#F2CACA] bg-white">
@@ -739,7 +739,26 @@ export default function CheckoutPage() {
                                 {item.product_name}
                               </h3>
 
-                              <div className="flex items-center justify-between">
+                              {/* Display Options & Frequency */}
+                              {(item.options && item.options.length > 0 || item.delivery_frequency && item.delivery_frequency !== "One Time") && (
+                                <div className="mb-2 space-y-1">
+                                  {item.options?.map((opt, idx) => (
+                                    <div key={idx} className="text-xs text-gray-600 flex justify-between">
+                                      <span>{opt.option_name}: {opt.option_value}</span>
+                                      {parseFloat(opt.option_price) > 0 && (
+                                        <span>({opt.option_price_prefix}${parseFloat(opt.option_price).toFixed(2)})</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
+                                    <div className="text-xs text-blue-600 font-medium pt-1">
+                                      Delivery: {item.delivery_frequency}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="flex items-center justify-between mt-2">
                                 <div className="flex items-center border rounded border-gray-300">
                                   <Button
                                     type="button"
@@ -927,7 +946,7 @@ export default function CheckoutPage() {
                           <span>- ${mounted ? totals.couponDiscount.toFixed(2) : '0.00'}</span>
                         </div>
                       )}
-    {totals.shippingFee > 0 && (
+                      {totals.shippingFee > 0 && (
                         <div className="flex justify-between text-sm">
                           <span>Delivery Fee</span>
                           <span>${mounted ? totals.shippingFee.toFixed(2) : '0.00'}</span>
@@ -938,7 +957,7 @@ export default function CheckoutPage() {
                         <span>${mounted ? totals.gst.toFixed(2) : '0.00'}</span>
                       </div>
 
-                  
+
                     </div>
 
                     <div className="flex justify-between text-lg font-bold mb-6 text-black">
