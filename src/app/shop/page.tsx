@@ -8,7 +8,7 @@ import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { LoadingWithLogo } from "@/components/loading-with-logo"
 import { getProductImageUrl } from "@/lib/product-utils"
-import { Search, ChevronRight } from "lucide-react"
+import { Search, ChevronRight, ChevronDown } from "lucide-react"
 
 interface ProductCategory {
   category_id: number
@@ -48,6 +48,7 @@ function ShopPageContent() {
     const c = searchParams.get('category')
     return c ? parseInt(c) : null
   })
+  const [expandedParents, setExpandedParents] = useState<Set<number>>(new Set())
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [loading, setLoading] = useState(false)
@@ -91,6 +92,16 @@ function ShopPageContent() {
 
   const fetchProducts = async () => {
     try {
+      // If a parent category is selected (not a subcategory), don't fetch products
+      if (selectedCategory && !debouncedSearch) {
+        const isParent = getParentCategory(selectedCategory)
+        if (isParent) {
+          setProducts([])
+          setLoading(false)
+          return
+        }
+      }
+
       setLoading(true)
       setProducts([])
       const params: any = { limit: 50 }
@@ -106,12 +117,10 @@ function ShopPageContent() {
       const res = await api.get("/store/products", { params })
       let fetched: Product[] = res.data.products || []
 
-      // Filter client-side by subcategory if product has categories data
+      // Filter client-side by subcategory
       if (selectedCategory && !debouncedSearch) {
-        const isParent = getParentCategory(selectedCategory)
         const parent = getParentOfChild(selectedCategory)
-        if (!isParent && parent) {
-          // child selected: filter to that subcategory
+        if (parent) {
           const filtered = fetched.filter(p =>
             p.categories?.some(c => c.category_id === selectedCategory)
           )
@@ -151,10 +160,34 @@ function ShopPageContent() {
     toast.success(`${product.product_name} added to cart`)
   }
 
-  const selectCategory = (id: number) => {
+  // Toggle a parent category's expanded state (no product loading)
+  const toggleParent = (id: number) => {
+    setExpandedParents(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+    // Clear any selected category when toggling parent
+    setSelectedCategory(null)
+    router.push('/shop')
+  }
+
+  // Select a subcategory (triggers product load)
+  const selectSubcategory = (id: number) => {
     setSelectedCategory(id)
     router.push(`/shop?category=${id}`)
   }
+
+  // Auto-expand the parent of the currently selected subcategory
+  useEffect(() => {
+    if (selectedCategory && categories.length > 0) {
+      const parent = getParentOfChild(selectedCategory)
+      if (parent) {
+        setExpandedParents(prev => new Set([...prev, parent.category_id]))
+      }
+    }
+  }, [selectedCategory, categories])
 
   // Determine view mode
   const selectedCatName = selectedCategory
@@ -230,38 +263,47 @@ function ShopPageContent() {
                   <ul className="space-y-1 text-sm">
                     {categories
                       .filter(cat => !cat.parent_category_id)
-                      .map(parent => (
-                        <li key={parent.category_id}>
-                          {/* Parent */}
-                          <div
-                            onClick={() => selectCategory(parent.category_id)}
-                            className={`px-3 py-1.5 rounded-md cursor-pointer font-semibold ${selectedCategory === parent.category_id
-                              ? "bg-[#FFF1F1] text-[#E03A3E]"
-                              : "hover:bg-gray-100 text-gray-800"
-                              }`}
-                          >
-                            {parent.category_name}
-                          </div>
+                      .map(parent => {
+                        const hasChildren = parent.children && parent.children.length > 0
+                        const isExpanded = expandedParents.has(parent.category_id)
+                        return (
+                          <li key={parent.category_id}>
+                            {/* Parent — clicking expands/collapses subcategories only */}
+                            <div
+                              onClick={() => hasChildren ? toggleParent(parent.category_id) : selectSubcategory(parent.category_id)}
+                              className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-semibold ${isExpanded
+                                  ? "text-[#E03A3E]"
+                                  : "hover:bg-gray-100 text-gray-800"
+                                }`}
+                            >
+                              <span>{parent.category_name}</span>
+                              {hasChildren && (
+                                isExpanded
+                                  ? <ChevronDown className="h-4 w-4 text-[#E03A3E]" />
+                                  : <ChevronRight className="h-4 w-4 text-gray-400" />
+                              )}
+                            </div>
 
-                          {/* Children — always visible, indented */}
-                          {parent.children && parent.children.length > 0 && (
-                            <ul className="mt-1 ml-3 space-y-0.5 border-l-2 border-gray-100 pl-3">
-                              {parent.children.map(child => (
-                                <li
-                                  key={child.category_id}
-                                  onClick={() => selectCategory(child.category_id)}
-                                  className={`px-2 py-1 rounded-md cursor-pointer text-xs ${selectedCategory === child.category_id
-                                    ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
-                                    : "hover:bg-gray-100 text-gray-600"
-                                    }`}
-                                >
-                                  {child.category_name}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </li>
-                      ))}
+                            {/* Children — only visible when parent is expanded */}
+                            {hasChildren && isExpanded && (
+                              <ul className="mt-1 ml-3 space-y-0.5 border-l-2 border-gray-100 pl-3">
+                                {parent.children!.map(child => (
+                                  <li
+                                    key={child.category_id}
+                                    onClick={() => selectSubcategory(child.category_id)}
+                                    className={`px-2 py-1 rounded-md cursor-pointer text-xs ${selectedCategory === child.category_id
+                                        ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
+                                        : "hover:bg-gray-100 text-gray-600"
+                                      }`}
+                                  >
+                                    {child.category_name}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </li>
+                        )
+                      })}
                   </ul>
                 </div>
               </div>
