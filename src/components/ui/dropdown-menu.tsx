@@ -3,6 +3,8 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+const DropdownMenuContext = React.createContext<{ closeMenu: () => void }>({ closeMenu: () => { } })
+
 interface DropdownMenuProps {
   children: React.ReactNode
   trigger: React.ReactNode
@@ -43,7 +45,9 @@ export function DropdownMenu({ children, trigger, align = "right", className }: 
             className
           )}
         >
-          {children}
+          <DropdownMenuContext.Provider value={{ closeMenu: () => setOpen(false) }}>
+            {children}
+          </DropdownMenuContext.Provider>
         </div>
       )}
     </div>
@@ -58,12 +62,15 @@ interface DropdownMenuItemProps {
 }
 
 export function DropdownMenuItem({ children, onClick, className, asChild }: DropdownMenuItemProps) {
+  const { closeMenu } = React.useContext(DropdownMenuContext)
+
   const handleClick = () => {
     onClick?.()
+    closeMenu()
   }
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, {
+    return React.cloneElement(children as React.ReactElement<any>, {
       className: cn(
         "flex w-full items-center gap-3 px-4 py-3 text-sm text-black hover:bg-gray-100 cursor-pointer transition-colors",
         className
@@ -84,4 +91,3 @@ export function DropdownMenuItem({ children, onClick, className, asChild }: Drop
     </div>
   )
 }
-
