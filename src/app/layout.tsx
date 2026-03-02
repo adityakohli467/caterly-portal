@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SessionManager } from "@/components/session-manager"
 import { Toaster } from "sonner"
+import { RequestAQuoteModal } from "@/components/request-a-quote-modal"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -40,6 +41,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <RequestAQuoteModal />
           <Toaster
             position="top-right"
             richColors
