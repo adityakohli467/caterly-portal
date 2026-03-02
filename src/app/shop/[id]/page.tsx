@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,12 +50,20 @@ interface Product {
   show_other_info?: boolean;
 }
 
-export default function ProductDetailPage({
+interface CategoryNode {
+  category_id: number;
+  category_name: string;
+  parent_category_id?: number | null;
+  children?: CategoryNode[];
+}
+
+function ProductDetailContent({
   params,
 }: {
   params: Promise<{ id: string }> | { id: string };
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addItem, getItemPrice } = useCartStore();
   const { isAuthenticated, token } = useAuthStore();
   const [productId, setProductId] = useState<string>("");
@@ -79,6 +87,7 @@ export default function ProductDetailPage({
   const [reviewerName, setReviewerName] = useState("");
   const [reviewerEmail, setReviewerEmail] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [allCategories, setAllCategories] = useState<CategoryNode[]>([]);
 
   // Handle params (can be Promise in Next.js 15+ or object in Next.js 14)
   useEffect(() => {
@@ -99,6 +108,19 @@ export default function ProductDetailPage({
       fetchReviews();
     }
   }, [productId]);
+
+  // Fetch categories for breadcrumb
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/store/products/categories");
+        setAllCategories(res.data.categories || []);
+      } catch {
+        // ignore
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const fetchReviews = async () => {
     try {
@@ -274,7 +296,7 @@ export default function ProductDetailPage({
       options: options.length > 0 ? options : undefined,
     });
 
-    return itemPrice * quantity;
+    return (itemPrice * quantity).toFixed(2);
   };
 
   if (loading) {
@@ -353,16 +375,54 @@ export default function ProductDetailPage({
     }
   };
 
-  // Build breadcrumb: find sub-category (has parent) and its parent category
-  const subCategory = product?.categories?.find(
-    (cat) => cat.parent_category_id !== null && cat.parent_category_id !== undefined
-  );
-  // Find the parent of the sub-category in the categories array, or fall back to a root category
-  const mainCategory = subCategory
-    ? product?.categories?.find((cat) => cat.category_id === subCategory.parent_category_id) ||
-    product?.categories?.find((cat) => !cat.parent_category_id)
-    : product?.categories?.find((cat) => !cat.parent_category_id) ||
-    product?.categories?.[0];
+  // Build breadcrumb using the `from` search param (subcategory the user came from)
+  const fromCategoryId = searchParams ? parseInt(searchParams.get("from") || "") || null : null;
+
+  // Helper to find a category in the flat+nested list
+  const findCatById = (id: number): CategoryNode | null => {
+    for (const cat of allCategories) {
+      if (cat.category_id === id) return cat;
+      const child = cat.children?.find((c) => c.category_id === id);
+      if (child) return child;
+    }
+    return null;
+  };
+
+  // Helper to find parent of a given category id
+  const findParentOfCat = (id: number): CategoryNode | null =>
+    allCategories.find((c) => c.children?.some((ch) => ch.category_id === id)) || null;
+
+  let breadcrumbSubCat: CategoryNode | null = null;
+  let breadcrumbMainCat: CategoryNode | null = null;
+
+  if (fromCategoryId) {
+    // User came from a specific subcategory
+    const fromCat = findCatById(fromCategoryId);
+    if (fromCat) {
+      const parent = findParentOfCat(fromCategoryId);
+      if (parent) {
+        breadcrumbMainCat = parent;
+        breadcrumbSubCat = fromCat;
+      } else {
+        // fromCat is itself a top-level category
+        breadcrumbMainCat = fromCat;
+      }
+    }
+  } else {
+    // Fallback: derive from product's own categories array
+    const subCat = product?.categories?.find(
+      (cat) => cat.parent_category_id !== null && cat.parent_category_id !== undefined
+    );
+    if (subCat) {
+      breadcrumbSubCat = subCat;
+      const parent =
+        product?.categories?.find((cat) => cat.category_id === subCat.parent_category_id) ||
+        (allCategories.length > 0 ? findParentOfCat(subCat.category_id) : null);
+      breadcrumbMainCat = parent || null;
+    } else {
+      breadcrumbMainCat = product?.categories?.[0] || null;
+    }
+  }
 
   return (
     <div className="flex flex-col bg-white">
@@ -381,25 +441,25 @@ export default function ProductDetailPage({
             <Link href="/shop" className="text-gray-600 hover:text-[#E03A3E]">
               Product Catalogue
             </Link>
-            {mainCategory && (
+            {breadcrumbMainCat && (
               <>
                 <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                 <Link
-                  href={`/shop?category=${mainCategory.category_id}`}
+                  href={`/shop?category=${breadcrumbMainCat.category_id}`}
                   className="text-gray-600 hover:text-[#E03A3E]"
                 >
-                  {mainCategory.category_name}
+                  {breadcrumbMainCat.category_name}
                 </Link>
               </>
             )}
-            {subCategory && (
+            {breadcrumbSubCat && (
               <>
                 <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                 <Link
-                  href={`/shop?category=${subCategory.category_id}`}
+                  href={`/shop?category=${breadcrumbSubCat.category_id}`}
                   className="text-gray-600 hover:text-[#E03A3E]"
                 >
-                  {subCategory.category_name}
+                  {breadcrumbSubCat.category_name}
                 </Link>
               </>
             )}
@@ -517,27 +577,40 @@ export default function ProductDetailPage({
               </h1>
 
               <div className="flex items-center gap-3 mb-6">
-                {product.has_discount &&
-                  product.original_price &&
-                  product.discounted_price ? (
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl text-gray-500 line-through">
-                      ${product.original_price.toFixed(2)}
-                    </span>
+                {(() => {
+                  // Calculate selected option price to add to top price display
+                  const selectedOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
+                    if (!valId) return sum;
+                    const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
+                    const val = opt?.values?.find((v: any) => v.option_value_id === valId);
+                    if (!val) return sum;
+                    const p = parseFloat(val.product_option_price || "0");
+                    return val.option_price_prefix === '-' ? sum - p : sum + p;
+                  }, 0);
+
+                  if (product.has_discount && product.original_price && product.discounted_price) {
+                    return (
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl text-gray-500 line-through">
+                          ${product.original_price.toFixed(2)}
+                        </span>
+                        <div className="text-2xl font-bold text-[#E03A3E]">
+                          ${(product.discounted_price + selectedOptionPrice).toFixed(2)}
+                        </div>
+                        {product.discount_percentage && (
+                          <Badge variant="destructive" className="text-sm">
+                            {product.discount_percentage}% OFF
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
                     <div className="text-2xl font-bold text-[#E03A3E]">
-                      ${product.discounted_price.toFixed(2)}
+                      ${(parseFloat(product.product_price) + selectedOptionPrice).toFixed(2)}
                     </div>
-                    {product.discount_percentage && (
-                      <Badge variant="destructive" className="text-sm">
-                        {product.discount_percentage}% OFF
-                      </Badge>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-2xl font-bold text-[#E03A3E]">
-                    ${parseFloat(product.product_price).toFixed(2)}
-                  </div>
-                )}
+                  );
+                })()}
               </div>
 
               {/* Short Description */}
@@ -655,9 +728,9 @@ export default function ProductDetailPage({
                           </div>
                         )}
 
-                        {/* CHECKBOX — toggleable pill buttons */}
+                        {/* CHECKBOX — tick box on the left of each row */}
                         {optionType === "checkbox" && (
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-col gap-2">
                             {values.map((value: any) => {
                               const isSelected = selectedOptions[option.option_id] === value.option_value_id;
                               return (
@@ -670,13 +743,23 @@ export default function ProductDetailPage({
                                       [option.option_id]: isSelected ? 0 : value.option_value_id,
                                     }))
                                   }
-                                  className={`px-5 py-2.5 rounded-lg text-sm font-medium border-2 transition-all ${isSelected
-                                    ? "bg-[#E03A3E] border-[#E03A3E] text-white"
-                                    : "bg-white border-gray-200 text-gray-700 hover:border-[#E03A3E] hover:text-[#E03A3E]"
+                                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-sm transition-all text-left ${isSelected
+                                      ? "border-[#E03A3E] bg-[#FFF1F1]"
+                                      : "border-gray-200 bg-white hover:border-[#E03A3E]"
                                     }`}
                                 >
-                                  {value.option_value}
-                                  {getPriceDisplay(value)}
+                                  {/* Tick box */}
+                                  <span className={`w-5 h-5 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${isSelected ? "bg-[#E03A3E] border-[#E03A3E]" : "border-gray-300"
+                                    }`}>
+                                    {isSelected && (
+                                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    )}
+                                  </span>
+                                  <span className={`text-sm ${isSelected ? "text-black font-medium" : "text-gray-700"}`}>
+                                    {value.option_value}{getPriceDisplay(value)}
+                                  </span>
                                 </button>
                               );
                             })}
@@ -755,22 +838,28 @@ export default function ProductDetailPage({
                     </Button>
                   </div>
                   <div className="text-right font-bold text-black">
-                    {product.has_discount && product.discounted_price
-                      ? `$${product.discounted_price.toFixed(2)}`
-                      : `$${Number.parseFloat(product.product_price).toFixed(
-                        2
-                      )}`}
+                    ${(() => {
+                      const base = product.has_discount && product.discounted_price
+                        ? product.discounted_price
+                        : parseFloat(product.product_price);
+                      // Add selected option price
+                      const selectedOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
+                        if (!valId) return sum;
+                        const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
+                        const val = opt?.values?.find((v: any) => v.option_value_id === valId);
+                        if (!val) return sum;
+                        const p = parseFloat(val.product_option_price || "0");
+                        return val.option_price_prefix === '-' ? sum - p : sum + p;
+                      }, 0);
+                      return (base + selectedOptionPrice).toFixed(2);
+                    })()}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-between mb-6 text-lg font-bold">
                 <span className="text-black">Subtotal</span>
-                <span>
-                  {product.has_discount && product.discounted_price
-                    ? `$${(product.discounted_price * quantity).toFixed(2)}`
-                    : `$${calculateSubtotal()}`}
-                </span>
+                <span>${calculateSubtotal()}</span>
               </div>
 
               {/* Purchase Type */}
@@ -1101,3 +1190,16 @@ export default function ProductDetailPage({
     </div>
   );
 }
+
+export default function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }> | { id: string };
+}) {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-6 py-12 text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div><p className="mt-4 text-gray-600">Loading...</p></div>}>
+      <ProductDetailContent params={params} />
+    </Suspense>
+  );
+}
+

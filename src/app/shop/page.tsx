@@ -194,45 +194,50 @@ function ShopPageContent() {
     ? findCategoryById(selectedCategory)?.category_name ?? "Products"
     : "All Products"
 
-  const ProductCard = ({ product }: { product: Product }) => (
-    <div
-      onClick={() => router.push(`/shop/${product.product_id}`)}
-      className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
-    >
-      <img
-        src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
-        alt={product.product_name}
-        className="w-full h-44 object-cover"
-      />
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900">{product.product_name}</h3>
-        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-          {product.product_description}
-        </p>
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-lg font-semibold text-gray-900">
-            ${product.has_discount && product.discounted_price
-              ? product.discounted_price
-              : product.product_price}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => { e.stopPropagation(); router.push(`/shop/${product.product_id}`) }}
-              className="border border-[#E03A3E] text-[#E03A3E] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-[#FFF1F1] transition"
-            >
-              View Details
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
-              className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
-            >
-              Order
-            </button>
+  const ProductCard = ({ product }: { product: Product }) => {
+    const productUrl = selectedCategory
+      ? `/shop/${product.product_id}?from=${selectedCategory}`
+      : `/shop/${product.product_id}`
+    return (
+      <div
+        onClick={() => router.push(productUrl)}
+        className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
+      >
+        <img
+          src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
+          alt={product.product_name}
+          className="w-full h-44 object-cover"
+        />
+        <div className="p-4">
+          <h3 className="font-semibold text-gray-900">{product.product_name}</h3>
+          <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+            {product.product_description}
+          </p>
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-lg font-semibold text-gray-900">
+              ${product.has_discount && product.discounted_price
+                ? product.discounted_price
+                : product.product_price}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); router.push(productUrl) }}
+                className="border border-[#E03A3E] text-[#E03A3E] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-[#FFF1F1] transition"
+              >
+                View Details
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
+                className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
+              >
+                Order
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="bg-white min-h-screen">
@@ -272,8 +277,8 @@ function ShopPageContent() {
                             <div
                               onClick={() => hasChildren ? toggleParent(parent.category_id) : selectSubcategory(parent.category_id)}
                               className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-semibold ${isExpanded
-                                  ? "text-[#E03A3E]"
-                                  : "hover:bg-gray-100 text-gray-800"
+                                ? "text-[#E03A3E]"
+                                : "hover:bg-gray-100 text-gray-800"
                                 }`}
                             >
                               <span>{parent.category_name}</span>
@@ -292,8 +297,8 @@ function ShopPageContent() {
                                     key={child.category_id}
                                     onClick={() => selectSubcategory(child.category_id)}
                                     className={`px-2 py-1 rounded-md cursor-pointer text-xs ${selectedCategory === child.category_id
-                                        ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
-                                        : "hover:bg-gray-100 text-gray-600"
+                                      ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
+                                      : "hover:bg-gray-100 text-gray-600"
                                       }`}
                                   >
                                     {child.category_name}
