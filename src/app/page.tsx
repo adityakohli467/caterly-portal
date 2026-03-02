@@ -36,6 +36,8 @@ export default function HomePage() {
       }
     }
     fetchReviews()
+    // Generate captcha only on client to avoid SSR/client hydration mismatch
+    setCaptchaCode(generateCaptcha())
   }, [])
 
   const refetchReviews = async () => {
@@ -77,7 +79,7 @@ export default function HomePage() {
 
   // Quote form state
   const generateCaptcha = () => Math.floor(1000 + Math.random() * 9000).toString()
-  const [captchaCode, setCaptchaCode] = useState(() => generateCaptcha())
+  const [captchaCode, setCaptchaCode] = useState("")
   const [quoteForm, setQuoteForm] = useState({
     name: "",
     contact: "",
