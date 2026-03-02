@@ -168,9 +168,21 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await api.get("/store/auth/me")
+          const existingCustomer = get().customer
+          // Merge: keep existing enriched fields (from registration) if API doesn't return them
+          const mergedCustomer = {
+            ...existingCustomer,
+            ...response.data.customer,
+            // Preserve address fields from registration if API response doesn't include them
+            address_line1: response.data.customer?.address_line1 || existingCustomer?.address_line1 || "",
+            suburb: response.data.customer?.suburb || existingCustomer?.suburb || "",
+            state: response.data.customer?.state || existingCustomer?.state || "",
+            postal_code: response.data.customer?.postal_code || existingCustomer?.postal_code || existingCustomer?.postcode || "",
+            telephone: response.data.customer?.telephone || existingCustomer?.telephone || existingCustomer?.phone || "",
+          }
           set({
             user: response.data.user,
-            customer: response.data.customer,
+            customer: mergedCustomer,
             isAuthenticated: true,
             token: token, // Ensure token is set
           })

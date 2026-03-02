@@ -121,26 +121,67 @@ export default function CheckoutPage() {
         const currentUser = currentAuthState.user
         const currentCustomer = currentAuthState.customer
 
-        if (currentUser || currentCustomer) {
-          // Split full name into first and last name
-          const fullName = currentCustomer?.firstname && currentCustomer?.lastname
-            ? `${currentCustomer.firstname} ${currentCustomer.lastname}`
-            : currentCustomer?.firstname || ""
+        // Also read registration data saved locally (most reliable source)
+        let localPrefill: any = {}
+        try {
+          const saved = localStorage.getItem("caterly_checkout_prefill")
+          if (saved) localPrefill = JSON.parse(saved)
+        } catch { }
 
-          const nameParts = fullName.trim().split(" ")
-          const firstName = nameParts[0] || ""
-          const lastName = nameParts.slice(1).join(" ") || ""
+        if (currentUser || currentCustomer) {
+          // Build first/last name — backend may return firstname/lastname separately
+          const firstName =
+            currentCustomer?.firstname ||
+            currentCustomer?.first_name ||
+            (currentCustomer?.full_name || currentCustomer?.name || "").split(" ")[0] ||
+            localPrefill.firstName ||
+            ""
+          const lastName =
+            currentCustomer?.lastname ||
+            currentCustomer?.last_name ||
+            (currentCustomer?.full_name || currentCustomer?.name || "")
+              .split(" ").slice(1).join(" ") ||
+            localPrefill.lastName ||
+            ""
 
           setBillingData(prev => ({
             ...prev,
-            firstName: firstName,
-            lastName: lastName,
-            email: currentUser?.email || currentCustomer?.email || "",
-            phone: currentCustomer?.telephone || "",
-            streetAddress: currentCustomer?.address_line1 || "",
-            suburb: currentCustomer?.suburb || "",
-            state: currentCustomer?.state || "",
-            postcode: currentCustomer?.postal_code || currentCustomer?.postcode || "",
+            firstName,
+            lastName,
+            email:
+              currentUser?.email ||
+              currentCustomer?.email ||
+              localPrefill.email ||
+              "",
+            // Use localStorage as fallback for fields API may not return
+            phone:
+              currentCustomer?.telephone ||
+              currentCustomer?.phone ||
+              currentCustomer?.phone_number ||
+              localPrefill.phone ||
+              "",
+            streetAddress:
+              currentCustomer?.address_line1 ||
+              currentCustomer?.address ||
+              currentCustomer?.street_address ||
+              localPrefill.streetAddress ||
+              "",
+            suburb:
+              currentCustomer?.suburb ||
+              currentCustomer?.city ||
+              localPrefill.suburb ||
+              "",
+            state:
+              currentCustomer?.state ||
+              currentCustomer?.province ||
+              localPrefill.state ||
+              "",
+            postcode:
+              currentCustomer?.postal_code ||
+              currentCustomer?.postcode ||
+              currentCustomer?.zip_code ||
+              localPrefill.postcode ||
+              "",
           }))
         }
       }
@@ -213,8 +254,8 @@ export default function CheckoutPage() {
 
     const afterDiscount = afterWholesaleDiscount - couponDiscount
     const shippingFee = shippingMethod === "standard" ? 50 : 0
-    const gst = afterDiscount * 0.1 // 10% GST
-    const total = afterDiscount + gst + shippingFee
+    const gst = afterDiscount * 0.1 // 10% GST (display only, not added to total)
+    const total = afterDiscount + shippingFee // GST is shown but not charged separately
 
     return {
       subtotal,
