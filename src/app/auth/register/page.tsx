@@ -103,8 +103,20 @@ function RegisterPageContent() {
 
       await register(registrationData)
 
-      // Clear saved form data after successful registration
-      sessionStorage.removeItem(FORM_STORAGE_KEY)
+      // Save registration data to localStorage so checkout can pre-fill it
+      try {
+        const [fn, ...lnParts] = form.fullName.trim().split(" ")
+        localStorage.setItem("caterly_checkout_prefill", JSON.stringify({
+          firstName: fn || "",
+          lastName: lnParts.join(" ") || "",
+          email: form.email,
+          phone: form.phoneNumber,
+          streetAddress: form.address,
+          suburb: form.suburb,
+          state: form.state,
+          postcode: form.postalCode,
+        }))
+      } catch { }
 
       toast.success("Registration successful!")
       router.push("/")

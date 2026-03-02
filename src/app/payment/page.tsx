@@ -106,9 +106,8 @@ function PaymentPageContent() {
   // Use subtotal from backend if available, otherwise calculate from finalTotal
   const subtotal = order?.subtotal ? parsePrice(order.subtotal) : Math.max(0, finalTotal - deliveryFee)
 
-  // Estimate GST from the corrected subtotal for display purposes (10%)
-  // We cannot use order.gst (11.69) because it is based on the inflated subtotal (108).
-  const gst = subtotal * 0.1
+  // Calculate GST as 10% of the subtotal (display only, not added to total)
+  const gst = parsePrice(order?.subtotal) * 0.1
 
   return (
     <div className="min-h-screen bg-white">

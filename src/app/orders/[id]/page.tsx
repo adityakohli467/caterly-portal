@@ -221,7 +221,7 @@ export default function OrderDetailPage() {
 
               <div className="flex justify-between text-black">
                 <span className="text-black">GST (10%)</span>
-                <span className="text-black">${order.gst}</span>
+                <span className="text-black">${(parseFloat(order.subtotal || '0') * 0.1).toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between text-black">
