@@ -200,7 +200,7 @@ function ShopPageContent() {
     toast.success(`${product.product_name} added to cart`)
   }
 
-  // Toggle a parent category's expanded state (no product loading)
+  // Toggle a parent category's expanded state — only expands sidebar, never loads products
   const toggleParent = (id: number) => {
     setExpandedParents(prev => {
       const next = new Set(prev)
@@ -208,9 +208,7 @@ function ShopPageContent() {
       else next.add(id)
       return next
     })
-    // Clear any selected category when toggling parent
-    setSelectedCategory(null)
-    router.push('/shop')
+    // Do NOT change selectedCategory or navigate — just expand/collapse the sidebar
   }
 
   // Select a subcategory (triggers product load)
@@ -315,7 +313,7 @@ function ShopPageContent() {
                           <li key={parent.category_id}>
                             {/* Parent — clicking expands/collapses subcategories only */}
                             <div
-                              onClick={() => hasChildren ? toggleParent(parent.category_id) : selectSubcategory(parent.category_id)}
+                              onClick={() => toggleParent(parent.category_id)}
                               className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-semibold ${isExpanded
                                 ? "text-[#E03A3E]"
                                 : "hover:bg-gray-100 text-gray-800"
