@@ -683,11 +683,23 @@ function ProductDetailContent({
               </div>
 
               {/* Short Description */}
-              {product.short_description && (
-                <p className="text-gray-700 leading-relaxed mb-6 text-lg font-medium">
-                  {product.short_description}
-                </p>
-              )}
+              {product.short_description && (() => {
+                const lines = product.short_description
+                  .split(/\r?\n/)
+                  .map((l: string) => l.trim())
+                  .filter((l: string) => l.length > 0);
+                return lines.length > 1 ? (
+                  <ul className="list-disc list-inside text-gray-700 leading-relaxed mb-6 text-base space-y-1">
+                    {lines.map((line: string, i: number) => (
+                      <li key={i}>{line}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-700 leading-relaxed mb-6 text-base">
+                    {product.short_description}
+                  </p>
+                );
+              })()}
 
 
 
