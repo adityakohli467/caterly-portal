@@ -28,6 +28,11 @@ interface Product {
   product_image?: string
   product_images?: Array<{ image_url: string } | string> | null
   categories?: ProductCategory[]
+  // Direct subcategory fields returned by the API
+  subcategory_id?: number | null
+  subcategory_name?: string | null
+  parent_category_id?: number | null
+  parent_category_name?: string | null
 }
 
 interface Category {
@@ -135,37 +140,54 @@ function ShopPageContent() {
       const subProducts: Product[] = subRes.data.products || []
       const parentProducts: Product[] = parentRes.data.products || []
 
-      console.log(`[Shop] subcategoryId=${selectedCategory} (${subCatName}): ${subProducts.length} products`)
-      console.log(`[Shop] parentId=${parent?.category_id}: ${parentProducts.length} products`)
+      console.log(`[Shop] sub (id=${selectedCategory}, name="${subCatName}"): ${subProducts.length} products`)
+      console.log(`[Shop] parent (id=${parent?.category_id}): ${parentProducts.length} products`)
       if (subProducts.length > 0) {
         console.log("[Shop] First sub product:", JSON.stringify(subProducts[0]))
       }
 
-      // Detect if the API honours the subcategory ID param:
-      // If subcategory response has FEWER products than parent → API filtered correctly → trust it
-      const apiFiltersCorrectly = subProducts.length > 0 && subProducts.length < parentProducts.length
-
-      if (apiFiltersCorrectly) {
-        // API already filtered — use subcategory products directly
-        setProducts(subProducts)
-        return
+      // Pool = deduplicated union of both responses (prefer parent products since they're the full set)
+      const seen = new Set<number>()
+      const allPool: Product[] = []
+      for (const p of [...parentProducts, ...subProducts]) {
+        if (!seen.has(p.product_id)) { seen.add(p.product_id); allPool.push(p) }
       }
 
-      // API didn't filter by subcategory (returned same count as parent or 0).
-      // Do client-side filtering on the parent products by subcategory ID or name.
-      const allPool = parentProducts.length > 0 ? parentProducts : subProducts
-
+      // ── Step 1: Try client-side filter using the direct subcategory_id field ─
+      // The API returns subcategory_id as a top-level field on each product.
+      // categories[] only contains the PARENT category — NOT the subcategory.
       const clientFiltered = allPool.filter(p =>
+        p.subcategory_id === selectedCategory ||
+        (subCatName && p.subcategory_name?.toLowerCase().trim() === subCatName.toLowerCase().trim()) ||
+        // Also check inside categories[] for backwards compatibility
         p.categories?.some(c =>
           c.category_id === selectedCategory ||
           (subCatName && c.category_name?.toLowerCase().trim() === subCatName.toLowerCase().trim())
         )
       )
 
-      console.log(`[Shop] Client filter found ${clientFiltered.length} products for "${subCatName}"`)
+      if (clientFiltered.length > 0) {
+        console.log(`[Shop] Client filter matched ${clientFiltered.length} products ✓`)
+        setProducts(clientFiltered)
+        return
+      }
 
-      // If client filter also returns nothing, subcategory truly has no products
-      setProducts(clientFiltered)
+      // ── Step 2: Client filter found nothing — check if API filters by subcategory ──
+      // If sub response has FEWER products than parent, the API is subcategory-aware → trust it
+      const apiFiltersCorrectly =
+        subProducts.length > 0 &&
+        (parentProducts.length === 0 || subProducts.length < parentProducts.length)
+
+      if (apiFiltersCorrectly) {
+        console.log(`[Shop] API-aware: showing ${subProducts.length} subcategory products ✓`)
+        setProducts(subProducts)
+        return
+      }
+
+      // ── Step 3: Neither client filter nor API filtering worked ────────────
+      // The subcategory truly has no products (or API fell back to parent)
+      console.log(`[Shop] No products found for "${subCatName}" (id=${selectedCategory})`)
+      setProducts([])
 
     } catch (err) {
       console.error("Failed to fetch products", err)
