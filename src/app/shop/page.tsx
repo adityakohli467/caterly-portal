@@ -92,7 +92,7 @@ function ShopPageContent() {
 
   const fetchProducts = async () => {
     try {
-      // If a parent category is selected (not a subcategory), don't fetch products
+      // If a parent category (with children) is selected, show empty — user must pick a subcategory
       if (selectedCategory && !debouncedSearch) {
         const isParent = getParentCategory(selectedCategory)
         if (isParent) {
@@ -104,42 +104,69 @@ function ShopPageContent() {
 
       setLoading(true)
       setProducts([])
-      const params: any = { limit: 50 }
 
+      // ── Search mode ──────────────────────────────────────────────────────
       if (debouncedSearch) {
-        params.search = debouncedSearch
-      } else if (selectedCategory) {
-        // Pass the subcategory id directly — API may support it
-        params.category_id = selectedCategory
+        const res = await api.get("/store/products", { params: { limit: 100, search: debouncedSearch } })
+        setProducts(res.data.products || [])
+        return
       }
 
-      const res = await api.get("/store/products", { params })
-      let fetched: Product[] = res.data.products || []
-
-      // If direct subcategory fetch returned nothing, try fetching via parent + client filter
-      if (selectedCategory && !debouncedSearch && fetched.length === 0) {
-        const parent = getParentOfChild(selectedCategory)
-        if (parent) {
-          const fallbackRes = await api.get("/store/products", {
-            params: { limit: 50, category_id: parent.category_id }
-          })
-          const allParentProducts: Product[] = fallbackRes.data.products || []
-
-          // Filter by subcategory_id field or inside categories array
-          fetched = allParentProducts.filter(p =>
-            p.categories?.some(
-              c => c.category_id === selectedCategory || c.parent_category_id === selectedCategory
-            )
-          )
-
-          // Last resort: show all parent products if still nothing matched
-          if (fetched.length === 0) {
-            fetched = allParentProducts
-          }
-        }
+      // ── No category selected — show all ───────────────────────────────────
+      if (!selectedCategory) {
+        const res = await api.get("/store/products", { params: { limit: 100 } })
+        setProducts(res.data.products || [])
+        return
       }
 
-      setProducts(fetched)
+      // ── Subcategory selected — smart dual-fetch strategy ──────────────────
+      const parent = getParentOfChild(selectedCategory)
+      const subCatNode = parent?.children?.find(c => c.category_id === selectedCategory)
+      const subCatName = subCatNode?.category_name || ""
+
+      // Fetch with subcategory ID AND parent ID in parallel
+      const [subRes, parentRes] = await Promise.all([
+        api.get("/store/products", { params: { limit: 100, category_id: selectedCategory } }),
+        parent
+          ? api.get("/store/products", { params: { limit: 100, category_id: parent.category_id } })
+          : Promise.resolve({ data: { products: [] } })
+      ])
+
+      const subProducts: Product[] = subRes.data.products || []
+      const parentProducts: Product[] = parentRes.data.products || []
+
+      console.log(`[Shop] subcategoryId=${selectedCategory} (${subCatName}): ${subProducts.length} products`)
+      console.log(`[Shop] parentId=${parent?.category_id}: ${parentProducts.length} products`)
+      if (subProducts.length > 0) {
+        console.log("[Shop] First sub product:", JSON.stringify(subProducts[0]))
+      }
+
+      // Detect if the API honours the subcategory ID param:
+      // If subcategory response has FEWER products than parent → API filtered correctly → trust it
+      const apiFiltersCorrectly = subProducts.length > 0 && subProducts.length < parentProducts.length
+
+      if (apiFiltersCorrectly) {
+        // API already filtered — use subcategory products directly
+        setProducts(subProducts)
+        return
+      }
+
+      // API didn't filter by subcategory (returned same count as parent or 0).
+      // Do client-side filtering on the parent products by subcategory ID or name.
+      const allPool = parentProducts.length > 0 ? parentProducts : subProducts
+
+      const clientFiltered = allPool.filter(p =>
+        p.categories?.some(c =>
+          c.category_id === selectedCategory ||
+          (subCatName && c.category_name?.toLowerCase().trim() === subCatName.toLowerCase().trim())
+        )
+      )
+
+      console.log(`[Shop] Client filter found ${clientFiltered.length} products for "${subCatName}"`)
+
+      // If client filter also returns nothing, subcategory truly has no products
+      setProducts(clientFiltered)
+
     } catch (err) {
       console.error("Failed to fetch products", err)
       setProducts([])
@@ -148,6 +175,8 @@ function ShopPageContent() {
       setSearchLoading(false)
     }
   }
+
+
 
   useEffect(() => { fetchCategories() }, [])
 
