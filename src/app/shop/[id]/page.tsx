@@ -78,7 +78,10 @@ function ProductDetailContent({
   );
   const [selectedOptions, setSelectedOptions] = useState<
     Record<number, number>
-  >({}); // option_id -> option_value_id
+  >({}); // option_id -> option_value_id (for radio/dropdown)
+  const [selectedCheckboxOptions, setSelectedCheckboxOptions] = useState<
+    Record<number, number[]>
+  >({}); // option_id -> [option_value_id, ...] (for checkbox, multi-select)
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [reviews, setReviews] = useState<any[]>([]);
@@ -186,9 +189,18 @@ function ProductDetailContent({
     // Validate required options
     if (product.options && product.options.length > 0) {
       for (const option of product.options) {
-        if (option.required && !selectedOptions[option.option_id]) {
-          toast.error(`Please select ${option.option_name}`);
-          return;
+        const rawType = (option.option_type || "").toLowerCase().trim();
+        const isCheckbox = rawType === "checkbox" || rawType === "check" || rawType === "check_button";
+        if (isCheckbox) {
+          if (option.required && (!selectedCheckboxOptions[option.option_id] || selectedCheckboxOptions[option.option_id].length === 0)) {
+            toast.error(`Please select at least one ${option.option_name}`);
+            return;
+          }
+        } else {
+          if (option.required && !selectedOptions[option.option_id]) {
+            toast.error(`Please select ${option.option_name}`);
+            return;
+          }
         }
       }
     }
@@ -197,21 +209,42 @@ function ProductDetailContent({
     const options: any[] = [];
     if (product.options && product.options.length > 0) {
       for (const option of product.options) {
-        const selectedValueId = selectedOptions[option.option_id];
-        if (selectedValueId) {
-          const selectedValue = option.values.find(
-            (v: any) => v.option_value_id === selectedValueId
-          );
-          if (selectedValue) {
-            options.push({
-              option_id: option.option_id,
-              option_name: option.option_name,
-              option_value_id: selectedValue.option_value_id,
-              option_value: selectedValue.option_value,
-              product_option_id: selectedValue.product_option_id,
-              option_price: selectedValue.product_option_price,
-              option_price_prefix: selectedValue.product_option_price_prefix,
-            });
+        const rawType = (option.option_type || "").toLowerCase().trim();
+        const isCheckbox = rawType === "checkbox" || rawType === "check" || rawType === "check_button";
+        if (isCheckbox) {
+          // Multi-select: push one entry per checked value
+          const checkedIds = selectedCheckboxOptions[option.option_id] || [];
+          for (const valueId of checkedIds) {
+            const selectedValue = option.values.find((v: any) => v.option_value_id === valueId);
+            if (selectedValue) {
+              options.push({
+                option_id: option.option_id,
+                option_name: option.option_name,
+                option_value_id: selectedValue.option_value_id,
+                option_value: selectedValue.option_value,
+                product_option_id: selectedValue.product_option_id,
+                option_price: selectedValue.product_option_price,
+                option_price_prefix: selectedValue.product_option_price_prefix,
+              });
+            }
+          }
+        } else {
+          const selectedValueId = selectedOptions[option.option_id];
+          if (selectedValueId) {
+            const selectedValue = option.values.find(
+              (v: any) => v.option_value_id === selectedValueId
+            );
+            if (selectedValue) {
+              options.push({
+                option_id: option.option_id,
+                option_name: option.option_name,
+                option_value_id: selectedValue.option_value_id,
+                option_value: selectedValue.option_value,
+                product_option_id: selectedValue.product_option_id,
+                option_price: selectedValue.product_option_price,
+                option_price_prefix: selectedValue.product_option_price_prefix,
+              });
+            }
           }
         }
       }
@@ -261,21 +294,41 @@ function ProductDetailContent({
     const options: any[] = [];
     if (product.options && product.options.length > 0) {
       for (const option of product.options) {
-        const selectedValueId = selectedOptions[option.option_id];
-        if (selectedValueId) {
-          const selectedValue = option.values.find(
-            (v: any) => v.option_value_id === selectedValueId
-          );
-          if (selectedValue) {
-            options.push({
-              option_id: option.option_id,
-              option_name: option.option_name,
-              option_value_id: selectedValue.option_value_id,
-              option_value: selectedValue.option_value,
-              product_option_id: selectedValue.product_option_id,
-              option_price: selectedValue.product_option_price,
-              option_price_prefix: selectedValue.product_option_price_prefix,
-            });
+        const rawType = (option.option_type || "").toLowerCase().trim();
+        const isCheckbox = rawType === "checkbox" || rawType === "check" || rawType === "check_button";
+        if (isCheckbox) {
+          const checkedIds = selectedCheckboxOptions[option.option_id] || [];
+          for (const valueId of checkedIds) {
+            const selectedValue = option.values.find((v: any) => v.option_value_id === valueId);
+            if (selectedValue) {
+              options.push({
+                option_id: option.option_id,
+                option_name: option.option_name,
+                option_value_id: selectedValue.option_value_id,
+                option_value: selectedValue.option_value,
+                product_option_id: selectedValue.product_option_id,
+                option_price: selectedValue.product_option_price,
+                option_price_prefix: selectedValue.product_option_price_prefix,
+              });
+            }
+          }
+        } else {
+          const selectedValueId = selectedOptions[option.option_id];
+          if (selectedValueId) {
+            const selectedValue = option.values.find(
+              (v: any) => v.option_value_id === selectedValueId
+            );
+            if (selectedValue) {
+              options.push({
+                option_id: option.option_id,
+                option_name: option.option_name,
+                option_value_id: selectedValue.option_value_id,
+                option_value: selectedValue.option_value,
+                product_option_id: selectedValue.product_option_id,
+                option_price: selectedValue.product_option_price,
+                option_price_prefix: selectedValue.product_option_price_prefix,
+              });
+            }
           }
         }
       }
@@ -582,8 +635,8 @@ function ProductDetailContent({
 
               <div className="flex items-center gap-3 mb-6">
                 {(() => {
-                  // Calculate selected option price to add to top price display
-                  const selectedOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
+                  // Calculate selected option price (radio/dropdown) to add to top price display
+                  const radioOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
                     if (!valId) return sum;
                     const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
                     const val = opt?.values?.find((v: any) => v.option_value_id === valId);
@@ -591,6 +644,18 @@ function ProductDetailContent({
                     const p = parseFloat(val.product_option_price || "0");
                     return val.option_price_prefix === '-' ? sum - p : sum + p;
                   }, 0);
+                  // Calculate checkbox (multi-select) option prices
+                  const checkboxOptionPrice = Object.entries(selectedCheckboxOptions).reduce((sum, [optId, valIds]) => {
+                    const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
+                    if (!opt || !valIds) return sum;
+                    return sum + valIds.reduce((s, vid) => {
+                      const val = opt.values?.find((v: any) => v.option_value_id === vid);
+                      if (!val) return s;
+                      const p = parseFloat(val.product_option_price || "0");
+                      return val.product_option_price_prefix === '-' ? s - p : s + p;
+                    }, 0);
+                  }, 0);
+                  const selectedOptionPrice = radioOptionPrice + checkboxOptionPrice;
 
                   if (product.has_discount && product.original_price && product.discounted_price) {
                     return (
@@ -732,20 +797,24 @@ function ProductDetailContent({
                           </div>
                         )}
 
-                        {/* CHECKBOX — tick box on the left of each row */}
+                        {/* CHECKBOX — tick box on the left of each row, MULTIPLE selections allowed */}
                         {optionType === "checkbox" && (
                           <div className="flex flex-col gap-2">
                             {values.map((value: any) => {
-                              const isSelected = selectedOptions[option.option_id] === value.option_value_id;
+                              const checkedIds = selectedCheckboxOptions[option.option_id] || [];
+                              const isSelected = checkedIds.includes(value.option_value_id);
                               return (
                                 <button
                                   key={value.option_value_id}
                                   type="button"
                                   onClick={() =>
-                                    setSelectedOptions((prev) => ({
-                                      ...prev,
-                                      [option.option_id]: isSelected ? 0 : value.option_value_id,
-                                    }))
+                                    setSelectedCheckboxOptions((prev) => {
+                                      const current = prev[option.option_id] || [];
+                                      const updated = isSelected
+                                        ? current.filter((id) => id !== value.option_value_id)
+                                        : [...current, value.option_value_id];
+                                      return { ...prev, [option.option_id]: updated };
+                                    })
                                   }
                                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-sm transition-all text-left ${isSelected
                                     ? "border-[#E03A3E] bg-[#FFF1F1]"
