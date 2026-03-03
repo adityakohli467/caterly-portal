@@ -408,19 +408,23 @@ function ProductDetailContent({
         breadcrumbMainCat = fromCat;
       }
     }
-  } else {
+  } else if (product?.categories && product.categories.length > 0) {
     // Fallback: derive from product's own categories array
-    const subCat = product?.categories?.find(
+    // Find a subcategory (one that has a parent_category_id set)
+    const subCat = product.categories.find(
       (cat) => cat.parent_category_id !== null && cat.parent_category_id !== undefined
     );
     if (subCat) {
       breadcrumbSubCat = subCat;
-      const parent =
-        product?.categories?.find((cat) => cat.category_id === subCat.parent_category_id) ||
-        (allCategories.length > 0 ? findParentOfCat(subCat.category_id) : null);
-      breadcrumbMainCat = parent || null;
+      // Always use allCategories tree to find the parent (product.categories may not contain it)
+      const parentFromTree = allCategories.length > 0 ? findParentOfCat(subCat.category_id) : null;
+      const parentById = subCat.parent_category_id
+        ? allCategories.find((c) => c.category_id === subCat.parent_category_id) || null
+        : null;
+      breadcrumbMainCat = parentFromTree || parentById || null;
     } else {
-      breadcrumbMainCat = product?.categories?.[0] || null;
+      // All categories on the product are top-level — show the first one
+      breadcrumbMainCat = product.categories[0] || null;
     }
   }
 
@@ -744,8 +748,8 @@ function ProductDetailContent({
                                     }))
                                   }
                                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-sm transition-all text-left ${isSelected
-                                      ? "border-[#E03A3E] bg-[#FFF1F1]"
-                                      : "border-gray-200 bg-white hover:border-[#E03A3E]"
+                                    ? "border-[#E03A3E] bg-[#FFF1F1]"
+                                    : "border-gray-200 bg-white hover:border-[#E03A3E]"
                                     }`}
                                 >
                                   {/* Tick box */}

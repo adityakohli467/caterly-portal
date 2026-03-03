@@ -109,22 +109,33 @@ function ShopPageContent() {
       if (debouncedSearch) {
         params.search = debouncedSearch
       } else if (selectedCategory) {
-        // For a child subcategory: fetch with the parent's category_id
-        const parent = getParentOfChild(selectedCategory)
-        params.category_id = parent ? parent.category_id : selectedCategory
+        // Pass the subcategory id directly — API may support it
+        params.category_id = selectedCategory
       }
 
       const res = await api.get("/store/products", { params })
       let fetched: Product[] = res.data.products || []
 
-      // Filter client-side by subcategory
-      if (selectedCategory && !debouncedSearch) {
+      // If direct subcategory fetch returned nothing, try fetching via parent + client filter
+      if (selectedCategory && !debouncedSearch && fetched.length === 0) {
         const parent = getParentOfChild(selectedCategory)
         if (parent) {
-          const filtered = fetched.filter(p =>
-            p.categories?.some(c => c.category_id === selectedCategory)
+          const fallbackRes = await api.get("/store/products", {
+            params: { limit: 50, category_id: parent.category_id }
+          })
+          const allParentProducts: Product[] = fallbackRes.data.products || []
+
+          // Filter by subcategory_id field or inside categories array
+          fetched = allParentProducts.filter(p =>
+            p.categories?.some(
+              c => c.category_id === selectedCategory || c.parent_category_id === selectedCategory
+            )
           )
-          if (filtered.length > 0) fetched = filtered
+
+          // Last resort: show all parent products if still nothing matched
+          if (fetched.length === 0) {
+            fetched = allParentProducts
+          }
         }
       }
 
