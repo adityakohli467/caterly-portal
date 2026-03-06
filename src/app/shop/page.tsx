@@ -33,6 +33,7 @@ interface Product {
   subcategory_name?: string | null
   parent_category_id?: number | null
   parent_category_name?: string | null
+  min_quantity?: number | null
 }
 
 interface Category {
@@ -213,13 +214,19 @@ function ShopPageContent() {
       product.has_discount && product.discounted_price
         ? product.discounted_price.toString()
         : product.product_price
+    const minQty = product.min_quantity ? Math.max(1, parseInt(String(product.min_quantity))) : 1
     addItem({
       product_id: product.product_id,
       product_name: product.product_name,
       product_price: priceToUse,
       product_image: getProductImageUrl(product),
+      quantity: minQty,
     })
-    toast.success(`${product.product_name} added to cart`)
+    if (minQty > 1) {
+      toast.success(`${product.product_name} added to cart (minimum order: ${minQty})`)
+    } else {
+      toast.success(`${product.product_name} added to cart`)
+    }
   }
 
   // Toggle a parent category's expanded state — only expands sidebar, never loads products
@@ -333,12 +340,18 @@ function ShopPageContent() {
                         const isExpanded = expandedParents.has(parent.category_id)
                         return (
                           <li key={parent.category_id}>
-                            {/* Parent — clicking expands/collapses subcategories only */}
+                            {/* Parent — if it has children, expand/collapse; if no children, select it */}
                             <div
-                              onClick={() => toggleParent(parent.category_id)}
-                              className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-semibold ${isExpanded
-                                ? "text-[#E03A3E]"
-                                : "hover:bg-gray-100 text-gray-800"
+                              onClick={() => {
+                                if (hasChildren) {
+                                  toggleParent(parent.category_id)
+                                } else {
+                                  selectSubcategory(parent.category_id)
+                                }
+                              }}
+                              className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-semibold ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
+                                  ? "text-[#E03A3E]"
+                                  : "hover:bg-gray-100 text-gray-800"
                                 }`}
                             >
                               <span>{parent.category_name}</span>
