@@ -48,6 +48,7 @@ interface Product {
   roast_level?: string | null;
   show_specifications?: boolean;
   show_other_info?: boolean;
+  min_quantity?: number | null;
 }
 
 interface CategoryNode {
@@ -151,6 +152,9 @@ function ProductDetailContent({
       console.log("Product detail API response:", response.data);
       const prod = response.data.product;
       setProduct(prod);
+      // Initialise quantity to min_quantity (if set and > 1)
+      const minQty = prod?.min_quantity ? Math.max(1, parseInt(String(prod.min_quantity))) : 1;
+      setQuantity(minQty);
       // Log options/values for debugging
       if (prod?.options?.length) {
         prod.options.forEach((opt: any) => {
@@ -185,6 +189,14 @@ function ProductDetailContent({
 
   const handleAddToCart = () => {
     if (!product) return;
+
+    // Validate minimum quantity
+    const minQty = product.min_quantity ? Math.max(1, parseInt(String(product.min_quantity))) : 1;
+    if (quantity < minQty) {
+      toast.error(`Minimum order quantity is ${minQty}`);
+      setQuantity(minQty);
+      return;
+    }
 
     // Validate required options
     if (product.options && product.options.length > 0) {
@@ -284,7 +296,8 @@ function ProductDetailContent({
   };
 
   const updateQuantity = (change: number) => {
-    setQuantity((prev) => Math.max(1, prev + change));
+    const minQty = product?.min_quantity ? Math.max(1, parseInt(String(product.min_quantity))) : 1;
+    setQuantity((prev) => Math.max(minQty, prev + change));
   };
 
   const calculateSubtotal = () => {
@@ -897,7 +910,12 @@ function ProductDetailContent({
               {/* Quantity Selector */}
               <div className="border rounded-lg overflow-hidden mb-6">
                 <div className="grid grid-cols-2 bg-gray-50 p-4 font-medium text-sm">
-                  <div className="text-black">Quantity</div>
+                  <div className="text-black">
+                    Quantity
+                    {product?.min_quantity && parseInt(String(product.min_quantity)) > 1 && (
+                      <span className="ml-2 text-xs font-normal text-[#E03A3E]">(Min: {product.min_quantity})</span>
+                    )}
+                  </div>
                   <div className="text-right">Price</div>
                 </div>
                 <div className="grid grid-cols-2 p-4 items-center">
