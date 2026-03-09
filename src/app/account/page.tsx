@@ -14,6 +14,8 @@ import { api } from "@/lib/api"
 import { ShoppingBag, User, LogOut, Lock, X, ChevronLeft, ChevronRight, CreditCard } from "lucide-react"
 import { toast } from "sonner"
 
+import { Suspense } from "react"
+
 interface Order {
   order_id: number
   total: string | number
@@ -37,7 +39,7 @@ interface Subscription {
   }>
 }
 
-export default function AccountPage() {
+function AccountContent() {
   const router = useRouter()
   const { user, isAuthenticated, logout, token, checkAuth } = useAuthStore()
   const searchParams = useSearchParams()
@@ -117,7 +119,16 @@ export default function AccountPage() {
     try {
       setSubscriptionsLoading(true)
       const response = await api.get("/store/subscriptions")
-      setSubscriptions(response.data.subscriptions || [])
+
+      // Handle both { subscriptions: [] } and direct array [] formats
+      let subscriptionData = []
+      if (Array.isArray(response.data)) {
+        subscriptionData = response.data
+      } else if (response.data && Array.isArray(response.data.subscriptions)) {
+        subscriptionData = response.data.subscriptions
+      }
+
+      setSubscriptions(subscriptionData)
     } catch (error: any) {
       console.error("Failed to fetch subscriptions:", error)
       // Handle 401 - token expired
@@ -603,10 +614,18 @@ export default function AccountPage() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   </div>
                 ) : subscriptions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <p className="mb-4">No active subscriptions</p>
+                  <div className="text-center py-12 text-gray-500">
+                    <p className="text-lg font-medium mb-2">No active subscriptions found</p>
+                    <p className="mb-6 max-w-md mx-auto">
+                      Subscriptions will appear here once your order is processed.
+                      {typeof window !== "undefined" && localStorage.getItem("caterly_last_order_type") === "subscription" && (
+                        <span className="block mt-2 text-[#E03A3E] font-semibold">
+                          Note: We detected a recent subscription order. It may take a moment to sync or require a page refresh.
+                        </span>
+                      )}
+                    </p>
                     <Link href="/shop?purchaseType=subscription">
-                      <Button className="bg-[#e03a3e] hover:bg-[#c83236] text-white">
+                      <Button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-8">
                         Browse Subscriptions
                       </Button>
                     </Link>
@@ -675,6 +694,18 @@ export default function AccountPage() {
         </Tabs>
       </div>
     </div>
+  )
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E03A3E]"></div>
+      </div>
+    }>
+      <AccountContent />
+    </Suspense>
   )
 }
 
