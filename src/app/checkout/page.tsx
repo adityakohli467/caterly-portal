@@ -424,6 +424,9 @@ export default function CheckoutPage() {
       }
       const deliveryAddress = addressParts.join(", ") || billingData.streetAddress || ""
 
+      // Find first subscription item to get frequency/start date for top level
+      const subItem = items.find(item => item.delivery_frequency && item.delivery_frequency !== "One Time")
+
       const orderPayload: any = {
         items: orderItems,
         firstname: billingData.firstName,
@@ -436,6 +439,15 @@ export default function CheckoutPage() {
         coupon_code: couponApplied?.code || null,
         postcode: billingData.postcode,
         notes: deliveryNotes || null,
+        // Requested subscription fields
+        delivery_frequency: subItem ? subItem.delivery_frequency : "One Time",
+        delivery_start_date: subItem ? (subItem.delivery_start_date || null) : null,
+        subtotal: totals.afterDiscount,
+        wholesale_discount: totals.wholesaleDiscount,
+        coupon_discount: totals.couponDiscount,
+        gst: totals.gst,
+        gst_status: 1, // Assuming 1 as per requirement
+        order_total: totals.total,
       }
 
       // Use different endpoints for authenticated vs guest checkout
@@ -462,6 +474,12 @@ export default function CheckoutPage() {
 
       // Clear cart after successful order
       clearCart()
+
+      // Set subscription flag if any item has a recurring frequency
+      const isSubscription = items.some(item => item.delivery_frequency && item.delivery_frequency !== "One Time")
+      if (typeof window !== "undefined") {
+        localStorage.setItem("caterly_last_order_type", isSubscription ? "subscription" : "normal")
+      }
 
       toast.success("Order placed successfully!")
 

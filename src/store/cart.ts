@@ -37,15 +37,26 @@ interface CartState {
 }
 
 // Generate unique cart item ID based on product and options
-export const generateCartItemId = (productId: number, options?: ProductOption[]): string => {
-  if (!options || options.length === 0) {
-    return `product_${productId}`
+export const generateCartItemId = (productId: number, options?: ProductOption[], deliveryFrequency?: string, deliveryStartDate?: string): string => {
+  let id = `product_${productId}`
+
+  if (options && options.length > 0) {
+    const sortedOptions = [...options].sort((a, b) => a.option_id - b.option_id)
+    const optionsKey = sortedOptions
+      .map(opt => `${opt.option_id}_${opt.option_value_id}`)
+      .join('_')
+    id += `_opts_${optionsKey}`
   }
-  const sortedOptions = [...options].sort((a, b) => a.option_id - b.option_id)
-  const optionsKey = sortedOptions
-    .map(opt => `${opt.option_id}_${opt.option_value_id}`)
-    .join('_')
-  return `product_${productId}_${optionsKey}`
+
+  if (deliveryFrequency && deliveryFrequency !== "One Time") {
+    id += `_freq_${deliveryFrequency.replace(/\s+/g, '_').toLowerCase()}`
+  }
+
+  if (deliveryStartDate) {
+    id += `_start_${deliveryStartDate}`
+  }
+
+  return id
 }
 
 export const useCartStore = create<CartState>()(
@@ -55,11 +66,11 @@ export const useCartStore = create<CartState>()(
 
       addItem: (item) => {
         const items = get().items
-        const cartItemId = generateCartItemId(item.product_id, item.options)
+        const cartItemId = generateCartItemId(item.product_id, item.options, item.delivery_frequency, item.delivery_start_date)
         const quantity = item.quantity || 1
 
         const existing = items.find((i) => {
-          const existingId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
+          const existingId = i.cart_item_id || generateCartItemId(i.product_id, i.options, i.delivery_frequency, i.delivery_start_date)
           return existingId === cartItemId
         })
 
@@ -87,7 +98,7 @@ export const useCartStore = create<CartState>()(
       removeItem: (cartItemId) => {
         set({
           items: get().items.filter((i) => {
-            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
+            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options, i.delivery_frequency, i.delivery_start_date)
             return itemId !== cartItemId
           })
         })
@@ -99,7 +110,7 @@ export const useCartStore = create<CartState>()(
         } else {
           set({
             items: get().items.map((i) => {
-              const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
+              const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options, i.delivery_frequency, i.delivery_start_date)
               return itemId === cartItemId ? { ...i, quantity } : i
             }),
           })
@@ -109,8 +120,12 @@ export const useCartStore = create<CartState>()(
       updateDeliveryFrequency: (cartItemId, frequency) => {
         set({
           items: get().items.map((i) => {
-            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
-            return itemId === cartItemId ? { ...i, delivery_frequency: frequency } : i
+            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options, i.delivery_frequency, i.delivery_start_date)
+            if (itemId === cartItemId) {
+              const newId = generateCartItemId(i.product_id, i.options, frequency, i.delivery_start_date)
+              return { ...i, delivery_frequency: frequency, cart_item_id: newId }
+            }
+            return i
           }),
         })
       },
@@ -118,8 +133,12 @@ export const useCartStore = create<CartState>()(
       updateDeliveryStartDate: (cartItemId, startDate) => {
         set({
           items: get().items.map((i) => {
-            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options)
-            return itemId === cartItemId ? { ...i, delivery_start_date: startDate } : i
+            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options, i.delivery_frequency, i.delivery_start_date)
+            if (itemId === cartItemId) {
+              const newId = generateCartItemId(i.product_id, i.options, i.delivery_frequency, startDate)
+              return { ...i, delivery_start_date: startDate, cart_item_id: newId }
+            }
+            return i
           }),
         })
       },

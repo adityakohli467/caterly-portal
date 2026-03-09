@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -40,6 +40,8 @@ interface Subscription {
 export default function AccountPage() {
   const router = useRouter()
   const { user, isAuthenticated, logout, token, checkAuth } = useAuthStore()
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get("tab") || "profile"
   const [orders, setOrders] = useState<Order[]>([])
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
@@ -207,7 +209,7 @@ export default function AccountPage() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8 text-black">My Account</h1>
 
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg">
             <TabsTrigger
               value="profile"
@@ -601,14 +603,14 @@ export default function AccountPage() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   </div>
                 ) : subscriptions.length === 0 ? (
-               <div className="text-center py-8 text-gray-500">
-  <p className="mb-4">No active subscriptions</p>
-  <Link href="/shop?purchaseType=subscription">
-    <Button className="bg-[#e03a3e] hover:bg-[#c83236] text-white">
-      Browse Subscriptions
-    </Button>
-  </Link>
-</div>
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="mb-4">No active subscriptions</p>
+                    <Link href="/shop?purchaseType=subscription">
+                      <Button className="bg-[#e03a3e] hover:bg-[#c83236] text-white">
+                        Browse Subscriptions
+                      </Button>
+                    </Link>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {subscriptions.map((subscription) => (
