@@ -16,9 +16,16 @@ function PaymentSuccessContent() {
   const [verifying, setVerifying] = useState(true)
   const [verified, setVerified] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [orderType, setOrderType] = useState<string | null>(null)
   const transactionId = searchParams.get("transaction_id")
   const paymentIntentId = searchParams.get("payment_intent_id")
   const orderIdParam = searchParams.get("order_id")
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrderType(localStorage.getItem("caterly_last_order_type"))
+    }
+  }, [])
 
   useEffect(() => {
     if (paymentIntentId && orderIdParam) {
@@ -39,7 +46,7 @@ function PaymentSuccessContent() {
 
   const verifyPayment = async () => {
     if (!paymentIntentId || !orderIdParam) return
-    
+
     try {
       // Verify payment with backend
       const response = await api.post("/store/payment/verify", {
@@ -116,6 +123,7 @@ function PaymentSuccessContent() {
           <h1 className="text-3xl font-bold mb-4">Payment Successful!</h1>
           <p className="text-gray-600 mb-6">
             Your order #{orderId} has been paid successfully.
+            {orderType === "subscription" && " You can now manage your food subscription in your account settings."}
           </p>
           {paymentIntentId && (
             <p className="text-sm text-gray-500 mb-6">
@@ -126,8 +134,11 @@ function PaymentSuccessContent() {
             You will receive a confirmation email shortly.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button onClick={() => router.push("/account")} className="bg-[#2952E6] hover:bg-[#1e3fb3]">
-              View Orders
+            <Button
+              onClick={() => router.push(orderType === "subscription" ? "/account?tab=subscriptions" : "/account")}
+              className="bg-[#2952E6] hover:bg-[#1e3fb3]"
+            >
+              {orderType === "subscription" ? "Manage Subscriptions" : "View Orders"}
             </Button>
             <Button variant="outline" onClick={() => router.push("/shop")}>
               Continue Shopping

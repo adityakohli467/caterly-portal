@@ -281,24 +281,32 @@ function ShopPageContent() {
             {product.product_description}
           </p>
           <div className="flex items-center justify-between mt-3">
-            <span className="text-lg font-semibold text-gray-900">
-              ${product.has_discount && product.discounted_price
-                ? product.discounted_price
-                : product.product_price}
-            </span>
-            <div className="flex items-center gap-2">
+            {parseFloat(product.has_discount && product.discounted_price
+              ? product.discounted_price.toString()
+              : product.product_price) > 0 && (
+                <span className="text-lg font-semibold text-gray-900">
+                  ${product.has_discount && product.discounted_price
+                    ? product.discounted_price
+                    : product.product_price}
+                </span>
+              )}
+            <div className="flex items-center gap-2 ml-auto">
               <button
                 onClick={(e) => { e.stopPropagation(); router.push(productUrl) }}
                 className="border border-[#E03A3E] text-[#E03A3E] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-[#FFF1F1] transition"
               >
                 View Details
               </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
-                className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
-              >
-                Order
-              </button>
+              {parseFloat(product.has_discount && product.discounted_price
+                ? product.discounted_price.toString()
+                : product.product_price) > 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
+                    className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
+                  >
+                    Order
+                  </button>
+                )}
             </div>
           </div>
         </div>
@@ -350,8 +358,8 @@ function ShopPageContent() {
                                 }
                               }}
                               className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-semibold ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
-                                  ? "text-[#E03A3E]"
-                                  : "hover:bg-gray-100 text-gray-800"
+                                ? "text-[#E03A3E]"
+                                : "hover:bg-gray-100 text-gray-800"
                                 }`}
                             >
                               <span>{parent.category_name}</span>

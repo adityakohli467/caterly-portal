@@ -92,6 +92,10 @@ function ProductDetailContent({
   const [reviewerEmail, setReviewerEmail] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [allCategories, setAllCategories] = useState<CategoryNode[]>([]);
+  const [selectedFrequency, setSelectedFrequency] = useState<string>("2w");
+  const [selectedStartDate, setSelectedStartDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   // Handle params (can be Promise in Next.js 15+ or object in Next.js 14)
   useEffect(() => {
@@ -157,12 +161,45 @@ function ProductDetailContent({
       setQuantity(minQty);
       // Log options/values for debugging
       if (prod?.options?.length) {
+        const defaults: Record<number, number> = {};
+        const checkboxDefaults: Record<number, number[]> = {};
+
+        // Debug log all options
         prod.options.forEach((opt: any) => {
           console.log(
             `OPTION [${opt.option_id}] "${opt.option_name}" type="${opt.option_type}" values(${opt.values?.length ?? 0}):`,
             opt.values
           );
         });
+
+        // ONLY pre-select the first (top) option value of the FIRST option group
+        const firstOpt = prod.options[0];
+        const values = Array.isArray(firstOpt?.values) ? firstOpt.values : [];
+
+        if (values.length > 0) {
+          const rawType = (firstOpt.option_type || "").toLowerCase().trim();
+          const optionType =
+            rawType === "radio" || rawType === "radio_button"
+              ? "radio"
+              : rawType === "checkbox" || rawType === "check" || rawType === "check_button"
+                ? "checkbox"
+                : rawType === "dropdown" || rawType === "select" || rawType === "select_box"
+                  ? "dropdown"
+                  : "radio";
+
+          if (optionType === "checkbox") {
+            checkboxDefaults[firstOpt.option_id] = [values[0].option_value_id];
+          } else if (optionType === "radio" || optionType === "dropdown") {
+            defaults[firstOpt.option_id] = values[0].option_value_id;
+          }
+        }
+
+        if (Object.keys(defaults).length > 0) {
+          setSelectedOptions(defaults);
+        }
+        if (Object.keys(checkboxDefaults).length > 0) {
+          setSelectedCheckboxOptions(checkboxDefaults);
+        }
       }
       // Reset to first image when product changes
       setSelectedImageIndex(0);
@@ -275,6 +312,8 @@ function ProductDetailContent({
       product_image: getProductImageUrl(product),
       quantity,
       options: options.length > 0 ? options : undefined,
+      delivery_frequency: purchaseType === "subscription" ? selectedFrequency : "One Time",
+      delivery_start_date: purchaseType === "subscription" ? selectedStartDate : undefined,
     });
     toast.success(`${product.product_name} added to cart`);
   };
@@ -301,7 +340,7 @@ function ProductDetailContent({
   };
 
   const calculateSubtotal = () => {
-    if (!product) return 0;
+    if (!product) return "0.00";
 
     // Build options array for price calculation
     const options: any[] = [];
@@ -646,38 +685,42 @@ function ProductDetailContent({
                 {product.product_name}
               </h1>
 
-              <div className="flex items-center gap-3 mb-6">
-                {(() => {
-                  // Calculate selected option price (radio/dropdown) to add to top price display
-                  const radioOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
-                    if (!valId) return sum;
-                    const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
-                    const val = opt?.values?.find((v: any) => v.option_value_id === valId);
-                    if (!val) return sum;
+              {(() => {
+                // Calculate selected option price (radio/dropdown) to add to top price display
+                const radioOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
+                  if (!valId) return sum;
+                  const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
+                  const val = opt?.values?.find((v: any) => v.option_value_id === valId);
+                  if (!val) return sum;
+                  const p = parseFloat(val.product_option_price || "0");
+                  return val.option_price_prefix === '-' ? sum - p : sum + p;
+                }, 0);
+                // Calculate checkbox (multi-select) option prices
+                const checkboxOptionPrice = Object.entries(selectedCheckboxOptions).reduce((sum, [optId, valIds]) => {
+                  const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
+                  if (!opt || !valIds) return sum;
+                  return sum + valIds.reduce((s, vid) => {
+                    const val = opt.values?.find((v: any) => v.option_value_id === vid);
+                    if (!val) return s;
                     const p = parseFloat(val.product_option_price || "0");
-                    return val.option_price_prefix === '-' ? sum - p : sum + p;
+                    return val.product_option_price_prefix === '-' ? s - p : s + p;
                   }, 0);
-                  // Calculate checkbox (multi-select) option prices
-                  const checkboxOptionPrice = Object.entries(selectedCheckboxOptions).reduce((sum, [optId, valIds]) => {
-                    const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
-                    if (!opt || !valIds) return sum;
-                    return sum + valIds.reduce((s, vid) => {
-                      const val = opt.values?.find((v: any) => v.option_value_id === vid);
-                      if (!val) return s;
-                      const p = parseFloat(val.product_option_price || "0");
-                      return val.product_option_price_prefix === '-' ? s - p : s + p;
-                    }, 0);
-                  }, 0);
-                  const selectedOptionPrice = radioOptionPrice + checkboxOptionPrice;
+                }, 0);
+                const selectedOptionPrice = radioOptionPrice + checkboxOptionPrice;
+                const basePrice = product.has_discount && product.discounted_price ? product.discounted_price : parseFloat(product.product_price);
+                const totalPrice = basePrice + selectedOptionPrice;
 
-                  if (product.has_discount && product.original_price && product.discounted_price) {
-                    return (
+                // Always show price on detail page to provide feedback as options are selected
+
+                return (
+                  <div className="flex items-center gap-3 mb-6">
+                    {product.has_discount && product.original_price && product.discounted_price ? (
                       <div className="flex items-center gap-3">
                         <span className="text-xl text-gray-500 line-through">
                           ${product.original_price.toFixed(2)}
                         </span>
                         <div className="text-2xl font-bold text-[#E03A3E]">
-                          ${(product.discounted_price + selectedOptionPrice).toFixed(2)}
+                          ${totalPrice.toFixed(2)}
                         </div>
                         {product.discount_percentage && (
                           <Badge variant="destructive" className="text-sm">
@@ -685,15 +728,14 @@ function ProductDetailContent({
                           </Badge>
                         )}
                       </div>
-                    );
-                  }
-                  return (
-                    <div className="text-2xl font-bold text-[#E03A3E]">
-                      ${(parseFloat(product.product_price) + selectedOptionPrice).toFixed(2)}
-                    </div>
-                  );
-                })()}
-              </div>
+                    ) : (
+                      <div className="text-2xl font-bold text-[#E03A3E]">
+                        ${totalPrice.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Short Description */}
               {product.short_description && (() => {
@@ -941,7 +983,7 @@ function ProductDetailContent({
                     </Button>
                   </div>
                   <div className="text-right font-bold text-black">
-                    ${(() => {
+                    {(() => {
                       const base = product.has_discount && product.discounted_price
                         ? product.discounted_price
                         : parseFloat(product.product_price);
@@ -954,16 +996,19 @@ function ProductDetailContent({
                         const p = parseFloat(val.product_option_price || "0");
                         return val.option_price_prefix === '-' ? sum - p : sum + p;
                       }, 0);
-                      return (base + selectedOptionPrice).toFixed(2);
+                      const total = base + selectedOptionPrice;
+                      return `$${total.toFixed(2)}`;
                     })()}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mb-6 text-lg font-bold">
-                <span className="text-black">Subtotal</span>
-                <span>${calculateSubtotal()}</span>
-              </div>
+              {product && (
+                <div className="flex items-center justify-between mb-6 text-lg font-bold">
+                  <span className="text-black">Subtotal</span>
+                  <span>${calculateSubtotal()}</span>
+                </div>
+              )}
 
               {/* Purchase Type */}
               <div className="mb-6">
@@ -999,15 +1044,16 @@ function ProductDetailContent({
                           Frequency
                         </label>
                         <select
+                          value={selectedFrequency}
+                          onChange={(e) => setSelectedFrequency(e.target.value)}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm
                             focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] transition-colors"
                         >
-                          <option value="2w">Every 2 Weeks</option>
-                          <option value="4w">Every 4 Weeks</option>
-                          <option value="8w">Every 8 Weeks</option>
+                          <option value="Every 2 Weeks">Every 2 Weeks</option>
+                          <option value="Every 4 Weeks">Every 4 Weeks</option>
+                          <option value="Every 8 Weeks">Every 8 Weeks</option>
                         </select>
                       </div>
-
                       {/* Start Date */}
                       <div className="mb-3">
                         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
@@ -1015,6 +1061,8 @@ function ProductDetailContent({
                         </label>
                         <input
                           type="date"
+                          value={selectedStartDate}
+                          onChange={(e) => setSelectedStartDate(e.target.value)}
                           min={new Date().toISOString().split("T")[0]}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm
                             focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] transition-colors
@@ -1028,13 +1076,15 @@ function ProductDetailContent({
                 </div>
               </div>
 
-              <Button
-                size="lg"
-                className="w-full py-6 bg-[#E03A3E] hover:bg-[#cc3236] text-white font-semibold text-lg"
-                onClick={handleAddToCart}
-              >
-                Add to Cart ({quantity})
-              </Button>
+              {parseFloat(calculateSubtotal()) > 0 && (
+                <Button
+                  size="lg"
+                  className="w-full py-6 bg-[#E03A3E] hover:bg-[#cc3236] text-white font-semibold text-lg"
+                  onClick={handleAddToCart}
+                >
+                  Add to Cart ({quantity})
+                </Button>
+              )}
             </div>
           </div>
 
