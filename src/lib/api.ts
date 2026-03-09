@@ -4,13 +4,25 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000"
 
 // Log API URL and warn if using localhost in production
 if (typeof window !== "undefined") {
-  if (process.env.NODE_ENV === "development") {
+  const isDevelopment = process.env.NODE_ENV === "development"
+  const isLocalhost = API_URL.includes("localhost") || API_URL.includes("127.0.0.1")
+
+  if (isDevelopment) {
     console.log("🔗 API Base URL:", API_URL)
-  } else if (API_URL.includes("localhost") || API_URL.includes("127.0.0.1")) {
-    console.error("⚠️ WARNING: API URL is set to localhost in production!", {
+  }
+
+  // Critical warning for production build pointing to localhost
+  if (!isDevelopment && isLocalhost) {
+    console.error("🚨 CRITICAL: API URL is set to localhost in PRODUCTION!", {
       currentURL: API_URL,
-      message: "Please set NEXT_PUBLIC_API_URL environment variable to your production API URL"
+      expectedSource: "NEXT_PUBLIC_API_URL environment variable",
+      impact: "The app will NOT be able to fetch data in the deployed environment."
     })
+  }
+
+  // Warn if NEXT_PUBLIC_API_URL is missing entirely in production
+  if (!isDevelopment && !process.env.NEXT_PUBLIC_API_URL) {
+    console.warn("⚠️ WARNING: NEXT_PUBLIC_API_URL is not defined. Using default fallback:", API_URL)
   }
 }
 
