@@ -402,8 +402,8 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         price: getItemPrice(item), // Include calculated price with options
         options: item.options || [],
-        delivery_frequency: item.delivery_frequency || "One Time", // Per-item frequency
-        delivery_start_date: item.delivery_frequency && item.delivery_frequency !== "One Time" ? item.delivery_start_date : null, // Per-item start date
+        delivery_frequency: item.delivery_frequency || "One Time",
+        delivery_start_date: item.delivery_start_date || null,
       }))
 
       const totals = calculateTotal()
@@ -442,12 +442,20 @@ export default function CheckoutPage() {
         // Requested subscription fields
         delivery_frequency: subItem ? subItem.delivery_frequency : "One Time",
         delivery_start_date: subItem ? (subItem.delivery_start_date || null) : null,
+        delivery_date_time: subItem ? (subItem.delivery_start_date || null) : (new Date().toISOString()), // Required for backend indexing
         subtotal: totals.afterDiscount,
         wholesale_discount: totals.wholesaleDiscount,
         coupon_discount: totals.couponDiscount,
         gst: totals.gst,
-        gst_status: 1, // Assuming 1 as per requirement
+        gst_status: 1,
         order_total: totals.total,
+        // Detailed billing/shipping fields
+        billing_address: billingData.streetAddress,
+        billing_city: billingData.suburb,
+        billing_postcode: billingData.postcode,
+        billing_state: billingData.state,
+        shipping_address: deliveryAddress,
+        shipping_postcode: shipToDifferentAddress ? shippingData.postcode : billingData.postcode,
       }
 
       // Use different endpoints for authenticated vs guest checkout
