@@ -40,6 +40,29 @@ interface Subscription {
   }>
 }
 
+function getOrderDisplayTotal(order: any): number {
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(`caterly_order_totals_${order.order_id}`)
+      if (raw) {
+        const savedTotals = JSON.parse(raw)
+        if (savedTotals && savedTotals.total !== undefined) {
+          return parseFloat(savedTotals.total)
+        }
+      }
+    } catch { }
+  }
+
+  const rawTotal = parseFloat(String(order.order_total || order.total || 0))
+
+  if (order.hasOwnProperty("gst") && order.gst) {
+    const gstValue = parseFloat(String(order.gst))
+    return Math.max(0, rawTotal - gstValue)
+  }
+
+  return rawTotal
+}
+
 function AccountContent() {
   const router = useRouter()
   const { user, customer, isAuthenticated, logout, token, checkAuth } = useAuthStore()
@@ -642,9 +665,7 @@ function AccountContent() {
                                   {/* TOTAL AMOUNT */}
                                   <p className="font-bold text-black">
                                     $
-                                    {parseFloat(
-                                      String(order.order_total || order.total || 0)
-                                    ).toFixed(2)}
+                                    {getOrderDisplayTotal(order).toFixed(2)}
                                   </p>
 
                                   {/* STATUS */}
@@ -806,7 +827,7 @@ function AccountContent() {
                               </p>
                             )}
                             <p className="font-bold text-lg">
-                              ${parseFloat(subscription.order_total || '0').toFixed(2)}
+                              ${getOrderDisplayTotal(subscription).toFixed(2)}
                             </p>
                           </div>
                           {subscription.order_status === 1 && (
