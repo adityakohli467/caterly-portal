@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/auth"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { ArrowLeft, Package, MapPin } from "lucide-react"
+import { ArrowLeft, Package, MapPin, FileText } from "lucide-react"
 
 interface OrderItem {
   product_id: number
@@ -88,29 +88,47 @@ export default function OrderDetailPage() {
   if (!order) return null
 
   const parseP = (v: any) => parseFloat(String(v || "0").replace(/[^\d.-]/g, "")) || 0
+
+  // Recalculate true subtotal from items since API might return inflated item totals
+  const trueSubtotal = order.items?.reduce((sum, item) => {
+    return sum + (parseP(item.price) * (item.quantity || 1))
+  }, 0) || 0
+
   const deliveryFee = parseP(order.delivery_fee)
   const couponDiscount = parseP(order.coupon_discount)
-  // after_discount = post-coupon amount (what checkout called afterDiscount)
-  const afterDiscount = parseP((order as any).after_discount || order.subtotal || 0)
-  // Reconstruct pre-coupon subtotal using after_wholesale_discount if available
-  const preDiscountSubtotal = (order as any).after_wholesale_discount
-    ? parseP((order as any).after_wholesale_discount)
-    : afterDiscount + couponDiscount
-  const gst = afterDiscount * 0.1   // display only — not added to total
-  // Total = afterDiscount + delivery (same formula as checkout page)
-  const total = afterDiscount + deliveryFee
+
+  const subtotalAfterCoupon = Math.max(0, trueSubtotal - couponDiscount)
+
+  // Recalculate GST accurately (10% of subtotal)
+  const gst = subtotalAfterCoupon * 0.1
+
+  // Final Total verification
+  const total = parseP((order as any).order_total || order.total || (subtotalAfterCoupon + deliveryFee + gst))
+
+  const preDiscountSubtotal = trueSubtotal
 
   return (
     <div className="w-full min-h-screen bg-white text-black">
       <div className="max-w-7xl mx-auto px-6 py-10">
 
-        {/* Back */}
-        <Link href="/account">
-          <Button variant="outline" className="mb-6 border-gray-300 text-white bg-[#E03A3E] hover:bg-[#cc3236]">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Orders
+        {/* Back and Actions */}
+        <div className="flex justify-between items-center mb-6">
+          <Link href="/account">
+            <Button variant="outline" className="border-gray-300 text-white bg-[#E03A3E] hover:bg-[#cc3236]">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Orders
+            </Button>
+          </Link>
+
+          <Button
+            variant="outline"
+            onClick={() => window.open(`/orders/${order.order_id}/invoice`, "_blank")}
+            className="border-[#E03A3E] text-[#E03A3E] hover:bg-[#ffebeb]"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            View Invoice
           </Button>
-        </Link>
+        </div>
 
         {/* Header */}
         <h1 className="text-3xl font-bold text-black">Order #{order.order_id}</h1>
@@ -161,8 +179,8 @@ export default function OrderDetailPage() {
                         <p className="text-sm text-gray-500 mt-1">Qty: {item.quantity}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-black">${parseFloat(item.total).toFixed(2)}</p>
-                        <p className="text-sm text-gray-500">${parseFloat(item.price).toFixed(2)} each</p>
+                        <p className="font-bold text-black">${(parseP(item.price) * (item.quantity || 1)).toFixed(2)}</p>
+                        <p className="text-sm text-gray-500">${parseP(item.price).toFixed(2)} each</p>
                       </div>
                     </div>
                   )

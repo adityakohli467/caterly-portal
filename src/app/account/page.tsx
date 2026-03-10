@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuthStore } from "@/store/auth"
 import { api } from "@/lib/api"
-import { ShoppingBag, User, LogOut, Lock, X, ChevronLeft, ChevronRight, CreditCard } from "lucide-react"
+import { ShoppingBag, User, LogOut, Lock, X, ChevronLeft, ChevronRight, CreditCard, FileText } from "lucide-react"
 import { toast } from "sonner"
 
 import { Suspense } from "react"
@@ -19,6 +19,7 @@ import { Suspense } from "react"
 interface Order {
   order_id: number
   total: string | number
+  order_total?: string | number
   order_status: number
   date_added: string
   delivery_date?: string
@@ -642,7 +643,7 @@ function AccountContent() {
                                   <p className="font-bold text-black">
                                     $
                                     {parseFloat(
-                                      String(order.total || 0)
+                                      String(order.order_total || order.total || 0)
                                     ).toFixed(2)}
                                   </p>
 
@@ -663,21 +664,34 @@ function AccountContent() {
                               </div>
                             </Link>
 
-                            {order.order_status === 1 && (
+                            <div className="ml-4 flex items-center gap-2">
+                              {order.order_status === 1 && (
+                                <Button
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    router.push(
+                                      `/payment?order_id=${order.order_id}`
+                                    )
+                                  }}
+                                  className="bg-[#e03a3e] hover:bg-primary/90"
+                                  size="sm"
+                                >
+                                  <CreditCard className="h-4 w-4 mr-2" />
+                                  Make Payment
+                                </Button>
+                              )}
                               <Button
                                 onClick={(e) => {
                                   e.preventDefault()
-                                  router.push(
-                                    `/payment?order_id=${order.order_id}`
-                                  )
+                                  window.open(`/orders/${order.order_id}/invoice`, "_blank")
                                 }}
-                                className="ml-4 bg-[#e03a3e] hover:bg-primary/90"
+                                className="bg-[#e03a3e] text-[white] hover:bg-[#e03a3e] border-none"
                                 size="sm"
                               >
-                                <CreditCard className="h-4 w-4 mr-2" />
-                                Make Payment
+                                <FileText className="h-4 w-4 mr-2" />
+                                Invoice
                               </Button>
-                            )}
+                            </div>
                           </div>
                         </div>
                       ))}
