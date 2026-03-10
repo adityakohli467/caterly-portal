@@ -103,7 +103,7 @@ export default function OrderDetailPage() {
   const gst = subtotalAfterCoupon * 0.1
 
   // Final Total verification
-  const total = parseP((order as any).order_total || order.total || (subtotalAfterCoupon + deliveryFee + gst))
+  const total = subtotalAfterCoupon + deliveryFee
 
   const preDiscountSubtotal = trueSubtotal
 
