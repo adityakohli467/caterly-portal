@@ -394,6 +394,13 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate State field (Select doesn't support native required)
+    if (!billingData.state) {
+      toast.error("Please select a State before placing your order.")
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -487,6 +494,16 @@ export default function CheckoutPage() {
       const isSubscription = items.some(item => item.delivery_frequency && item.delivery_frequency !== "One Time")
       if (typeof window !== "undefined") {
         localStorage.setItem("caterly_last_order_type", isSubscription ? "subscription" : "normal")
+        // Save correct checkout totals keyed by order_id — backend recalculates wrongly from items
+        localStorage.setItem(`caterly_order_totals_${response.data.order_id}`, JSON.stringify({
+          subtotal: totals.subtotal,
+          couponDiscount: totals.couponDiscount,
+          couponCode: couponApplied?.code || null,
+          afterDiscount: totals.afterDiscount,
+          shippingFee: totals.shippingFee,
+          gst: totals.gst,
+          total: totals.total,
+        }))
       }
 
       toast.success("Order placed successfully!")

@@ -91,23 +91,38 @@ function PaymentPageContent() {
 
   // if (!isAuthenticated) return null
 
+  // --- Price breakdown ---
+  // Primary source: checkout-saved totals in localStorage (backend recalculates items incorrectly)
+  // Fallback: derive from backend fields
   const parsePrice = (val: any) => {
     if (typeof val === 'number') return val;
     if (!val) return 0;
     return parseFloat(String(val).replace(/[^\d.-]/g, '')) || 0;
   }
 
-  // Use 'order_total', 'total', or 'calculated_total' from backend 
-  const finalTotal = parsePrice(order?.total || order?.order_total || order?.calculated_total)
+  let savedTotals: any = null
+  if (typeof window !== 'undefined' && orderId) {
+    try {
+      const raw = localStorage.getItem(`caterly_order_totals_${orderId}`)
+      if (raw) savedTotals = JSON.parse(raw)
+    } catch { }
+  }
 
-  // Use delivery fee from backend
   const deliveryFee = parsePrice(order?.delivery_fee)
-
-  // Use subtotal from backend if available, otherwise calculate from finalTotal
-  const subtotal = order?.subtotal ? parsePrice(order.subtotal) : Math.max(0, finalTotal - deliveryFee)
-
-  // Calculate GST as 10% of the subtotal (display only, not added to total)
-  const gst = parsePrice(order?.subtotal) * 0.1
+  const couponDiscount = savedTotals
+    ? savedTotals.couponDiscount
+    : parsePrice(order?.coupon_discount || 0)
+  const couponCodeDisplay = savedTotals?.couponCode || order?.coupon_code || null
+  const afterDiscount = savedTotals
+    ? savedTotals.afterDiscount
+    : parsePrice(order?.after_discount || order?.subtotal || 0)
+  const preDiscountSubtotal = savedTotals
+    ? savedTotals.subtotal
+    : (order?.after_wholesale_discount
+      ? parsePrice(order.after_wholesale_discount)
+      : afterDiscount + couponDiscount)
+  const gst = savedTotals ? savedTotals.gst : afterDiscount * 0.1
+  const finalTotal = savedTotals ? savedTotals.total : afterDiscount + deliveryFee
 
   return (
     <div className="min-h-screen bg-white">
@@ -115,9 +130,9 @@ function PaymentPageContent() {
 
         {/* Back */}
         <div className="mb-6">
-          <Link href={`/orders/${orderId}`} className="inline-flex items-center gap-2 text-gray-600 hover:text-black">
+          <Link href="/account" className="inline-flex items-center gap-2 text-gray-600 hover:text-black">
             <ArrowLeft className="h-4 w-4" />
-            Back to Order
+            Back to Orders
           </Link>
         </div>
 
@@ -365,11 +380,19 @@ function PaymentPageContent() {
                   <>
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span>${subtotal.toFixed(2)}</span>
+                      <span>${preDiscountSubtotal.toFixed(2)}</span>
                     </div>
 
+                    {/* Coupon row — only when a coupon was applied */}
+                    {couponDiscount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Coupon{order?.coupon_code ? ` (${order.coupon_code})` : ''}</span>
+                        <span>- ${couponDiscount.toFixed(2)}</span>
+                      </div>
+                    )}
+
                     {gst > 0 && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-gray-500">
                         <span>GST (10%)</span>
                         <span>${gst.toFixed(2)}</span>
                       </div>

@@ -87,32 +87,40 @@ export default function OrderDetailPage() {
 
   if (!order) return null
 
+  const parseP = (v: any) => parseFloat(String(v || "0").replace(/[^\d.-]/g, "")) || 0
+  const deliveryFee = parseP(order.delivery_fee)
+  const couponDiscount = parseP(order.coupon_discount)
+  // after_discount = post-coupon amount (what checkout called afterDiscount)
+  const afterDiscount = parseP((order as any).after_discount || order.subtotal || 0)
+  // Reconstruct pre-coupon subtotal using after_wholesale_discount if available
+  const preDiscountSubtotal = (order as any).after_wholesale_discount
+    ? parseP((order as any).after_wholesale_discount)
+    : afterDiscount + couponDiscount
+  const gst = afterDiscount * 0.1   // display only — not added to total
+  // Total = afterDiscount + delivery (same formula as checkout page)
+  const total = afterDiscount + deliveryFee
+
   return (
-    /* 🔴 FORCE WHITE BACKGROUND */
     <div className="w-full min-h-screen bg-white text-black">
       <div className="max-w-7xl mx-auto px-6 py-10">
+
         {/* Back */}
         <Link href="/account">
-          <Button
-            variant="outline"
-            className="mb-6 border-gray-300 text-white bg-red-500"
-          >
+          <Button variant="outline" className="mb-6 border-gray-300 text-white bg-[#E03A3E] hover:bg-[#cc3236]">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
           </Button>
         </Link>
 
         {/* Header */}
-        <h1 className="text-3xl font-bold text-black">
-          Order #{order.order_id}
-        </h1>
-        <p className="mt-2 font-semibold text-[#E03A3E]">
-          Payment Pending
-        </p>
+        <h1 className="text-3xl font-bold text-black">Order #{order.order_id}</h1>
+        <p className="mt-2 font-semibold text-[#E03A3E]">Payment Pending</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+
           {/* LEFT */}
           <div className="lg:col-span-2 space-y-6">
+
             {/* Order Items */}
             <Card className="bg-white border border-[#F2CACA]">
               <CardHeader>
@@ -124,28 +132,22 @@ export default function OrderDetailPage() {
               <CardContent>
                 {order.items?.map((item, index) => {
                   let parsedOptions: any[] = []
-                  if (typeof item.options === 'string') {
-                    try { parsedOptions = JSON.parse(item.options) } catch (e) { }
+                  if (typeof item.options === "string") {
+                    try { parsedOptions = JSON.parse(item.options) } catch { }
                   } else if (Array.isArray(item.options)) {
                     parsedOptions = item.options
                   }
 
                   return (
-                    <div
-                      key={index}
-                      className="flex justify-between items-start py-4 border-b last:border-b-0"
-                    >
+                    <div key={index} className="flex justify-between items-start py-4 border-b last:border-b-0">
                       <div>
-                        <p className="font-semibold text-black">
-                          {item.product_name}
-                        </p>
+                        <p className="font-semibold text-black">{item.product_name}</p>
 
-                        {/* Display Options & Frequency */}
                         {(parsedOptions.length > 0 || (item.delivery_frequency && item.delivery_frequency !== "One Time")) && (
                           <div className="mt-1 mb-2 space-y-1">
                             {parsedOptions.map((opt, idx) => (
-                              <div key={idx} className="text-xs text-gray-600 flex justify-between pr-4">
-                                <span>- {opt.name || opt.option_name}: {opt.value || opt.option_value}</span>
+                              <div key={idx} className="text-xs text-gray-500">
+                                - {opt.name || opt.option_name}: {opt.value || opt.option_value}
                               </div>
                             ))}
                             {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
@@ -156,17 +158,11 @@ export default function OrderDetailPage() {
                           </div>
                         )}
 
-                        <p className="text-sm text-gray-600 mt-1">
-                          Qty: {item.quantity}
-                        </p>
+                        <p className="text-sm text-gray-500 mt-1">Qty: {item.quantity}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-black">
-                          ${parseFloat(item.total).toFixed(2)}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          ${parseFloat(item.price).toFixed(2)} each
-                        </p>
+                        <p className="font-bold text-black">${parseFloat(item.total).toFixed(2)}</p>
+                        <p className="text-sm text-gray-500">${parseFloat(item.price).toFixed(2)} each</p>
                       </div>
                     </div>
                   )
@@ -183,65 +179,67 @@ export default function OrderDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-black">
-                <p className="text-black"><b className="text-black">Address:</b> {order.delivery_address}</p>
-                <p className="text-black"><b className="text-black">Phone:</b> {order.delivery_phone}</p>
-                <p className="text-black"><b className="text-black">Email:</b> {order.delivery_email}</p>
-                <p className="text-black">
-                  <b className="text-black">Delivery:</b>{" "}
-                  {new Date(order.delivery_date_time).toLocaleString()}
-                </p>
+                <p><b>Address:</b> {order.delivery_address}</p>
+                <p><b>Phone:</b> {order.delivery_phone}</p>
+                <p><b>Email:</b> {order.delivery_email}</p>
+                {order.delivery_date_time && (
+                  <p>
+                    <b>Delivery:</b>{" "}
+                    {new Date(order.delivery_date_time).toLocaleDateString("en-AU", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* RIGHT - SUMMARY */}
-          <Card className="bg-white border border-[#F2CACA] sticky top-24">
+          {/* RIGHT - Order Summary */}
+          <Card className="bg-white border border-[#F2CACA] sticky top-24 h-fit">
             <CardHeader>
-              <CardTitle className="text-black">
-                Order Summary
-              </CardTitle>
+              <CardTitle className="text-black">Order Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-black">
-              <div className="flex justify-between text-black">
-                <span className="text-black">Subtotal</span>
-                <span className="text-black">${order.subtotal}</span>
-              </div>
-              {/* 
-              <div className="flex justify-between text-black">
-                <span className="text-black">Wholesale Discount</span>
-                <span className="text-black">- $0.00</span>
-              </div> */}
+            <CardContent className="space-y-3 text-sm text-black">
 
-              <div className="flex justify-between text-black">
-                <span className="text-black">
-                  Coupon{order.coupon_code ? ` (${order.coupon_code})` : ''}
-                </span>
-                <span className="text-black">- ${parseFloat(order.coupon_discount || '0').toFixed(2)}</span>
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>${preDiscountSubtotal.toFixed(2)}</span>
               </div>
 
-              <div className="flex justify-between text-black">
-                <span className="text-black">GST (10%)</span>
-                <span className="text-black">${(parseFloat(order.subtotal || '0') * 0.1).toFixed(2)}</span>
+              {/* Only show coupon if one was actually applied */}
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Coupon{order.coupon_code ? ` (${order.coupon_code})` : ""}</span>
+                  <span>- ${couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between text-gray-500">
+                <span>GST (10%)</span>
+                <span>${gst.toFixed(2)}</span>
               </div>
 
-              <div className="flex justify-between text-black">
-                <span className="text-black">Delivery</span>
-                <span className="text-black">${order.delivery_fee}</span>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span>${deliveryFee.toFixed(2)}</span>
               </div>
 
-              <div className="border-t pt-3 flex justify-between text-lg font-bold text-black">
-                <span className="text-black">Total</span>
-                <span className="text-black">${order.total}</span>
+              <div className="border-t pt-3 flex justify-between text-lg font-bold">
+                <span>Total</span>
+                <span>${total.toFixed(2)}</span>
               </div>
 
               <Button
                 onClick={() => router.push(`/payment?order_id=${order.order_id}`)}
-                className="w-full mt-4 bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                className="w-full mt-2 bg-[#E03A3E] hover:bg-[#cc3236] text-white"
               >
                 Make Payment
               </Button>
             </CardContent>
           </Card>
+
         </div>
       </div>
     </div>
