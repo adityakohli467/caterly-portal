@@ -996,7 +996,8 @@ function ProductDetailContent({
                         const p = parseFloat(val.product_option_price || "0");
                         return val.option_price_prefix === '-' ? sum - p : sum + p;
                       }, 0);
-                      const total = base + selectedOptionPrice;
+                      const unitPrice = base + selectedOptionPrice;
+                      const total = unitPrice * quantity;
                       return `$${total.toFixed(2)}`;
                     })()}
                   </div>
@@ -1082,7 +1083,7 @@ function ProductDetailContent({
                   className="w-full py-6 bg-[#E03A3E] hover:bg-[#cc3236] text-white font-semibold text-lg"
                   onClick={handleAddToCart}
                 >
-                  Add to Cart ({quantity})
+                  Add to Cart
                 </Button>
               )}
             </div>

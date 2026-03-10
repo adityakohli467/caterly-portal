@@ -41,7 +41,7 @@ interface Subscription {
 
 function AccountContent() {
   const router = useRouter()
-  const { user, isAuthenticated, logout, token, checkAuth } = useAuthStore()
+  const { user, customer, isAuthenticated, logout, token, checkAuth } = useAuthStore()
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get("tab") || "profile"
   const [orders, setOrders] = useState<Order[]>([])
@@ -245,117 +245,239 @@ function AccountContent() {
           {/* Profile Tab */}
           <TabsContent value="profile">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+              {/* Personal Details Card */}
               <Card className="bg-white border border-[#F2CACA] shadow-sm rounded-xl">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-[#E03A3E]">
                     <User className="h-5 w-5" />
-                    Profile Information
+                    Personal Details
                   </CardTitle>
                 </CardHeader>
-
                 <CardContent className="space-y-4 text-black">
 
+                  {/* Name */}
+                  {(customer?.firstname || customer?.lastname) && (
+                    <div>
+                      <p className="text-sm text-gray-500">Full Name</p>
+                      <p className="font-medium">
+                        {[customer?.firstname, customer?.lastname].filter(Boolean).join(" ")}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Username */}
                   <div>
                     <p className="text-sm text-gray-500">Username</p>
-                    <p className="font-medium">{user?.username}</p>
+                    <p className="font-medium">{user?.username || "—"}</p>
                   </div>
 
+                  {/* Email */}
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{user?.email}</p>
+                    <p className="font-medium">{user?.email || "—"}</p>
                   </div>
 
-                  {/* Update Password Dialog */}
-                  <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full bg-[#e03a3e] border-[#e03a3e] text-[white] hover:bg-[#e03a39]"
-                      >
-                        <Lock className="h-4 w-4 mr-2" />
-                        Update Password
-                      </Button>
-                    </DialogTrigger>
+                  {/* Phone */}
+                  {customer?.telephone && (
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="font-medium">{customer?.telephone}</p>
+                    </div>
+                  )}
 
-                    <DialogContent className="bg-white text-black">
-                      <DialogHeader>
-                        <DialogTitle className="text-[#E03A3E]">Update Password</DialogTitle>
-                      </DialogHeader>
+                  {/* Address */}
+                  {customer?.customer_address && (
+                    <div>
+                      <p className="text-sm text-gray-500">Address</p>
+                      <p className="font-medium">{customer?.customer_address}</p>
+                    </div>
+                  )}
 
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="current-password">Current Password</Label>
-                          <Input
-                            id="current-password"
-                            type="password"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            placeholder="Enter current password"
-                          />
-                        </div>
+                  {/* Customer Type */}
+                  {customer?.customer_type && (
+                    <div>
+                      <p className="text-sm text-gray-500">Customer Type</p>
+                      <p className="font-medium">{customer?.customer_type}</p>
+                    </div>
+                  )}
 
-                        <div>
-                          <Label htmlFor="new-password">New Password</Label>
-                          <Input
-                            id="new-password"
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Enter new password (min 8 characters)"
-                          />
-                        </div>
+                  {/* Company */}
+                  {customer?.company_name && (
+                    <div>
+                      <p className="text-sm text-gray-500">Company</p>
+                      <p className="font-medium">{customer?.company_name}</p>
+                    </div>
+                  )}
 
-                        <div>
-                          <Label htmlFor="confirm-password">Confirm New Password</Label>
-                          <Input
-                            id="confirm-password"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm new password"
-                          />
-                        </div>
+                  {/* ABN */}
+                  {customer?.abn && (
+                    <div>
+                      <p className="text-sm text-gray-500">ABN</p>
+                      <p className="font-medium">{customer?.abn}</p>
+                    </div>
+                  )}
 
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                            onClick={() => {
-                              setShowPasswordDialog(false)
-                              setCurrentPassword("")
-                              setNewPassword("")
-                              setConfirmPassword("")
-                            }}
-                          >
-                            Cancel
-                          </Button>
+                  {/* Department */}
+                  {customer?.department_name && (
+                    <div>
+                      <p className="text-sm text-gray-500">Department</p>
+                      <p className="font-medium">{customer?.department_name}</p>
+                    </div>
+                  )}
 
-                          <Button
-                            onClick={handleUpdatePassword}
-                            disabled={updatingPassword}
-                            className="bg-[#E03A3E] hover:bg-[#cc3236] text-white"
-                          >
-                            {updatingPassword ? "Updating..." : "Update Password"}
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-
-                  {/* Logout */}
-                  <Button
-                    variant="outline"
-                    className="w-full bg-[#e03a3e] border-[#e03a3e] text-[white] hover:bg-[#e03a39]"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </Button>
+                  {/* Member Since */}
+                  {customer?.customer_date_added && (
+                    <div>
+                      <p className="text-sm text-gray-500">Member Since</p>
+                      <p className="font-medium">
+                        {new Date(customer?.customer_date_added).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  )}
 
                 </CardContent>
               </Card>
-            </div>
 
+              {/* Account Actions Card */}
+              <Card className="bg-white border border-[#F2CACA] shadow-sm rounded-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#E03A3E]">
+                    <Lock className="h-5 w-5" />
+                    Account
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-black">
+
+                  {/* Account Email */}
+                  <div>
+                    <p className="text-sm text-gray-500">Login Email</p>
+                    <p className="font-medium">{user?.email || "—"}</p>
+                  </div>
+
+                  {/* Customer ID */}
+                  {customer?.customer_id && (
+                    <div>
+                      <p className="text-sm text-gray-500">Customer ID</p>
+                      <p className="font-medium">#{customer?.customer_id}</p>
+                    </div>
+                  )}
+
+                  {/* Account Status */}
+                  {customer?.status !== undefined && (
+                    <div>
+                      <p className="text-sm text-gray-500">Account Status</p>
+                      <span className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${customer?.status === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                        {customer?.status === 1 ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Created From */}
+                  {customer?.created_from && (
+                    <div>
+                      <p className="text-sm text-gray-500">Registered Via</p>
+                      <p className="font-medium capitalize">{customer?.created_from}</p>
+                    </div>
+                  )}
+
+                  <div className="pt-2 space-y-3">
+                    {/* Update Password Dialog */}
+                    <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full bg-[#e03a3e] border-[#e03a3e] text-[white] hover:bg-[#e03a39]"
+                        >
+                          <Lock className="h-4 w-4 mr-2" />
+                          Update Password
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="bg-white text-black">
+                        <DialogHeader>
+                          <DialogTitle className="text-[#E03A3E]">Update Password</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="current-password">Current Password</Label>
+                            <Input
+                              id="current-password"
+                              type="password"
+                              value={currentPassword}
+                              onChange={(e) => setCurrentPassword(e.target.value)}
+                              placeholder="Enter current password"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="new-password">New Password</Label>
+                            <Input
+                              id="new-password"
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="Enter new password (min 8 characters)"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="confirm-password">Confirm New Password</Label>
+                            <Input
+                              id="confirm-password"
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Confirm new password"
+                            />
+                          </div>
+
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                              onClick={() => {
+                                setShowPasswordDialog(false)
+                                setCurrentPassword("")
+                                setNewPassword("")
+                                setConfirmPassword("")
+                              }}
+                            >
+                              Cancel
+                            </Button>
+
+                            <Button
+                              onClick={handleUpdatePassword}
+                              disabled={updatingPassword}
+                              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                            >
+                              {updatingPassword ? "Updating..." : "Update Password"}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Logout */}
+                    <Button
+                      variant="outline"
+                      className="w-full bg-[#e03a3e] border-[#e03a3e] text-[white] hover:bg-[#e03a39]"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                  </div>
+
+                </CardContent>
+              </Card>
+
+            </div>
           </TabsContent>
 
           {/* Order History Tab */}

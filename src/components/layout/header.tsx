@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/auth"
 import { useCartStore } from "@/store/cart"
 import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu"
@@ -10,10 +11,16 @@ import { Menu, X, User, ShoppingCart, LogOut, UserCircle } from "lucide-react"
 
 export function Header() {
   const [open, setOpen] = useState(false)
+  const router = useRouter()
   const { user, isAuthenticated, logout } = useAuthStore()
 
+  const handleLogout = () => {
+    logout()
+    router.push("/")
+  }
+
   const cartItems = useCartStore((state) => state.items)
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+  const totalItems = cartItems.length
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-[#E6E6E6]">
@@ -95,7 +102,7 @@ export function Header() {
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="text-[#E03A3E]"
                 >
                   <LogOut className="w-5 h-5" />
@@ -194,7 +201,7 @@ export function Header() {
                   </div>
                   <button
                     onClick={() => {
-                      logout()
+                      handleLogout()
                       setOpen(false)
                     }}
                     className="flex items-center gap-2 text-[#E03A3E] font-medium"

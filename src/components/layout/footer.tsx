@@ -60,11 +60,11 @@ export function Footer() {
                     Contact
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link href="/delivery" className="hover:text-white transition">
                     Delivery Information
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </div>
 
@@ -84,11 +84,11 @@ export function Footer() {
                     Privacy Policy
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link href="/delivery" className="hover:text-white transition">
                     Delivery Information
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </div>
 
@@ -139,9 +139,9 @@ export function Footer() {
               <li>
                 <Link href="/call">Contact</Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/delivery">Delivery Information</Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -155,9 +155,7 @@ export function Footer() {
               <li>
                 <Link href="/privacy">Privacy Policy</Link>
               </li>
-              <li>
-                <Link href="/delivery">Delivery Information</Link>
-              </li>
+            
             </ul>
           </div>
 
