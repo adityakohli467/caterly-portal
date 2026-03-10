@@ -339,69 +339,42 @@ function ProductDetailContent({
     setQuantity((prev) => Math.max(minQty, prev + change));
   };
 
+  const calculateUnitPrice = () => {
+    if (!product) return 0;
+
+    // Base price
+    const basePrice = product.has_discount && product.discounted_price
+      ? parseFloat(String(product.discounted_price))
+      : parseFloat(String(product.product_price || "0"));
+
+    // Radio/Dropdown Options
+    const radioOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
+      if (!valId) return sum;
+      const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
+      const val = opt?.values?.find((v: any) => v.option_value_id === valId);
+      if (!val) return sum;
+      const p = parseFloat(String(val.product_option_price || "0"));
+      return (val.product_option_price_prefix || val.option_price_prefix) === '-' ? sum - p : sum + p;
+    }, 0);
+
+    // Checkbox Options
+    const checkboxOptionPrice = Object.entries(selectedCheckboxOptions).reduce((sum, [optId, valIds]) => {
+      const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
+      if (!opt || !valIds) return sum;
+      return sum + valIds.reduce((s, vid) => {
+        const val = opt.values?.find((v: any) => v.option_value_id === vid);
+        if (!val) return s;
+        const p = parseFloat(String(val.product_option_price || "0"));
+        return (val.product_option_price_prefix || val.option_price_prefix) === '-' ? s - p : s + p;
+      }, 0);
+    }, 0);
+
+    return basePrice + radioOptionPrice + checkboxOptionPrice;
+  };
+
   const calculateSubtotal = () => {
     if (!product) return "0.00";
-
-    // Build options array for price calculation
-    const options: any[] = [];
-    if (product.options && product.options.length > 0) {
-      for (const option of product.options) {
-        const rawType = (option.option_type || "").toLowerCase().trim();
-        const isCheckbox = rawType === "checkbox" || rawType === "check" || rawType === "check_button";
-        if (isCheckbox) {
-          const checkedIds = selectedCheckboxOptions[option.option_id] || [];
-          for (const valueId of checkedIds) {
-            const selectedValue = option.values.find((v: any) => v.option_value_id === valueId);
-            if (selectedValue) {
-              options.push({
-                option_id: option.option_id,
-                option_name: option.option_name,
-                option_value_id: selectedValue.option_value_id,
-                option_value: selectedValue.option_value,
-                product_option_id: selectedValue.product_option_id,
-                option_price: selectedValue.product_option_price,
-                option_price_prefix: selectedValue.product_option_price_prefix,
-              });
-            }
-          }
-        } else {
-          const selectedValueId = selectedOptions[option.option_id];
-          if (selectedValueId) {
-            const selectedValue = option.values.find(
-              (v: any) => v.option_value_id === selectedValueId
-            );
-            if (selectedValue) {
-              options.push({
-                option_id: option.option_id,
-                option_name: option.option_name,
-                option_value_id: selectedValue.option_value_id,
-                option_value: selectedValue.option_value,
-                product_option_id: selectedValue.product_option_id,
-                option_price: selectedValue.product_option_price,
-                option_price_prefix: selectedValue.product_option_price_prefix,
-              });
-            }
-          }
-        }
-      }
-    }
-
-    // Use discounted price if available
-    const basePrice =
-      product.has_discount && product.discounted_price
-        ? product.discounted_price.toString()
-        : product.product_price;
-
-    // Use cart store's getItemPrice function
-    const itemPrice = getItemPrice({
-      product_id: product.product_id,
-      product_name: product.product_name,
-      product_price: basePrice,
-      quantity: 1,
-      options: options.length > 0 ? options : undefined,
-    });
-
-    return (itemPrice * quantity).toFixed(2);
+    return (calculateUnitPrice() * quantity).toFixed(2);
   };
 
   if (loading) {
@@ -686,29 +659,7 @@ function ProductDetailContent({
               </h1>
 
               {(() => {
-                // Calculate selected option price (radio/dropdown) to add to top price display
-                const radioOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
-                  if (!valId) return sum;
-                  const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
-                  const val = opt?.values?.find((v: any) => v.option_value_id === valId);
-                  if (!val) return sum;
-                  const p = parseFloat(val.product_option_price || "0");
-                  return val.option_price_prefix === '-' ? sum - p : sum + p;
-                }, 0);
-                // Calculate checkbox (multi-select) option prices
-                const checkboxOptionPrice = Object.entries(selectedCheckboxOptions).reduce((sum, [optId, valIds]) => {
-                  const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
-                  if (!opt || !valIds) return sum;
-                  return sum + valIds.reduce((s, vid) => {
-                    const val = opt.values?.find((v: any) => v.option_value_id === vid);
-                    if (!val) return s;
-                    const p = parseFloat(val.product_option_price || "0");
-                    return val.product_option_price_prefix === '-' ? s - p : s + p;
-                  }, 0);
-                }, 0);
-                const selectedOptionPrice = radioOptionPrice + checkboxOptionPrice;
-                const basePrice = product.has_discount && product.discounted_price ? product.discounted_price : parseFloat(product.product_price);
-                const totalPrice = basePrice + selectedOptionPrice;
+                const totalPrice = calculateUnitPrice();
 
                 // Always show price on detail page to provide feedback as options are selected
 
@@ -984,19 +935,7 @@ function ProductDetailContent({
                   </div>
                   <div className="text-right font-bold text-black">
                     {(() => {
-                      const base = product.has_discount && product.discounted_price
-                        ? product.discounted_price
-                        : parseFloat(product.product_price);
-                      // Add selected option price
-                      const selectedOptionPrice = Object.entries(selectedOptions).reduce((sum, [optId, valId]) => {
-                        if (!valId) return sum;
-                        const opt = product.options?.find((o: any) => o.option_id === parseInt(optId));
-                        const val = opt?.values?.find((v: any) => v.option_value_id === valId);
-                        if (!val) return sum;
-                        const p = parseFloat(val.product_option_price || "0");
-                        return val.option_price_prefix === '-' ? sum - p : sum + p;
-                      }, 0);
-                      const unitPrice = base + selectedOptionPrice;
+                      const unitPrice = calculateUnitPrice();
                       const total = unitPrice * quantity;
                       return `$${total.toFixed(2)}`;
                     })()}
