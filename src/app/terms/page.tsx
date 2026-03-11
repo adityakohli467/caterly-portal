@@ -12,194 +12,108 @@ export default function TermsPage() {
 
         {/* Subtitle */}
         <p className="text-center text-sm text-gray-700 mb-10">
-          Event Booking Agreement – Tarator Café <br />
-          75 Dorcas Street, South Melbourne
+          Catering Service Agreement – Caterly
         </p>
 
         {/* Content */}
         <div className="space-y-6 text-sm text-gray-800 leading-relaxed">
 
           <div>
-            <h3 className="font-semibold">1. Securing Your Booking</h3>
+            <h3 className="font-semibold">1. Orders and Confirmation</h3>
             <p>
-              A non-refundable $2,500 deposit is required to confirm your event date.
-              This amount will be credited toward your final bill.
+              All catering orders must be placed through our website, email, or
+              direct enquiry. Orders are considered confirmed only once Caterly
+              has acknowledged the order and payment or deposit has been received
+              where applicable.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold">2. Minimum Notice</h3>
+            <p>
+              Orders should be placed at least 24 to 48 hours in advance depending
+              on the catering package. Larger events may require additional notice
+              to ensure availability and preparation.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold">3. Payment Terms</h3>
+            <p>
+              Full payment or a deposit may be required to confirm an order.
+              Payments can be made through the payment methods available on our
+              website or as agreed during booking.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold">4. Cancellation and Changes</h3>
+            <p>
+              Any cancellations or changes to an order must be made at least
+              24 hours prior to the scheduled delivery or event time.
             </p>
             <p className="mt-1">
-              Payment may be made via direct debit or cash. Credit card payments incur
-              a 1% processing fee.
+              Late cancellations may incur charges depending on preparation
+              and costs already incurred.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold">5. Delivery</h3>
+            <p>
+              Caterly aims to deliver orders at the requested time. While we
+              strive for punctual delivery, delays may occur due to traffic or
+              unforeseen circumstances.
             </p>
             <p className="mt-1">
-              In the event of cancellation, the deposit is non-refundable unless
-              otherwise agreed in writing.
+              Delivery fees may apply depending on location.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold">2. Final Payment</h3>
+            <h3 className="font-semibold">6. Dietary Requirements</h3>
             <p>
-              Full payment of the estimated event balance is due seven (7) days prior
-              to your event date. Failure to make payment on time may result in
-              cancellation of your booking.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">3. Event Details</h3>
-            <p>
-              Final guest count, menu selections, timeline, and setup details must be
-              submitted no later than ten (10) days before your event.
+              We strive to accommodate dietary requirements where possible.
+              Customers must inform us of any allergies or special dietary needs
+              when placing an order.
             </p>
             <p className="mt-1">
-              All confirmed guest numbers will be included in food and beverage
-              estimates.
+              While care is taken during preparation, Caterly cannot guarantee
+              that food is completely free from allergens.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold">4. Event Duration & Timing</h3>
+            <h3 className="font-semibold">7. Staffing and Venue Hire</h3>
             <p>
-              Venue hire allows for 4.5 hours from 5:00PM onward.
-            </p>
-            <p className="mt-1">
-              Early starts or extended durations incur a $300 per additional hour.
-            </p>
-            <p className="mt-1">
-              Bar service concludes at 12:00AM, with alcohol service ending at
-              11:55PM per licensing regulations.
+              Where staff hire or venue hire services are provided, specific
+              arrangements including timings, responsibilities, and additional
+              charges will be agreed upon at the time of booking.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold">5. Public Holiday Surcharge</h3>
+            <h3 className="font-semibold">8. Liability</h3>
             <p>
-              Bookings on public holidays will incur a 15% surcharge.
+              Caterly will not be liable for any loss, damage, or injury
+              resulting from the misuse or improper handling of food once it
+              has been delivered or served.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold">6. Responsible Service</h3>
+            <h3 className="font-semibold">9. Pricing</h3>
             <p>
-              Tarator Café reserves the right to refuse service to guests who appear
-              intoxicated or disorderly.
-            </p>
-            <p className="mt-1">
-              Our team or third-party security may remove guests for safety reasons.
+              All prices listed are subject to change without notice. Prices
+              confirmed at the time of order will remain valid for that order.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold">7. Food & Beverage</h3>
+            <h3 className="font-semibold">10. Acceptance of Terms</h3>
             <p>
-              Tarator Café is the exclusive provider of all catering.
-            </p>
-            <p className="mt-1">
-              Celebration cakes are permitted with prior approval. A $2 per person
-              cakeage fee applies.
-            </p>
-            <p className="mt-1">
-              No leftover food or drink may be removed from the premises in accordance
-              with health regulations.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">8. Setup & Pack-down</h3>
-            <p>
-              Access to the venue for setup may be arranged in consultation with our
-              Events Manager.
-            </p>
-            <p className="mt-1">
-              A 45-minute bump-out period is granted following your event.
-            </p>
-            <p className="mt-1">
-              Exceeding this time incurs a $500 per hour surcharge.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">9. Guest Conduct & Damages</h3>
-            <p>
-              Clients are responsible for guest behavior and any damages or missing
-              items.
-            </p>
-            <p className="mt-1">
-              A $450 breakages deposit is required and may be used toward necessary
-              repairs or replacements.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">10. Decor Guidelines</h3>
-            <p>
-              No nails, tacks, or adhesive tape may be used.
-            </p>
-            <p className="mt-1">
-              Candles must be enclosed in jars.
-            </p>
-            <p className="mt-1">
-              A cleanup or damage fee will apply for non-compliance.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">11. Entertainment</h3>
-            <p>
-              All entertainment must be approved in advance.
-            </p>
-            <p className="mt-1">
-              Noise levels must be maintained at respectful background levels.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">12. Venue Capacity</h3>
-            <p>
-              The maximum number of guests permitted on-site is 150, in accordance
-              with fire safety and licensing regulations.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">13. Liability</h3>
-            <p>
-              Tarator Café is not responsible for loss, damage, or theft of personal
-              items left before, during, or after your event.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">14. Smoke-Free Policy</h3>
-            <p>
-              Tarator Café maintains a strictly smoke-free environment.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">15. COVID-19 Contingencies</h3>
-            <p>
-              Should your event be cancelled due to Stage 4 or higher COVID
-              restrictions, clients may reschedule or opt for a refund minus 15%
-              to cover out-of-pocket expenses.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">16. Sweet Table Restrictions</h3>
-            <p>
-              If offering a lolly or sweet table, only individually wrapped items
-              may be served.
-            </p>
-            <p className="mt-1">
-              Chewing gum is not permitted.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">Contact & Confirmation</h3>
-            <p>
-              To confirm your booking, submit this signed agreement and deposit to
-              Tarator Café.
+              By placing an order with Caterly, customers acknowledge that they
+              have read and agreed to these Terms and Conditions.
             </p>
           </div>
 

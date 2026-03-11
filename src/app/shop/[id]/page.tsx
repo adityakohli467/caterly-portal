@@ -509,26 +509,29 @@ function ProductDetailContent({
   return (
     <div className="flex flex-col bg-white">
       {/* Breadcrumb */}
-      <section className="bg-gray-50 border-b">
-        <div className="container mx-auto px-6 py-4">
-          <nav className="flex items-center gap-2 text-sm">
+      <section className="bg-gradient-to-r from-gray-50 via-white to-gray-50 border-b border-gray-200">
+        <div className="container mx-auto px-6 py-5">
+          <nav className="flex items-center flex-wrap gap-1 text-sm">
             <Link
               href="/"
-              className="text-gray-600 hover:text-[#E03A3E] flex items-center gap-1"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-3.5 h-3.5" />
               Home
             </Link>
-            <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-            <Link href="/shop" className="text-gray-600 hover:text-[#E03A3E]">
+            <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+            <Link
+              href="/shop"
+              className="px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
+            >
               Product Catalogue
             </Link>
             {breadcrumbMainCat && (
               <>
-                <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
                 <Link
                   href={`/shop?category=${breadcrumbMainCat.category_id}`}
-                  className="text-gray-600 hover:text-[#E03A3E]"
+                  className="px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
                 >
                   {breadcrumbMainCat.category_name}
                 </Link>
@@ -536,17 +539,17 @@ function ProductDetailContent({
             )}
             {breadcrumbSubCat && (
               <>
-                <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
                 <Link
                   href={`/shop?category=${breadcrumbSubCat.category_id}`}
-                  className="text-gray-600 hover:text-[#E03A3E]"
+                  className="px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
                 >
                   {breadcrumbSubCat.category_name}
                 </Link>
               </>
             )}
-            <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-900 font-medium">
+            <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+            <span className="px-3 py-1.5 rounded-full bg-[#E03A3E]/10 text-[#E03A3E] font-semibold text-sm">
               {product?.product_name}
             </span>
           </nav>
@@ -1030,84 +1033,111 @@ function ProductDetailContent({
 
           {/* Tabs Section */}
           <Tabs defaultValue="description" className="mb-16">
-            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-              <TabsTrigger
-                value="description"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E]"
-              >
-                Description
-              </TabsTrigger>
-              {product.show_specifications && (
+            {/* Premium Tab Bar */}
+            <div className="relative">
+              <TabsList className="w-full justify-start rounded-none h-auto p-0 bg-transparent border-b-2 border-gray-100 gap-0">
                 <TabsTrigger
-                  value="specifications"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E]"
+                  value="description"
+                  className="relative rounded-none px-6 py-3.5 text-sm font-semibold text-gray-500 border-b-2 border-transparent -mb-[2px] transition-all duration-200 data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E] data-[state=active]:bg-transparent hover:text-[#E03A3E] bg-transparent"
                 >
-                  Specifications
+                  Description
                 </TabsTrigger>
-              )}
-              {product.show_other_info && (
-                <TabsTrigger
-                  value="other"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E]"
-                >
-                  Other Info
-                </TabsTrigger>
-              )}
-            </TabsList>
+                {product.show_specifications && (
+                  <TabsTrigger
+                    value="specifications"
+                    className="relative rounded-none px-6 py-3.5 text-sm font-semibold text-gray-500 border-b-2 border-transparent -mb-[2px] transition-all duration-200 data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E] data-[state=active]:bg-transparent hover:text-[#E03A3E] bg-transparent"
+                  >
+                    Specifications
+                  </TabsTrigger>
+                )}
+                {product.show_other_info && (
+                  <TabsTrigger
+                    value="other"
+                    className="relative rounded-none px-6 py-3.5 text-sm font-semibold text-gray-500 border-b-2 border-transparent -mb-[2px] transition-all duration-200 data-[state=active]:border-[#E03A3E] data-[state=active]:text-[#E03A3E] data-[state=active]:bg-transparent hover:text-[#E03A3E] bg-transparent"
+                  >
+                    Other Info
+                  </TabsTrigger>
+                )}
+              </TabsList>
+            </div>
 
-            <TabsContent value="description" className="mt-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Product Description
-              </h3>
-              <div className="text-gray-700 leading-relaxed mb-4">
-                {product.product_description
-                  .split('\n')
-                  .map((line, i) => (
-                    <p key={i} className={line.trim() === '' ? 'mt-2' : ''}>
-                      {line || '\u00A0'}
-                    </p>
-                  ))}
+            {/* Description Tab Content */}
+            <TabsContent value="description" className="mt-0">
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                {/* Header bar */}
+                <div className="flex items-center gap-3 px-8 py-5 border-b border-gray-100 bg-gray-50/60">
+                  <div className="w-1 h-6 rounded-full bg-[#E03A3E]" />
+                  <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+                    About This Product
+                  </h3>
+                </div>
+                {/* Body */}
+                <div className="px-8 py-7">
+                  <div className="text-gray-700 leading-7 text-[15px] space-y-2">
+                    {product.product_description
+                      .split('\n')
+                      .map((line, i) => (
+                        <p key={i} className={line.trim() === '' ? 'mt-1' : ''}>
+                          {line || '\u00A0'}
+                        </p>
+                      ))}
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
             {product.show_specifications && (
-              <TabsContent value="specifications" className="mt-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  Specifications
-                </h3>
-                <p className="text-gray-700">
-                  Specifications content goes here...
-                </p>
+              <TabsContent value="specifications" className="mt-0">
+                <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-3 px-8 py-5 border-b border-gray-100 bg-gray-50/60">
+                    <div className="w-1 h-6 rounded-full bg-[#E03A3E]" />
+                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+                      Specifications
+                    </h3>
+                  </div>
+                  <div className="px-8 py-7">
+                    <p className="text-gray-700 leading-7 text-[15px]">
+                      Specifications content goes here...
+                    </p>
+                  </div>
+                </div>
               </TabsContent>
             )}
 
             {product.show_other_info && (
-              <TabsContent value="other" className="mt-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  Other Information
-                </h3>
-                <p className="text-gray-700">Other information goes here...</p>
+              <TabsContent value="other" className="mt-0">
+                <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-3 px-8 py-5 border-b border-gray-100 bg-gray-50/60">
+                    <div className="w-1 h-6 rounded-full bg-[#E03A3E]" />
+                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+                      Other Information
+                    </h3>
+                  </div>
+                  <div className="px-8 py-7">
+                    <p className="text-gray-700 leading-7 text-[15px]">Other information goes here...</p>
+                  </div>
+                </div>
               </TabsContent>
             )}
           </Tabs>
 
           {/* Reviews Section */}
           <div className="mb-16">
-            <div className="flex items-center justify-between mb-8">
+            {/* <div className="flex items-center justify-between mb-8">
               <div>
                 <p className="text-sm text-gray-500 italic mb-2">Featured</p>
                 <h2 className="text-3xl font-bold text-gray-900">
                   Customer Reviews
                 </h2>
               </div>
-              {/* <select className="px-4 py-2 border border-gray-300 rounded-lg text-black">
+              <select className="px-4 py-2 border border-gray-300 rounded-lg text-black">
                 <option>4-star reviews</option>
                 <option>5-star reviews</option>
                 <option>All reviews</option>
-              </select> */}
-            </div>
+              </select>
+            </div> */}
 
-            {reviewsLoading ? (
+            {/* {reviewsLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-2 text-gray-500">Loading reviews...</p>
@@ -1155,18 +1185,18 @@ function ProductDetailContent({
                   </div>
                 ))}
               </div>
-            )}
+            )} */}
 
-            <div className="flex justify-center gap-2 mb-12">
+            {/* <div className="flex justify-center gap-2 mb-12">
               <Button variant="outline" size="icon" className="rounded-full">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <Button variant="outline" size="icon" className="rounded-full">
                 <ChevronRight className="w-4 h-4" />
               </Button>
-            </div>
+            </div> */}
 
-            {/* Write Review */}
+         
             <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100">
               <h3 className="text-xl font-bold text-black mb-6">
                 Review this product
@@ -1257,7 +1287,7 @@ function ProductDetailContent({
           </div>
 
           {/* You May Also Like */}
-          <div>
+          {/* <div>
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-bold text-gray-900">
                 You may also Like
@@ -1277,7 +1307,7 @@ function ProductDetailContent({
                 </button>
               </Link>
             </div>
-          </div>
+          </div> */}
         </div>
       </section>
     </div>

@@ -1,7 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+
+const generateCaptcha = () => Math.floor(1000 + Math.random() * 9000).toString();
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -13,6 +15,12 @@ export default function ContactPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [captchaCode, setCaptchaCode] = useState("");
+  const [captchaInput, setCaptchaInput] = useState("");
+
+  useEffect(() => {
+    setCaptchaCode(generateCaptcha());
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -22,6 +30,13 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (captchaInput !== captchaCode) {
+      toast.error("Captcha does not match. Please try again.");
+      setCaptchaCode(generateCaptcha());
+      setCaptchaInput("");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -33,7 +48,7 @@ export default function ContactPage() {
         message: formData.message,
       });
 
-      toast.success("Thank you! Your message has been sent.");
+      toast.success("Thank you for contacting us. One of our experts will be with you shortly.");
 
       setFormData({
         firstName: "",
@@ -42,6 +57,8 @@ export default function ContactPage() {
         phone: "",
         message: "",
       });
+      setCaptchaInput("");
+      setCaptchaCode(generateCaptcha());
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
@@ -91,17 +108,17 @@ export default function ContactPage() {
                 <span className="text-[#E03A3E] text-lg">✉️</span>
                 <div>
                   <div className="font-semibold">Email</div>
-                  <div className="text-gray-600">info@caterly.com.au</div>
+                  <div className="text-gray-600">catering@caterly.com.au </div>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
+              {/* <div className="flex items-start gap-4">
                 <span className="text-[#E03A3E] text-lg">🕒</span>
                 <div>
                   <div className="font-semibold">Working Days</div>
                   <div className="text-gray-600">Monday - Saturday</div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -122,7 +139,7 @@ export default function ContactPage() {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    placeholder="Enter Here"
+                    // placeholder="Enter Here"
                     className="w-full border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-black focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
                     required
                   />
@@ -137,7 +154,7 @@ export default function ContactPage() {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Enter Here"
+                    // placeholder="Enter Here"
                     className="w-full border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-black focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
                     required
                   />
@@ -155,7 +172,7 @@ export default function ContactPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Enter Here"
+                    // placeholder="Enter Here"
                     className="w-full border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-black focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
                     required
                   />
@@ -170,7 +187,7 @@ export default function ContactPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="Enter Here"
+                    // placeholder="Enter Here"
                     className="w-full border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-black focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
                     required
                   />
@@ -191,6 +208,31 @@ export default function ContactPage() {
                   className="w-full border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-black resize-none focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
                   required
                 />
+              </div>
+
+              {/* Captcha */}
+              <div>
+                <label className="text-sm font-medium block mb-2">Captcha</label>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center min-w-[90px] border-2 border-dashed border-[#E03A3E] px-5 py-3 rounded-md select-none">
+                    <span className="text-[#E03A3E] font-bold text-lg tracking-widest">{captchaCode}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCaptchaCode(generateCaptcha())}
+                    className="text-xs text-[#E03A3E] underline whitespace-nowrap"
+                  >
+                    Refresh
+                  </button>
+                  <input
+                    type="text"
+                    required
+                    value={captchaInput}
+                    onChange={(e) => setCaptchaInput(e.target.value)}
+                    placeholder="Enter captcha"
+                    className="flex-1 border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
+                  />
+                </div>
               </div>
 
               {/* Submit */}

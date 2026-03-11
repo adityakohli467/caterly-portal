@@ -3,6 +3,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
 import { Header } from "@/components/layout/header"
+import { TopBar } from "@/components/layout/top-bar"
 import { Footer } from "@/components/layout/footer"
 import { SessionManager } from "@/components/session-manager"
 import { Toaster } from "sonner"
@@ -35,6 +36,7 @@ export default function RootLayout({
         <Providers>
           <SessionManager />
           <div className="flex flex-col min-h-screen bg-[#0a0a0a]">
+            <TopBar />
             <Header />
             <main className="flex-1">
               {children}

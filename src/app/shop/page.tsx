@@ -27,6 +27,7 @@ interface Product {
   discount_percentage?: number
   product_image?: string
   product_images?: Array<{ image_url: string } | string> | null
+  short_description?: string
   categories?: ProductCategory[]
   // Direct subcategory fields returned by the API
   subcategory_id?: number | null
@@ -268,46 +269,35 @@ function ShopPageContent() {
     return (
       <div
         onClick={() => router.push(productUrl)}
-        className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
+        className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer flex flex-col"
       >
-        <img
-          src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
-          alt={product.product_name}
-          className="w-full h-44 object-cover"
-        />
-        <div className="p-4">
-          <h3 className="font-semibold text-gray-900">{product.product_name}</h3>
-          <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-            {product.product_description}
-          </p>
-          <div className="flex items-center justify-between mt-3">
+        <div className="relative w-full bg-gray-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
+          <img
+            src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
+            alt={product.product_name}
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+        <div className="p-4 flex flex-col flex-1">
+          <h3 className="font-semibold text-gray-900 text-base leading-snug flex-1 mb-2">
+            {product.product_name}
+          </h3>
+          <div className="flex items-center justify-between mt-auto">
             {parseFloat(product.has_discount && product.discounted_price
               ? product.discounted_price.toString()
               : product.product_price) > 0 && (
-                <span className="text-lg font-semibold text-gray-900">
+                <span className="text-lg font-bold text-gray-900">
                   ${product.has_discount && product.discounted_price
                     ? product.discounted_price
                     : product.product_price}
                 </span>
               )}
-            <div className="flex items-center gap-2 ml-auto">
-              <button
-                onClick={(e) => { e.stopPropagation(); router.push(productUrl) }}
-                className="border border-[#E03A3E] text-[#E03A3E] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-[#FFF1F1] transition"
-              >
-                View Details
-              </button>
-              {parseFloat(product.has_discount && product.discounted_price
-                ? product.discounted_price.toString()
-                : product.product_price) > 0 && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleAddToCart(product) }}
-                    className="bg-[#E03A3E] text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
-                  >
-                    Order
-                  </button>
-                )}
-            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); router.push(productUrl) }}
+              className="ml-auto bg-[#E03A3E] text-white px-5 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
+            >
+              Order Now
+            </button>
           </div>
         </div>
       </div>
@@ -320,7 +310,7 @@ function ShopPageContent() {
       {/* HEADER */}
       <section className="w-full bg-white border-b">
         <div className="container mx-auto px-4 py-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Catering</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Our Catering Services</h1>
         </div>
       </section>
 
@@ -331,15 +321,9 @@ function ShopPageContent() {
             {/* LEFT SIDEBAR */}
             <aside className="lg:col-span-1">
               <div className="sticky top-24 space-y-6">
-                <button
-                  onClick={() => { setSelectedCategory(null); router.push('/shop') }}
-                  className="w-full bg-[#E03A3E] text-white py-2 rounded-md text-sm font-semibold hover:bg-[#cc3236]"
-                >
-                  All Menu
-                </button>
 
                 <div>
-                  <h4 className="text-sm font-bold text-gray-900 mb-3">Categories</h4>
+                  <h4 className="text-sm font-bold text-gray-900 mb-3">Packages</h4>
                   <ul className="space-y-1 text-sm">
                     {categories
                       .filter(cat => !cat.parent_category_id)
@@ -357,7 +341,7 @@ function ShopPageContent() {
                                   selectSubcategory(parent.category_id)
                                 }
                               }}
-                              className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-semibold ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
+                              className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-bold text-[15px] ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
                                 ? "text-[#E03A3E]"
                                 : "hover:bg-gray-100 text-gray-800"
                                 }`}
@@ -377,9 +361,9 @@ function ShopPageContent() {
                                   <li
                                     key={child.category_id}
                                     onClick={() => selectSubcategory(child.category_id)}
-                                    className={`px-2 py-1 rounded-md cursor-pointer text-xs ${selectedCategory === child.category_id
-                                      ? "bg-[#FFF1F1] text-[#E03A3E] font-medium"
-                                      : "hover:bg-gray-100 text-gray-600"
+                                    className={`px-2 py-1 rounded-md cursor-pointer text-sm font-medium ${selectedCategory === child.category_id
+                                      ? "bg-[#FFF1F1] text-[#E03A3E] font-semibold"
+                                      : "hover:bg-gray-100 text-gray-700"
                                       }`}
                                   >
                                     {child.category_name}
@@ -404,9 +388,9 @@ function ShopPageContent() {
                   <h2 className="text-3xl font-bold text-black leading-tight">
                     {selectedCatName}
                   </h2>
-                  <p className="text-gray-500 text-sm mt-1">
+                  {/* <p className="text-gray-500 text-sm mt-1">
                     Crafted with passion, enjoyed in every bite. Taste the difference!
-                  </p>
+                  </p> */}
                 </div>
                 <div className="relative w-full sm:w-[320px]">
                   <Input

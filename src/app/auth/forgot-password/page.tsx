@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuthStore } from "@/store/auth"
 import { toast } from "sonner"
+import { Mail, CheckCircle2 } from "lucide-react"
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
@@ -33,83 +34,144 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Brand Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#1a1a1a] items-center justify-center overflow-hidden">
-        <Image
-          src="/assets/images/reg.png"
-          alt="CaterlyCoffee"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-transparent z-10" />
-        <div className="relative z-20 text-center">
-          <h1 className="text-white font-script text-7xl mb-2" style={{ fontFamily: 'cursive' }}>
-            St. Dreux
-          </h1>
-          <p className="text-white tracking-[0.5em] text-sm font-light">COFFEE</p>
+    <div className="min-h-screen bg-white font-sans">
+
+      {/* ===== MOBILE banner ===== */}
+      <div className="lg:hidden px-4 pt-6">
+        <div className="relative w-full h-[180px] rounded-[16px] overflow-hidden">
+          <img
+            src="/assets/images/log.png"
+            alt="Caterly background"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img
+              src="/assets/images/cat.svg"
+              alt="Caterly logo"
+              className="w-[160px] h-auto"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Right Side - Forgot Password Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-12 bg-white">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-gray-900 mb-2">Forgot Password</h2>
-            <p className="text-gray-600 mt-2">
-              {emailSent 
-                ? "Check your email for reset instructions"
-                : "Enter your email address and we'll send you a reset link"}
-            </p>
+      {/* ===== DESKTOP split layout ===== */}
+      <div className="hidden lg:flex min-h-screen">
+        {/* Left — brand image */}
+        <div className="w-1/2 relative">
+          <Image
+            src="/assets/images/log.png"
+            alt="Caterly background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Image
+              src="/assets/images/cat.svg"
+              alt="Caterly logo"
+              width={240}
+              height={202}
+              priority
+            />
           </div>
-
-          {emailSent ? (
-            <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                <p className="text-green-800">
-                  If an account exists with <strong>{email}</strong>, a password reset link has been sent.
-                </p>
-              </div>
-              <Button
-                onClick={() => router.push("/auth/login")}
-                className="w-full py-6 bg-[#2952E6] hover:bg-[#1e3fb3] text-white font-semibold rounded-lg transition-colors"
-              >
-                Back to Login
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <Input
-                  type="email"
-                  placeholder="Email Address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  required
-                />
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full py-6 bg-[#2952E6] hover:bg-[#1e3fb3] text-white font-semibold rounded-lg transition-colors"
-                disabled={loading}
-              >
-                {loading ? "Sending..." : "Send Reset Link"}
-              </Button>
-            </form>
-          )}
-
-          <p className="text-center text-gray-600 mt-8">
-            Remember your password?{" "}
-            <Link href="/auth/login" className="text-[#2952E6] font-semibold hover:underline">
-              Login
-            </Link>
-          </p>
         </div>
+
+        {/* Right — form */}
+        <div className="w-1/2 flex items-center justify-center">
+          <FormSection
+            email={email}
+            setEmail={setEmail}
+            handleSubmit={handleSubmit}
+            loading={loading}
+            emailSent={emailSent}
+            router={router}
+          />
+        </div>
+      </div>
+
+      {/* ===== MOBILE form ===== */}
+      <div className="lg:hidden px-4 mt-10">
+        <FormSection
+          email={email}
+          setEmail={setEmail}
+          handleSubmit={handleSubmit}
+          loading={loading}
+          emailSent={emailSent}
+          router={router}
+        />
       </div>
     </div>
   )
 }
 
+/* ===== Form component ===== */
+function FormSection({ email, setEmail, handleSubmit, loading, emailSent, router }: any) {
+  return (
+    <div className="w-full max-w-[420px]">
+      <h1 className="text-[28px] font-semibold text-black mb-2">
+        Forgot Password
+      </h1>
+      <p className="text-[14px] text-gray-500 mb-6">
+        {emailSent
+          ? "Check your inbox for the reset link."
+          : "Enter your email address and we'll send you a password reset link."}
+      </p>
+
+      {emailSent ? (
+        /* ── Success state ── */
+        <div className="space-y-5">
+          <div className="flex flex-col items-center gap-3 bg-green-50 border border-green-200 rounded-[12px] px-6 py-6 text-center">
+            <CheckCircle2 className="w-10 h-10 text-green-500" />
+            <p className="text-green-800 text-sm leading-relaxed">
+              A password reset link has been sent to{" "}
+              <span className="font-semibold">{email}</span>.<br />
+              Please check your email and follow the instructions.
+            </p>
+          </div>
+
+          <Button
+            onClick={() => router.push("/auth/login")}
+            className="h-[52px] w-full rounded-[12px] bg-[#E03A3E] text-white text-[16px] font-semibold hover:bg-[#cc3236]"
+          >
+            Back to Login
+          </Button>
+        </div>
+      ) : (
+        /* ── Email form ── */
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-[16px] font-semibold text-black">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-[48px] rounded-[10px] border border-[#F2CFCF] text-black pl-10"
+                required
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="h-[52px] w-full rounded-[12px] bg-[#E03A3E] text-white text-[16px] font-semibold hover:bg-[#cc3236]"
+          >
+            {loading ? "Sending..." : "Send Reset Link"}
+          </Button>
+        </form>
+      )}
+
+      <p className="mt-6 text-[14px] text-gray-500">
+        Remember your password?{" "}
+        <Link href="/auth/login" className="font-semibold text-black hover:underline">
+          Login
+        </Link>
+      </p>
+    </div>
+  )
+}

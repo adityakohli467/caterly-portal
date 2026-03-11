@@ -118,7 +118,7 @@ function RegisterPageContent() {
         }))
       } catch { }
 
-      toast.success("Registration successful!")
+      toast.success("Thank you for registering with us.")
       router.push("/")
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Registration failed")
@@ -179,13 +179,15 @@ function RegisterPageContent() {
           <form className="space-y-4" onSubmit={handleSubmit}>
 
             {/* Full Name */}
-            <Input
-              placeholder="Full Name"
-              value={form.fullName}
-              onChange={(e) => handleChange("fullName", e.target.value)}
-              className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
-              required
-            />
+            <div className="space-y-1">
+              <Input
+                placeholder="Full Name"
+                value={form.fullName}
+                onChange={(e) => handleChange("fullName", e.target.value)}
+                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
+                required
+              />
+            </div>
 
             {/* Phone & Email */}
             <div className="grid grid-cols-2 gap-4">
@@ -193,7 +195,7 @@ function RegisterPageContent() {
                 placeholder="Phone Number"
                 value={form.phoneNumber}
                 onChange={(e) => handleChange("phoneNumber", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
+                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
                 required
               />
               <Input
@@ -201,7 +203,7 @@ function RegisterPageContent() {
                 placeholder="Email"
                 value={form.email}
                 onChange={(e) => handleChange("email", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
+                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
                 required
               />
             </div>
@@ -211,7 +213,7 @@ function RegisterPageContent() {
               placeholder="Address"
               value={form.address}
               onChange={(e) => handleChange("address", e.target.value)}
-              className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
+              className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
               required
             />
 
@@ -221,14 +223,14 @@ function RegisterPageContent() {
                 placeholder="Suburb"
                 value={form.suburb}
                 onChange={(e) => handleChange("suburb", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
+                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
                 required
               />
               <Input
                 placeholder="State"
                 value={form.state}
                 onChange={(e) => handleChange("state", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
+                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
                 required
               />
             </div>
@@ -238,30 +240,32 @@ function RegisterPageContent() {
               placeholder="Postal Code"
               value={form.postalCode}
               onChange={(e) => handleChange("postalCode", e.target.value)}
-              className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
+              className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
               required
             />
 
             {/* Password */}
-            <Input
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
-              required
-            />
-            <p className="text-[12px] text-gray-500">
-              Password should at least be 8 characters long
-            </p>
+            <div>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
+                required
+              />
+              <p className="text-[12px] text-gray-500 mt-1">
+                Password should at least be 8 characters long
+              </p>
+            </div>
 
             {/* Confirm Password */}
             <Input
               type="password"
-              placeholder="Re – Enter Password"
+              placeholder="Re-enter Password"
               value={form.confirmPassword}
               onChange={(e) => handleChange("confirmPassword", e.target.value)}
-              className="h-[48px] rounded-[10px] border border-[#E5E7EB]"
+              className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
               required
             />
 
@@ -273,13 +277,13 @@ function RegisterPageContent() {
                   handleChange("agree", checked)
                 }
               />
-              <p className="text-[13px] text-gray-500">
+              <p className="text-[13px] text-gray-700">
                 I agree to all{" "}
-                <Link href="/terms" className="text-blue-500 font-medium">
+                <Link href="/terms" className="text-[#E03A3E] font-medium hover:underline">
                   Terms & Conditions
                 </Link>
                 ,{" "}
-                <Link href="/privacy" className="text-blue-500 font-medium">
+                <Link href="/privacy" className="text-[#E03A3E] font-medium hover:underline">
                   Privacy Policy
                 </Link>
               </p>
@@ -289,7 +293,7 @@ function RegisterPageContent() {
             <Button
               type="submit"
               disabled={loading}
-              className="mt-6 w-full h-[52px] rounded-[12px] bg-[#e03a3e] hover:bg-[#e03a39] text-white text-[16px] font-semibold"
+              className="mt-6 w-full h-[52px] rounded-[12px] bg-[#E03A3E] hover:bg-[#cc3236] text-white text-[16px] font-semibold transition"
             >
               {loading ? "Creating account..." : "Sign Up"}
             </Button>
@@ -298,8 +302,8 @@ function RegisterPageContent() {
           {/* Footer */}
           <p className="mt-6 text-[14px] text-center text-gray-500">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-blue-600 font-semibold">
-              Just login
+            <Link href="/auth/login" className="text-[#E03A3E] font-semibold hover:underline">
+              Login
             </Link>
           </p>
 
