@@ -260,7 +260,7 @@ function ShopPageContent() {
   // Determine view mode
   const selectedCatName = selectedCategory
     ? findCategoryById(selectedCategory)?.category_name ?? "Products"
-    : "All Products"
+    : ""
 
   const ProductCard = ({ product }: { product: Product }) => {
     const productUrl = selectedCategory
@@ -322,9 +322,11 @@ function ShopPageContent() {
             <aside className="lg:col-span-1">
               <div className="sticky top-24 space-y-6">
 
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 mb-3">Packages</h4>
-                  <ul className="space-y-1 text-sm">
+                <div className="mb-6">
+                  <h4 className="text-[18px] font-bold text-gray-900 mb-2 border-b-2 border-red-500 pb-1 inline-block">
+                    Packages
+                  </h4>
+                  <ul className="space-y-2 mt-4">
                     {categories
                       .filter(cat => !cat.parent_category_id)
                       .map(parent => {
@@ -341,32 +343,41 @@ function ShopPageContent() {
                                   selectSubcategory(parent.category_id)
                                 }
                               }}
-                              className={`flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer font-bold text-[15px] ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
-                                ? "text-[#E03A3E]"
-                                : "hover:bg-gray-100 text-gray-800"
-                                }`}
+                              className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                                (hasChildren ? isExpanded : selectedCategory === parent.category_id)
+                                  ? "bg-red-50 text-[#E03A3E]"
+                                  : "hover:bg-gray-50 text-gray-700"
+                              }`}
                             >
-                              <span>{parent.category_name}</span>
+                              <span className="font-semibold text-[15px] capitalize">
+                                {parent.category_name?.toLowerCase() || ''}
+                              </span>
                               {hasChildren && (
-                                isExpanded
-                                  ? <ChevronDown className="h-4 w-4 text-[#E03A3E]" />
-                                  : <ChevronRight className="h-4 w-4 text-gray-400" />
+                                <ChevronRight 
+                                  className={`h-4 w-4 transition-transform duration-200 ${
+                                    isExpanded ? "rotate-90 text-[#E03A3E]" : "text-gray-400 group-hover:text-gray-600"
+                                  }`} 
+                                />
                               )}
                             </div>
 
                             {/* Children — only visible when parent is expanded */}
                             {hasChildren && isExpanded && (
-                              <ul className="mt-1 ml-3 space-y-0.5 border-l-2 border-gray-100 pl-3">
-                                {parent.children!.map(child => (
+                              <ul className="mt-1 ml-4 space-y-1 mb-2">
+                                {parent.children!.map((child) => (
                                   <li
                                     key={child.category_id}
                                     onClick={() => selectSubcategory(child.category_id)}
-                                    className={`px-2 py-1 rounded-md cursor-pointer text-sm font-medium ${selectedCategory === child.category_id
-                                      ? "bg-[#FFF1F1] text-[#E03A3E] font-semibold"
-                                      : "hover:bg-gray-100 text-gray-700"
-                                      }`}
+                                    className={`relative pl-4 pr-3 py-1.5 rounded-md cursor-pointer text-[14px] transition-all duration-200 capitalize ${
+                                      selectedCategory === child.category_id
+                                        ? "text-[#E03A3E] font-bold bg-white shadow-sm ring-1 ring-red-100"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                    }`}
                                   >
-                                    {child.category_name}
+                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${
+                                      selectedCategory === child.category_id ? "bg-[#E03A3E]" : "bg-gray-200"
+                                    }`} />
+                                    {child.category_name?.toLowerCase() || ''}
                                   </li>
                                 ))}
                               </ul>
@@ -388,9 +399,6 @@ function ShopPageContent() {
                   <h2 className="text-3xl font-bold text-black leading-tight">
                     {selectedCatName}
                   </h2>
-                  {/* <p className="text-gray-500 text-sm mt-1">
-                    Crafted with passion, enjoyed in every bite. Taste the difference!
-                  </p> */}
                 </div>
                 <div className="relative w-full sm:w-[320px]">
                   <Input

@@ -8,7 +8,7 @@ export function TopBar() {
   const openQuoteModal = useQuoteModalStore((s) => s.open)
 
   return (
-    <div className="bg-[#2D3E50] text-white py-2">
+    <div className="bg-[#000000] text-white py-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-2 md:gap-0">
           
@@ -31,7 +31,7 @@ export function TopBar() {
             <div className="flex items-center gap-3">
               <button
                 onClick={openQuoteModal}
-                className="border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#2D3E50] px-3 py-1 rounded-[6px] transition text-[11px] md:text-[12px] font-semibold"
+                className="bg-[#E03A3E] border border-[#E03A3E] text-white hover:bg-transparent hover:text-white px-3 py-1 rounded-[6px] transition text-[11px] md:text-[12px] font-bold"
               >
                 Request a Quote
               </button>

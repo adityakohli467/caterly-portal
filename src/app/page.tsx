@@ -125,7 +125,7 @@ export default function HomePage() {
           <div className="flex flex-col items-center text-center max-w-[900px] px-4 md:px-6 gap-4 md:gap-[24px]">
 
             {/* HEADING */}
-            <h1 className="text-[32px] md:text-[56px] leading-[1.2] font-semibold text-White">
+            <h1 className="text-[32px] md:text-[56px] leading-[1.2] font-semibold text-white">
               Crafting{" "}
               <span className="text-[#E03A3E] italic font-semibold">
                 unforgettable
