@@ -64,6 +64,8 @@ export default function CheckoutPage() {
   const [deliveryNotesImage, setDeliveryNotesImage] = useState<File | null>(null)
   const [deliveryNotesImagePreview, setDeliveryNotesImagePreview] = useState<string | null>(null)
 
+
+
   // Fix hydration error - only render prices after client-side mount
   useEffect(() => {
     setMounted(true)
@@ -446,7 +448,7 @@ export default function CheckoutPage() {
         coupon_code: couponApplied?.code || null,
         postcode: billingData.postcode,
         notes: deliveryNotes || null,
-        // Requested subscription fields
+        // Requested subscription fields from checkout form
         delivery_frequency: subItem ? subItem.delivery_frequency : "One Time",
         delivery_start_date: subItem ? (subItem.delivery_start_date || null) : null,
         delivery_date_time: subItem ? (subItem.delivery_start_date || null) : (new Date().toISOString()), // Required for backend indexing
@@ -537,70 +539,25 @@ export default function CheckoutPage() {
 
   return (
     <div className="flex flex-col bg-white">
-      {/* You May Also Like Section */}
-      {relatedProducts.length > 0 && (
-        <section className="py-10 bg-white border-b border-[#F2CACA]">
-          <div className="container mx-auto px-6">
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">
-              You may also like
-            </h2>
-
-            <div className="flex gap-5 overflow-x-auto pb-4">
-              {relatedProducts.map((product) => (
-                <Card
-                  key={product.product_id}
-                  className="min-w-[200px] flex-shrink-0 border border-[#F2CACA] bg-white shadow-sm rounded-xl"
-                >
-                  <div className="relative aspect-square bg-[#F9F9F9] rounded-t-xl overflow-hidden">
-                    {getProductImageUrl(product) ? (
-                      <Image
-                        src={getProductImageUrl(product)!}
-                        alt={product.product_name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">
-                      {product.product_name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      ${parseFloat(product.product_price).toFixed(2)}
-                    </p>
-
-                    <Button
-                      size="sm"
-                      className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white"
-                      onClick={() =>
-                        addItem({
-                          product_id: product.product_id,
-                          product_name: product.product_name,
-                          product_price: product.product_price,
-                          product_image: getProductImageUrl(product),
-                        })
-                      }
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-1" />
-                      Add
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-
       {/* Main Checkout Content */}
       <section className="py-8">
         <div className="container mx-auto px-6">
+          {mounted && !isAuthenticated && (
+            <div className="mb-6 p-4 rounded-md bg-[#F2CACA]/20 border border-[#F2CACA] text-center">
+              <p className="text-gray-700">
+                Already have an account?{" "}
+                <Link href="/auth/login" className="text-[#E03A3E] font-semibold hover:underline">
+                  Login.
+                </Link>{" "}
+                New here?{" "}
+                <Link href="/auth/register" className="text-[#E03A3E] font-semibold hover:underline">
+                  Register
+                </Link>{" "}
+                to create an account.
+              </p>
+            </div>
+          )}
+
           <form onSubmit={handlePlaceOrder}>
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Left Column - Billing and Shipping */}
@@ -656,7 +613,7 @@ export default function CheckoutPage() {
                       </div> */}
 
                       <div>
-                        <Label htmlFor="billing-street" className="text-black">Street Address <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="billing-street" className="text-black">Delivery Address <span className="text-red-500">*</span></Label>
                         <Input
                           id="billing-street"
                           value={billingData.streetAddress}
@@ -726,6 +683,8 @@ export default function CheckoutPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+
 
 
 
@@ -829,70 +788,40 @@ export default function CheckoutPage() {
                                 {item.product_name}
                               </h3>
 
-                              {/* Display Options & Frequency */}
+                              <div className="flex items-center justify-between mt-1 mb-2">
+                                <span className="text-sm text-gray-700">Qty: {item.quantity}</span>
+                                <span className="font-semibold text-sm text-black">
+                                  ${(itemPrice * item.quantity).toFixed(2)}
+                                </span>
+                              </div>
+
+                              {/* Display Options & Frequency (Add-ons) */}
                               {(item.options && item.options.length > 0 || item.delivery_frequency && item.delivery_frequency !== "One Time") && (
                                 <div className="mb-2 space-y-1">
+                                  {item.options?.length ? (
+                                    <div className="text-xs font-semibold text-gray-800 mb-1">Add-ons:</div>
+                                  ) : null}
                                   {item.options?.map((opt, idx) => (
-                                    <div key={idx} className="text-xs text-gray-600 flex justify-between">
+                                    <div key={idx} className="text-xs text-gray-600 flex justify-between ml-2 border-l-2 border-gray-200 pl-2">
                                       <span>{opt.option_name}: {opt.option_value}</span>
                                       {parseFloat(opt.option_price) > 0 && (
                                         <span>({opt.option_price_prefix}${parseFloat(opt.option_price).toFixed(2)})</span>
                                       )}
                                     </div>
                                   ))}
-                                  {item.delivery_frequency && item.delivery_frequency !== "One Time" && (
-                                    <div className="text-xs text-blue-600 font-medium pt-1">
-                                      Delivery: {item.delivery_frequency}
-                                    </div>
-                                  )}
                                 </div>
                               )}
 
-                              <div className="flex items-center justify-between mt-2">
-                                <div className="flex items-center border rounded border-gray-300">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      updateQuantity(cartItemId, item.quantity - 1)
-                                    }
-                                    className="h-6 w-6 p-0 text-black"
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </Button>
-
-                                  <span className="px-2 text-sm text-black">
-                                    {item.quantity}
-                                  </span>
-
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      updateQuantity(cartItemId, item.quantity + 1)
-                                    }
-                                    className="h-6 w-6 p-0 text-black"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-sm text-black">
-                                    ${(itemPrice * item.quantity).toFixed(2)}
-                                  </span>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeItem(cartItemId)}
-                                    className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
+                              <div className="flex justify-end mt-2">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeItem(cartItemId)}
+                                  className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" /> Remove
+                                </Button>
                               </div>
                             </div>
 
@@ -1017,7 +946,7 @@ export default function CheckoutPage() {
                     {/* Cost Breakdown */}
                     <div className="space-y-2 mb-6 pb-6 border-b border-[#F2CACA] text-black">
                       <div className="flex justify-between text-sm">
-                        <span>Subtotal</span>
+                        <span>Subtotal (includes GST)</span>
                         <span>${mounted ? totals.subtotal.toFixed(2) : '0.00'}</span>
                       </div>
 
@@ -1042,15 +971,17 @@ export default function CheckoutPage() {
                           <span>${mounted ? totals.shippingFee.toFixed(2) : '0.00'}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-sm">
-                        <span>GST (10%)</span>
+                      <div className="flex justify-between text-xs text-gray-500 italic mt-2">
+                        <span>Includes GST (10%)</span>
                         <span>${mounted ? totals.gst.toFixed(2) : '0.00'}</span>
                       </div>
 
 
                     </div>
 
-                    <div className="flex justify-between text-lg font-bold mb-6 text-black">
+
+
+                    <div className="flex justify-between text-lg font-bold mb-6 pt-6 border-t border-[#F2CACA] text-black">
                       <span>Total</span>
                       <span>${mounted ? totals.total.toFixed(2) : '0.00'}</span>
                     </div>
@@ -1071,7 +1002,67 @@ export default function CheckoutPage() {
             </div>
           </form>
         </div>
-      </section >
-    </div >
+      </section>
+
+      {/* You May Also Like Section */}
+      {relatedProducts.length > 0 && (
+        <section className="py-10 bg-white border-t border-[#F2CACA]">
+          <div className="container mx-auto px-6">
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">
+              You may also like
+            </h2>
+
+            <div className="flex gap-5 overflow-x-auto pb-4">
+              {relatedProducts.map((product) => (
+                <Card
+                  key={product.product_id}
+                  className="min-w-[200px] flex-shrink-0 border border-[#F2CACA] bg-white shadow-sm rounded-xl"
+                >
+                  <div className="relative aspect-square bg-[#F9F9F9] rounded-t-xl overflow-hidden">
+                    {getProductImageUrl(product) ? (
+                      <Image
+                        src={getProductImageUrl(product)!}
+                        alt={product.product_name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">
+                      {product.product_name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      ${parseFloat(product.product_price).toFixed(2)}
+                    </p>
+
+                    <Button
+                      size="sm"
+                      className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                      onClick={() =>
+                        addItem({
+                          product_id: product.product_id,
+                          product_name: product.product_name,
+                          product_price: product.product_price,
+                          product_image: getProductImageUrl(product),
+                        })
+                      }
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-1" />
+                      Add
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
   )
 }

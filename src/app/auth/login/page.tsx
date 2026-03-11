@@ -164,6 +164,15 @@ function FormSection({
           />
         </div>
 
+        <div className="flex justify-end -mt-2">
+          <Link
+            href="/auth/forgot-password"
+            className="text-sm text-[#E03A3E] font-medium hover:underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+
         <Button
           type="submit"
           disabled={loading}

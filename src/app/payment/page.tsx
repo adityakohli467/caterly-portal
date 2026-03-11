@@ -349,13 +349,13 @@ function PaymentPageContent() {
                             }
                           }}
                         >
-                          Submit Payment
+                          Pay Now
                         </Button>
                       </div>
 
-                      <p className="text-[11px] text-center text-gray-400 mt-6 leading-relaxed px-4">
+                      {/* <p className="text-[11px] text-center text-gray-400 mt-6 leading-relaxed px-4">
                         By providing your card information, you allow CATERLY to charge your card for future payments in accordance with their terms.
-                      </p>
+                      </p> */}
                     </div>
                   </div>
                 )}

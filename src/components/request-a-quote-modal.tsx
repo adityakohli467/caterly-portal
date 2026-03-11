@@ -4,12 +4,13 @@ import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { useQuoteModalStore } from "@/store/quote-modal"
 
 const generateCaptcha = () => Math.floor(1000 + Math.random() * 9000).toString()
 
 export function RequestAQuoteModal() {
     const pathname = usePathname()
-    const [isOpen, setIsOpen] = useState(false)
+    const { isOpen, close: storeClose } = useQuoteModalStore()
     const [captchaCode, setCaptchaCode] = useState("")
     const [quoteForm, setQuoteForm] = useState({
         name: "",
@@ -33,9 +34,8 @@ export function RequestAQuoteModal() {
         }
     }, [isOpen])
 
-    const handleOpen = () => setIsOpen(true)
     const handleClose = () => {
-        setIsOpen(false)
+        storeClose()
         setQuoteForm({
             name: "",
             contact: "",
@@ -83,33 +83,6 @@ export function RequestAQuoteModal() {
 
     return (
         <>
-            {/* Floating Button */}
-            <button
-                onClick={handleOpen}
-                aria-label="Request a Quote"
-                className="fixed bottom-8 right-8 z-40 flex items-center gap-2 bg-[#E03A3E] hover:bg-[#cc3236] text-white px-5 py-3 rounded-full shadow-2xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{ boxShadow: "0 4px 24px rgba(224,58,62,0.45)" }}
-            >
-                {/* Document/Quote icon */}
-                <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                >
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <polyline points="10 9 9 9 8 9" />
-                </svg>
-                Request a Quote
-            </button>
-
             {/* Modal */}
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">

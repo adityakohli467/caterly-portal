@@ -781,11 +781,6 @@ function AccountContent() {
                         </span>
                       )}
                     </p>
-                    <Link href="/shop?purchaseType=subscription">
-                      <Button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-8">
-                        Browse Subscriptions
-                      </Button>
-                    </Link>
                   </div>
                 ) : (
                   <div className="space-y-4">

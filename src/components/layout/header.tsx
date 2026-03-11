@@ -8,11 +8,13 @@ import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import Image from "next/image"
 import { Menu, X, User, ShoppingCart, LogOut, UserCircle } from "lucide-react"
+import { useQuoteModalStore } from "@/store/quote-modal"
 
 export function Header() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuthStore()
+  const openQuoteModal = useQuoteModalStore((s) => s.open)
 
   const handleLogout = () => {
     logout()
@@ -43,15 +45,26 @@ export function Header() {
           {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center gap-10 text-[16px] font-medium text-black">
             <Link href="/" className="hover:text-[#E03A3E]">Home</Link>
-            <Link href="/shop" className="hover:text-[#E03A3E]">Catering</Link>
-            <Link href="/blogs" className="hover:text-[#E03A3E]">Blogs</Link>
+            <Link href="/shop" className="text-[#E03A3E] font-semibold hover:text-[#cc3236]">Order Now</Link>
+            {/* <Link href="/blogs" className="hover:text-[#E03A3E]">Blogs</Link> */}
 
-            <Link
-              href="/call"
-              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-[10px] font-semibold text-sm"
-            >
+            <Link href="/call" className="hover:text-[#E03A3E]">
               Contact
             </Link>
+
+            <button
+              onClick={openQuoteModal}
+              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-[10px] font-semibold text-sm"
+            >
+              Request a Quote
+            </button>
+
+            <a
+              href="tel:1300827286"
+              className="flex items-center gap-1.5 text-black hover:text-[#E03A3E] text-sm font-medium whitespace-nowrap"
+            >
+              📞 1300 827 286
+            </a>
 
             {/*
             <Link href="/venue" className="hover:text-[#E03A3E]">Venue</Link>
@@ -167,16 +180,23 @@ export function Header() {
 
             <nav className="flex flex-col gap-6 text-[16px] font-medium text-black">
               <Link href="/" onClick={() => setOpen(false)}>Home</Link>
-              <Link href="/shop" onClick={() => setOpen(false)}>Catering</Link>
+              <Link href="/shop" onClick={() => setOpen(false)} className="text-[#E03A3E] font-semibold">Order Now</Link>
               <Link href="/blogs" onClick={() => setOpen(false)}>Blogs</Link>
 
               <Link
                 href="/call"
                 onClick={() => setOpen(false)}
-                className="bg-[#E03A3E] text-white px-6 py-3 rounded-[10px] font-semibold text-center"
+                className="hover:text-[#E03A3E]"
               >
                 Contact
               </Link>
+
+              <button
+                onClick={() => { openQuoteModal(); setOpen(false) }}
+                className="bg-[#E03A3E] text-white px-6 py-3 rounded-[10px] font-semibold text-center"
+              >
+                Request a Quote
+              </button>
             </nav>
 
             <div className="flex items-center gap-6 pt-6">

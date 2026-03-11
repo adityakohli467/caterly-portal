@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
+import { useQuoteModalStore } from "@/store/quote-modal"
 
 interface Review {
   review_id: number
@@ -15,6 +16,7 @@ interface Review {
 }
 
 export default function HomePage() {
+  const openQuoteModal = useQuoteModalStore((s) => s.open)
   // Reviews state
   const [reviews, setReviews] = useState<Review[]>([])
   const [reviewsLoading, setReviewsLoading] = useState(true)
@@ -108,20 +110,22 @@ export default function HomePage() {
       <section className="relative w-full h-[500px] md:h-[788px] overflow-hidden bg-white">
 
         {/* BACKGROUND IMAGE */}
-        <Image
-          src="/assets/images/log.png"
-          alt="Caterly Hero Background"
-          fill
-          priority
-          className="object-cover"
-        />
+       <video
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="absolute inset-0 w-full h-full object-cover"
+>
+  <source src="/assets/video/bannervideoCaterly.mp4" type="video/mp4" />
+</video>
 
         {/* CONTENT */}
         <div className="relative z-10 h-full flex items-center justify-center">
           <div className="flex flex-col items-center text-center max-w-[900px] px-4 md:px-6 gap-4 md:gap-[24px]">
 
             {/* HEADING */}
-            <h1 className="text-[32px] md:text-[56px] leading-[1.2] font-semibold text-black">
+            <h1 className="text-[32px] md:text-[56px] leading-[1.2] font-semibold text-White">
               Crafting{" "}
               <span className="text-[#E03A3E] italic font-semibold">
                 unforgettable
@@ -131,25 +135,26 @@ export default function HomePage() {
             </h1>
 
             {/* SUBTEXT */}
-            <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[620px] px-4">
+            {/* <p className="text-[14px] md:text-[16px] text-[#fff] max-w-[620px] px-4">
               Elevating every event with refined flavors, flawless presentation,
               and enduring impressions.
-            </p>
+            </p> */}
 
             {/* BUTTONS */}
             <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-2 w-full sm:w-auto px-4">
               <button
+                onClick={openQuoteModal}
                 className="
-            bg-[#E03A3E]
-            hover:bg-[#cc3236]
-            text-white
-            px-6
-            py-3
-            rounded-md
-            text-sm
-            font-semibold
-            w-full sm:w-auto
-          "
+              bg-[#E03A3E]
+              hover:bg-[#cc3236]
+              text-white
+              px-6
+              py-3
+              rounded-md
+              text-sm
+              font-semibold
+              w-full sm:w-auto
+            "
               >
                 Book Now
               </button>
@@ -183,7 +188,7 @@ export default function HomePage() {
 
 
       {/* ================================================= */}
-      {/* 2. WHO WE ARE */}
+      {/* 2. OUR SERVICES */}
       {/* ================================================= */}
       <section className="bg-white py-12 md:py-16">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
@@ -194,17 +199,15 @@ export default function HomePage() {
               Our Services
             </h2>
             <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto px-4">
-              From intimate gatherings to large scale events,
-              <br className="hidden md:block" />
-              we've got you covered.
+              Complete Event Solutions Made Simple
             </p>
           </div>
 
           {/* CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-[64px]">
 
-            {/* CARD 1 */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center">
+            {/* CARD 1 - Catering Services */}
+            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
               <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
                 <Image
                   src="/assets/images/c1.png"
@@ -218,49 +221,21 @@ export default function HomePage() {
                 Catering Services
               </h3>
 
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6">
-                Professional catering for meetings,
-                workshops, and business events with
-                premium-quality food.
+              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
+                Freshly prepared catering packages for offices, meetings, private events, and special occasions. From breakfast to lunch, platters, and finger food, we deliver delicious food tailored to your event.
               </p>
 
-              <Link href="/shop" passHref legacyBehavior>
-                <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-                  Book Now
-                </button>
-              </Link>
-            </div>
-
-            {/* CARD 2 */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center">
-              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-                <Image
-                  src="/assets/images/c2.jpg"
-                  alt="Venue Bookings"
-                  fill
-                  className="object-cover"
-                />
+              <div className="mt-auto">
+                <Link href="/shop" passHref legacyBehavior>
+                  <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+                    Order Now
+                  </button>
+                </Link>
               </div>
-
-              <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
-                Venue Bookings
-              </h3>
-
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6">
-                Professional catering for meetings,
-                workshops, and business events with
-                premium-quality food.
-              </p>
-
-              <Link href="/venue" passHref legacyBehavior>
-                <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-                  Book Now
-                </button>
-              </Link>
             </div>
 
-            {/* CARD 3 */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center">
+            {/* CARD 2 - Staff Hire */}
+            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col h-full">
               <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
                 <Image
                   src="/assets/images/c3.jpg"
@@ -274,17 +249,45 @@ export default function HomePage() {
                 Staff Hire
               </h3>
 
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6">
-                Professional catering for meetings,
-                workshops, and business events with
-                premium-quality food.
+              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
+                Professional and experienced hospitality staff available to support your event. Our team ensures smooth service, presentation, and a great experience for your guests.
               </p>
 
-              <Link href="/staff" passHref legacyBehavior>
-                <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-                  Book Now
-                </button>
-              </Link>
+              <div className="mt-auto">
+                <Link href="/staff" passHref legacyBehavior>
+                  <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+                    Order Now
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* CARD 3 - Venue Hire */}
+            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col h-full">
+              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
+                <Image
+                  src="/assets/images/c2.jpg"
+                  alt="Venue Hire"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
+              <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
+                Venue Hire
+              </h3>
+
+              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
+                Flexible venue options for meetings, celebrations, and private functions. We help create the perfect setting for your event with catering and service support available.
+              </p>
+
+              <div className="mt-auto">
+                <Link href="/venue" passHref legacyBehavior>
+                  <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+                    Order Now
+                  </button>
+                </Link>
+              </div>
             </div>
 
           </div>
@@ -301,12 +304,10 @@ export default function HomePage() {
           {/* HEADER */}
           <div className="text-center mb-12 md:mb-20">
             <h2 className="text-[28px] md:text-[36px] font-semibold text-black mb-3 md:mb-4">
-              Our Catering Services
+              Our Catering Packages
             </h2>
             <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto leading-relaxed px-4">
-              From intimate gatherings to large corporate events, we offer a range
-              <br className="hidden md:block" />
-              of catering services to meet your needs.
+              Flavourful Catering Made Easy
             </p>
           </div>
 
@@ -315,40 +316,34 @@ export default function HomePage() {
 
             {[
               {
-                title: "All Day",
-                desc:
-                  "Make your special day unforgettable with our customized wedding menus and professional service.",
-                img: "/assets/images/c4.jpg"
-              },
-              {
-                title: "All Day",
-                desc:
-                  "Make your special day unforgettable with our customized wedding menus and professional service.",
-                img: "/assets/images/c5.jpg"
-              },
-              {
-                title: "All Day",
-                desc:
-                  "Make your special day unforgettable with our customized wedding menus and professional service.",
-                img: "/assets/images/c4.jpg"
-              },
-              {
-                title: "Grazing Tables",
-                desc:
-                  "Stunning grazing tables that combine visual appeal with delicious variety for your guests.",
-                img: "/assets/images/c6.jpg"
-              },
-              {
-                title: "Breakfast Catering",
-                desc:
-                  "Start your day right with our fresh, energizing breakfast options for meetings and events.",
+                title: "Breakfast Packages",
+                desc: "Start the day right with freshly prepared breakfast selections including pastries, sandwiches, wraps, fruit platters and coffee options. Perfect for early meetings and team gatherings.",
                 img: "/assets/images/c7.jpg"
               },
               {
-                title: "Finger Food",
-                desc:
-                  "Delicious bite-sized delights perfect for cocktail parties and networking events.",
+                title: "Morning Tea Packages",
+                desc: "A delightful mix of sweet and savoury treats designed for mid morning breaks. Includes muffins, slices, pastries, fruit and light bites to keep everyone energised.",
+                img: "/assets/images/c5.jpg"
+              },
+              {
+                title: "Lunch Packages",
+                desc: "Our lunch packages offer a satisfying variety of wraps, sandwiches, salads and hot food options. Ideal for corporate meetings, office lunches and team events.",
+                img: "/assets/images/c4.jpg"
+              },
+              {
+                title: "Assorted Platters",
+                desc: "Beautifully presented platters featuring sandwiches, wraps, fruit, pastries and gourmet selections. Perfect for sharing at meetings, functions and celebrations.",
+                img: "/assets/images/c6.jpg"
+              },
+              {
+                title: "Finger Food and Canapés",
+                desc: "Elegant bite sized options designed for events and networking functions. Easy to enjoy while mingling and ideal for cocktail style gatherings.",
                 img: "/assets/images/c8.jpg"
+              },
+              {
+                title: "Cakes and Sweet Treats",
+                desc: "Celebrate special occasions with our delicious cakes and dessert selections including birthday cakes, slices and sweet platters.",
+                img: "/assets/images/c4.jpg"
               },
             ].map((item, index) => (
               <div
@@ -375,10 +370,11 @@ export default function HomePage() {
                     {item.desc}
                   </p>
 
-                  <button className="text-[#E03A3E] text-sm font-semibold flex items-center gap-1 hover:underline">
-                    Read more
-                    <span className="text-lg">→</span>
-                  </button>
+                  <Link href="/shop" passHref legacyBehavior>
+                    <a className="bg-[#E03A3E] hover:bg-[#cc3236] text-white text-sm font-semibold px-5 py-2 rounded-md inline-block transition">
+                      Order Now
+                    </a>
+                  </Link>
                 </div>
               </div>
             ))}
@@ -417,14 +413,14 @@ export default function HomePage() {
                 Who we are
               </h2>
 
-              <p className="text-[14px] md:text-[15px] text-[#333333] leading-relaxed mb-3 md:mb-4 max-w-[520px]">
+              <p className="text-[14px] md:text-[15px] text-[#111111] leading-relaxed mb-3 md:mb-4 max-w-[520px]">
                 For over 15 years, we've been crafting exceptional catering experiences
                 with a focus on fresh, seasonal ingredients and impeccable service.
                 Our team of passionate culinary experts creates memorable food
                 experiences for every occasion.
               </p>
 
-              <p className="text-[14px] md:text-[15px] text-[#333333] leading-relaxed max-w-[520px]">
+              <p className="text-[14px] md:text-[15px] text-[#111111] leading-relaxed max-w-[520px]">
                 We believe that great food brings people together. Whether you're
                 planning a corporate lunch, an elegant wedding, or an intimate dinner
                 party, we approach each event with creativity, attention to detail,
@@ -460,14 +456,70 @@ export default function HomePage() {
               Why Choose Us
             </h2>
             <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto px-4">
-              From intimate gatherings to large scale events, we've got you covered
+              Freshly Prepared. Perfectly Delivered. 
             </p>
           </div>
 
           {/* FEATURES */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-[80px] text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-center">
 
-            {/* ITEM 1 */}
+            {/* ITEM 1 - Fresh Ingredients */}
+            <div className="flex flex-col items-center">
+              <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
+                {/* Leaf / Fresh Icon */}
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#2F5BFF"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 20A7 7 0 0 1 9 6c0-3 5-3 5-6 0 0 5 4 5 10a7 7 0 0 1-8 7z" />
+                  <path d="M12 20v-8" />
+                </svg>
+              </div>
+              <h3 className="text-[18px] font-semibold text-black mb-2">
+                Fresh Ingredients
+              </h3>
+              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+                We use high-quality, fresh ingredients to prepare every dish, ensuring great taste and consistent quality for every event.
+              </p>
+            </div>
+
+            {/* ITEM 2 - Tailored Catering Menus */}
+            <div className="flex flex-col items-center">
+              <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
+                {/* Menu / List Icon */}
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#2F5BFF"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+              </div>
+              <h3 className="text-[18px] font-semibold text-black mb-2">
+                Tailored Catering Menus
+              </h3>
+              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+                Our menus are flexible and customised to suit offices, corporate meetings, private events, and special occasions.
+              </p>
+            </div>
+
+            {/* ITEM 3 - Reliable & On-Time Delivery */}
             <div className="flex flex-col items-center">
               <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
                 {/* Truck Icon */}
@@ -487,19 +539,18 @@ export default function HomePage() {
                   <circle cx="18.5" cy="18.5" r="2.5" />
                 </svg>
               </div>
-
               <h3 className="text-[18px] font-semibold text-black mb-2">
-                Delivery Available
+                Reliable &amp; On-Time Delivery
               </h3>
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[260px]">
-                Reliable delivery within 25 miles of our kitchen
+              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+                We understand the importance of timing and ensure your catering arrives fresh and exactly when you need it.
               </p>
             </div>
 
-            {/* ITEM 2 */}
+            {/* ITEM 4 - Professional Presentation */}
             <div className="flex flex-col items-center">
               <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
-                {/* Handshake Icon */}
+                {/* Star / Award Icon */}
                 <svg
                   width="28"
                   height="28"
@@ -510,47 +561,16 @@ export default function HomePage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M16 3h5v5" />
-                  <path d="M8 3H3v5" />
-                  <path d="M21 3l-7 7" />
-                  <path d="M3 3l7 7" />
-                  <path d="M12 14l-2 2a4 4 0 0 1-6-6l2-2" />
-                  <path d="M12 14l2 2a4 4 0 0 0 6-6l-2-2" />
+                  <circle cx="12" cy="8" r="6" />
+                  <path d="M9 21l3-3 3 3" />
+                  <path d="M12 15v6" />
                 </svg>
               </div>
-
               <h3 className="text-[18px] font-semibold text-black mb-2">
-                Committed to Value
+                Professional Presentation
               </h3>
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[260px]">
-                Premium quality at competitive prices
-              </p>
-            </div>
-
-            {/* ITEM 3 */}
-            <div className="flex flex-col items-center">
-              <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
-                {/* Leaf Icon */}
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#2F5BFF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M11 20A7 7 0 0 1 9 6c0-3 5-3 5-6 0 0 5 4 5 10a7 7 0 0 1-8 7z" />
-                  <path d="M12 20v-8" />
-                </svg>
-              </div>
-
-              <h3 className="text-[18px] font-semibold text-black mb-2">
-                Freshest Ingredients
-              </h3>
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[260px]">
-                Locally sourced seasonal produce
+              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+                Every platter and package is prepared and presented professionally to elevate your event experience.
               </p>
             </div>
 
@@ -626,15 +646,7 @@ export default function HomePage() {
                       <p className="text-sm font-semibold text-black">
                         {review.reviewer_name}
                       </p>
-                      {review.created_at && (
-                        <p className="text-xs text-[#9A9A9A]">
-                          {new Date(review.created_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </p>
-                      )}
+
                     </div>
                   </div>
                 </div>
