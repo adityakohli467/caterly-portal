@@ -9,242 +9,314 @@ import { useQuoteModalStore } from "@/store/quote-modal"
 const generateCaptcha = () => Math.floor(1000 + Math.random() * 9000).toString()
 
 export function RequestAQuoteModal() {
-    const pathname = usePathname()
-    const { isOpen, close: storeClose } = useQuoteModalStore()
-    const [captchaCode, setCaptchaCode] = useState("")
-    const [quoteForm, setQuoteForm] = useState({
-        name: "",
-        contact: "",
-        email: "",
-        deliveryDateTime: "",
-        occasion: "",
-        message: "",
-        captchaInput: "",
+
+  const pathname = usePathname()
+  const { isOpen, close: storeClose } = useQuoteModalStore()
+
+  const [captchaCode, setCaptchaCode] = useState("")
+  const [submittingQuote, setSubmittingQuote] = useState(false)
+
+  const [quoteForm, setQuoteForm] = useState({
+    name: "",
+    contact: "",
+    email: "",
+    deliveryDateTime: "",
+    occasion: "",
+    message: "",
+    captchaInput: "",
+  })
+
+  useEffect(() => {
+    setCaptchaCode(generateCaptcha())
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      setCaptchaCode(generateCaptcha())
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "auto"
+    }
+
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+  }, [isOpen])
+
+  const handleClose = () => {
+    storeClose()
+
+    setQuoteForm({
+      name: "",
+      contact: "",
+      email: "",
+      deliveryDateTime: "",
+      occasion: "",
+      message: "",
+      captchaInput: "",
     })
-    const [submittingQuote, setSubmittingQuote] = useState(false)
 
-    useEffect(() => {
-        setCaptchaCode(generateCaptcha())
-    }, [])
+    setCaptchaCode(generateCaptcha())
+  }
 
-    // Regenerate captcha when modal opens
-    useEffect(() => {
-        if (isOpen) {
-            setCaptchaCode(generateCaptcha())
-        }
-    }, [isOpen])
+  const handleQuoteSubmit = async (e: React.FormEvent) => {
 
-    const handleClose = () => {
-        storeClose()
-        setQuoteForm({
-            name: "",
-            contact: "",
-            email: "",
-            deliveryDateTime: "",
-            occasion: "",
-            message: "",
-            captchaInput: "",
-        })
-        setCaptchaCode(generateCaptcha())
+    e.preventDefault()
+
+    if (quoteForm.captchaInput !== captchaCode) {
+      toast.error("Captcha does not match. Please try again.")
+      setCaptchaCode(generateCaptcha())
+      setQuoteForm(prev => ({ ...prev, captchaInput: "" }))
+      return
     }
 
-    const handleQuoteSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (quoteForm.captchaInput !== captchaCode) {
-            toast.error("Captcha does not match. Please try again.")
-            setCaptchaCode(generateCaptcha())
-            setQuoteForm(prev => ({ ...prev, captchaInput: "" }))
-            return
-        }
-        setSubmittingQuote(true)
-        try {
-            await api.post("/store/quotation", {
-                name: quoteForm.name,
-                contact: quoteForm.contact,
-                email: quoteForm.email,
-                delivery_date_time: quoteForm.deliveryDateTime,
-                occasion: quoteForm.occasion,
-                message: quoteForm.message,
-                captcha: quoteForm.captchaInput,
-            })
-            toast.success("Your quote request has been submitted! We'll be in touch within 24 hours.")
-            handleClose()
-        } catch (error: any) {
-            toast.error(error?.message || "Failed to submit. Please try again.")
-            setCaptchaCode(generateCaptcha())
-            setQuoteForm(prev => ({ ...prev, captchaInput: "" }))
-        } finally {
-            setSubmittingQuote(false)
-        }
+    setSubmittingQuote(true)
+
+    try {
+
+      await api.post("/store/quotation", {
+        name: quoteForm.name,
+        contact: quoteForm.contact,
+        email: quoteForm.email,
+        delivery_date_time: quoteForm.deliveryDateTime,
+        occasion: quoteForm.occasion,
+        message: quoteForm.message,
+        captcha: quoteForm.captchaInput,
+      })
+
+      toast.success("Your quote request has been submitted!")
+
+      handleClose()
+
+    } catch (error: any) {
+
+      toast.error(error?.message || "Failed to submit.")
+
+      setCaptchaCode(generateCaptcha())
+      setQuoteForm(prev => ({ ...prev, captchaInput: "" }))
+
+    } finally {
+
+      setSubmittingQuote(false)
+
     }
+  }
 
-    // Hide on login / register pages
-    if (pathname?.startsWith("/auth")) return null
+  if (pathname?.startsWith("/auth")) return null
 
-    return (
-        <>
-            {/* Modal */}
-            {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                        onClick={handleClose}
-                    />
+  return (
+    <>
+      {isOpen && (
 
-                    {/* Modal Panel */}
-                    <div className="relative w-full max-w-[540px] bg-white rounded-2xl shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
 
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#F2CACA]">
-                            <div>
-                                <h2 className="text-[20px] font-semibold text-black">Request a Quote</h2>
-                                <p className="text-sm text-gray-500 mt-0.5">
-                                    We&apos;ll get back to you within 24 hours.
-                                </p>
-                            </div>
-                            <button
-                                onClick={handleClose}
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-500 text-lg leading-none"
-                            >
-                                ✕
-                            </button>
-                        </div>
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
 
-                        {/* Form Body */}
-                        <form className="px-6 py-5 space-y-4" onSubmit={handleQuoteSubmit}>
+          {/* Modal */}
+          <div className="relative w-full max-w-[520px] bg-white rounded-2xl shadow-2xl z-10">
 
-                            {/* Name */}
-                            <div>
-                                <label className="text-sm font-medium text-black">Name</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={quoteForm.name}
-                                    onChange={(e) => setQuoteForm({ ...quoteForm, name: e.target.value })}
-                                    placeholder="Enter your full name"
-                                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-[#E03A3E]"
-                                />
-                            </div>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
 
-                            {/* Contact */}
-                            <div>
-                                <label className="text-sm font-medium text-black">Contact</label>
-                                <input
-                                    type="tel"
-                                    required
-                                    value={quoteForm.contact}
-                                    onChange={(e) => setQuoteForm({ ...quoteForm, contact: e.target.value })}
-                                    placeholder="Enter your phone number"
-                                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-[#E03A3E]"
-                                />
-                            </div>
+              <div>
+                <h2 className="text-lg font-semibold text-black">
+                  Request a Quote
+                </h2>
+                <p className="text-sm text-gray-500">
+                  We'll get back to you within 24 hours
+                </p>
+              </div>
 
-                            {/* Email */}
-                            <div>
-                                <label className="text-sm font-medium text-black">Email</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={quoteForm.email}
-                                    onChange={(e) => setQuoteForm({ ...quoteForm, email: e.target.value })}
-                                    placeholder="Enter your email address"
-                                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-[#E03A3E]"
-                                />
-                            </div>
+              <button
+                onClick={handleClose}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"
+              >
+                ✕
+              </button>
 
-                            {/* Delivery Date and Time */}
-                            <div>
-                                <label className="text-sm font-medium text-black">Delivery Date and Time</label>
-                                <input
-                                    type="datetime-local"
-                                    required
-                                    value={quoteForm.deliveryDateTime}
-                                    onChange={(e) => setQuoteForm({ ...quoteForm, deliveryDateTime: e.target.value })}
-                                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#E03A3E]"
-                                />
-                            </div>
+            </div>
 
-                            {/* Occasion */}
-                            <div>
-                                <label className="text-sm font-medium text-black">Occasion</label>
-                                <select
-                                    required
-                                    value={quoteForm.occasion}
-                                    onChange={(e) => setQuoteForm({ ...quoteForm, occasion: e.target.value })}
-                                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-gray-600 focus:outline-none focus:border-[#E03A3E]"
-                                >
-                                    <option value="">Select Occasion</option>
-                                    <option>Wedding</option>
-                                    <option>Corporate Event</option>
-                                    <option>Birthday Party</option>
-                                    <option>Anniversary</option>
-                                    <option>Private Dinner</option>
-                                    <option>Graduation</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
+            {/* Form */}
+            <form
+              className="px-6 py-5 space-y-3"
+              onSubmit={handleQuoteSubmit}
+            >
 
-                            {/* Message */}
-                            <div>
-                                <label className="text-sm font-medium text-black">Message</label>
-                                <textarea
-                                    required
-                                    rows={3}
-                                    value={quoteForm.message}
-                                    onChange={(e) => setQuoteForm({ ...quoteForm, message: e.target.value })}
-                                    placeholder="Tell us about your event..."
-                                    className="mt-1 w-full rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-black placeholder:text-gray-400 resize-none focus:outline-none focus:border-[#E03A3E]"
-                                />
-                            </div>
+              {/* Name */}
+              <div>
+                <label className="text-sm font-medium text-black">Name</label>
 
-                            {/* Captcha */}
-                            <div>
-                                <label className="text-sm font-medium text-black">Captcha</label>
-                                <div className="mt-1 flex items-center gap-3">
-                                    <div className="flex items-center justify-center min-w-[90px] border-2 border-dashed border-[#E03A3E] px-5 py-3 rounded-md select-none">
-                                        <span className="text-[#E03A3E] font-bold text-lg tracking-widest">{captchaCode}</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setCaptchaCode(generateCaptcha())}
-                                        className="text-xs text-[#E03A3E] underline whitespace-nowrap"
-                                    >
-                                        Refresh
-                                    </button>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={quoteForm.captchaInput}
-                                        onChange={(e) => setQuoteForm({ ...quoteForm, captchaInput: e.target.value })}
-                                        placeholder="Enter captcha"
-                                        className="flex-1 rounded-md border border-[#F2CACA] px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-[#E03A3E]"
-                                    />
-                                </div>
-                            </div>
+                <input
+                  type="text"
+                  required
+                  value={quoteForm.name}
+                  onChange={(e) =>
+                    setQuoteForm({ ...quoteForm, name: e.target.value })
+                  }
+                  placeholder="Enter your full name"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                />
+              </div>
 
-                            {/* Footer Buttons */}
-                            <div className="flex items-center gap-3 pt-1 pb-2">
-                                <button
-                                    type="submit"
-                                    disabled={submittingQuote}
-                                    className="flex-1 bg-[#E03A3E] hover:bg-[#cc3236] text-white py-3 rounded-md text-sm font-semibold transition disabled:opacity-50"
-                                >
-                                    {submittingQuote ? "Submitting..." : "Submit Request"}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleClose}
-                                    className="flex-1 border border-[#E6E6E6] text-black py-3 rounded-md text-sm font-semibold hover:bg-gray-50 transition"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
+              {/* Contact */}
+              <div>
+                <label className="text-sm font-medium text-black">Contact</label>
 
-                        </form>
-                    </div>
+                <input
+                  type="tel"
+                  required
+                  value={quoteForm.contact}
+                  onChange={(e) =>
+                    setQuoteForm({ ...quoteForm, contact: e.target.value })
+                  }
+                  placeholder="Phone number"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-sm font-medium text-black">Email</label>
+
+                <input
+                  type="email"
+                  required
+                  value={quoteForm.email}
+                  onChange={(e) =>
+                    setQuoteForm({ ...quoteForm, email: e.target.value })
+                  }
+                  placeholder="Email address"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                />
+              </div>
+
+              {/* Delivery Date */}
+              <div>
+                <label className="text-sm font-medium text-black">
+                  Delivery Date & Time
+                </label>
+
+                <input
+                  type="datetime-local"
+                  required
+                  value={quoteForm.deliveryDateTime}
+                  onChange={(e) =>
+                    setQuoteForm({
+                      ...quoteForm,
+                      deliveryDateTime: e.target.value
+                    })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                />
+              </div>
+
+              {/* Occasion */}
+              <div>
+                <label className="text-sm font-medium text-black">Occasion</label>
+
+                <select
+                  required
+                  value={quoteForm.occasion}
+                  onChange={(e) =>
+                    setQuoteForm({ ...quoteForm, occasion: e.target.value })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                >
+                  <option value="">Select Occasion</option>
+                  <option>Wedding</option>
+                  <option>Corporate Event</option>
+                  <option>Birthday Party</option>
+                  <option>Anniversary</option>
+                  <option>Private Dinner</option>
+                  <option>Graduation</option>
+                  <option>Other</option>
+                </select>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="text-sm font-medium text-black">Message</label>
+
+                <textarea
+                  rows={2}
+                  required
+                  value={quoteForm.message}
+                  onChange={(e) =>
+                    setQuoteForm({ ...quoteForm, message: e.target.value })
+                  }
+                  placeholder="Tell us about your event..."
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm resize-none focus:outline-none focus:border-[#E03A3E]"
+                />
+              </div>
+
+              {/* Captcha */}
+              <div>
+                <label className="text-sm font-medium text-black">Captcha</label>
+
+                <div className="mt-1 flex items-center gap-2">
+
+                  <div className="border-2 border-dashed border-[#E03A3E] px-4 py-1 rounded-md font-bold text-[#E03A3E] tracking-widest">
+                    {captchaCode}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCaptchaCode(generateCaptcha())}
+                    className="text-xs text-[#E03A3E] underline"
+                  >
+                    Refresh
+                  </button>
+
+                  <input
+                    type="text"
+                    required
+                    value={quoteForm.captchaInput}
+                    onChange={(e) =>
+                      setQuoteForm({
+                        ...quoteForm,
+                        captchaInput: e.target.value
+                      })
+                    }
+                    placeholder="Enter"
+                    className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  />
+
                 </div>
-            )}
-        </>
-    )
+
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-2">
+
+                <button
+                  type="submit"
+                  disabled={submittingQuote}
+                  className="flex-1 bg-[#E03A3E] hover:bg-[#c73236] text-white py-2 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                >
+                  {submittingQuote ? "Submitting..." : "Submit Request"}
+                </button>
+
+            <button
+  type="button"
+  onClick={handleClose}
+  className="flex-1 border border-gray-300 py-2 rounded-md text-sm font-semibold text-black hover:bg-gray-50"
+>
+  Cancel
+</button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      )}
+    </>
+  )
 }

@@ -26,6 +26,7 @@ interface Order {
   delivery_time?: string
   shipping_address_1?: string
   item_count?: number
+  delivery_frequency?: string
 }
 
 interface Subscription {
@@ -34,6 +35,7 @@ interface Subscription {
   order_total: string
   delivery_date_time?: string
   customer_order_name?: string
+  delivery_frequency?: string
   products?: Array<{
     product_name: string
     quantity: number
@@ -161,9 +163,31 @@ function AccountContent() {
         router.push("/auth/login")
         return
       }
-      // Don't show error if user just doesn't have subscriptions
       setSubscriptions([]) // Set empty array on error
     } finally {
+      // PROACTIVE: If dedicated subscriptions endpoint returns empty,
+      // augment it with orders that have a delivery_frequency from the general orders list.
+      // This ensures subscription orders show up even if the dedicated "subscriptions"
+      // object hasn't been created yet on the backend.
+      setSubscriptions(prev => {
+        // If we already have subscriptions from the dedicated API, we can still add orders
+        const existingOrderIds = new Set(prev.map(s => s.order_id));
+        const subOrders = orders
+          .filter(o => o.delivery_frequency && o.delivery_frequency !== "One Time" && !existingOrderIds.has(o.order_id))
+          .map(o => ({
+            order_id: o.order_id,
+            order_status: o.order_status,
+            order_total: String(o.order_total || o.total || 0),
+            delivery_date_time: o.delivery_date || o.date_added,
+            customer_order_name: `Order #${o.order_id}`,
+            delivery_frequency: o.delivery_frequency,
+            // We don't have full product details here usually, but it's better than nothing
+            products: []
+          }));
+
+        return [...prev, ...subOrders];
+      });
+
       setSubscriptionsLoading(false)
     }
   }
@@ -792,7 +816,7 @@ function AccountContent() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <p className="font-medium">
+                              <p className="font-medium text-black">
                                 Subscription #{subscription.order_id}
                               </p>
                               <span className={`text-xs px-2 py-1 rounded ${subscription.order_status === 1 ? 'bg-green-100 text-green-800' :
@@ -812,6 +836,11 @@ function AccountContent() {
                                 ))}
                               </div>
                             )}
+                            {subscription.delivery_frequency && (
+                              <p className="text-sm font-semibold text-[#E03A3E] mb-2">
+                                Frequency: {subscription.delivery_frequency}
+                              </p>
+                            )}
                             {subscription.delivery_date_time && (
                               <p className="text-sm text-gray-600 mb-2">
                                 Next Delivery: {new Date(subscription.delivery_date_time).toLocaleDateString('en-US', {
@@ -821,7 +850,7 @@ function AccountContent() {
                                 })}
                               </p>
                             )}
-                            <p className="font-bold text-lg">
+                            <p className="font-bold text-lg text-black">
                               ${getOrderDisplayTotal(subscription).toFixed(2)}
                             </p>
                           </div>

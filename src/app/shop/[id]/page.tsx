@@ -74,9 +74,6 @@ function ProductDetailContent({
     "ground"
   );
   const [quantity, setQuantity] = useState(1);
-  const [purchaseType, setPurchaseType] = useState<"onetime" | "subscription">(
-    "onetime"
-  );
   const [selectedOptions, setSelectedOptions] = useState<
     Record<number, number>
   >({}); // option_id -> option_value_id (for radio/dropdown)
@@ -92,10 +89,7 @@ function ProductDetailContent({
   const [reviewerEmail, setReviewerEmail] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [allCategories, setAllCategories] = useState<CategoryNode[]>([]);
-  const [selectedFrequency, setSelectedFrequency] = useState<string>("2w");
-  const [selectedStartDate, setSelectedStartDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+  const [itemComments, setItemComments] = useState("");
 
   // Handle params (can be Promise in Next.js 15+ or object in Next.js 14)
   useEffect(() => {
@@ -312,9 +306,9 @@ function ProductDetailContent({
       product_image: getProductImageUrl(product),
       quantity,
       options: options.length > 0 ? options : undefined,
-      delivery_frequency: purchaseType === "subscription" ? selectedFrequency : "One Time",
-      delivery_start_date: purchaseType === "subscription" ? selectedStartDate : undefined,
+      item_comments: itemComments || undefined,
     });
+    setItemComments("");
     toast.success(`${product.product_name} added to cart`);
   };
 
@@ -953,70 +947,17 @@ function ProductDetailContent({
                 </div>
               )}
 
-              {/* Purchase Type */}
               <div className="mb-6">
-                <div className="flex gap-4 mb-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={purchaseType === "onetime"}
-                      onChange={() => setPurchaseType("onetime")}
-                      className="w-4 h-4 text-[#E03A3E]"
-                    />
-                    <span className="text-black">One-time Purchase</span>
-                  </label>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <label className="flex items-center gap-2 cursor-pointer mb-3">
-                    <input
-                      type="radio"
-                      checked={purchaseType === "subscription"}
-                      onChange={() => setPurchaseType("subscription")}
-                      className="w-4 h-4 text-[#E03A3E]"
-                    />
-                    <span className="font-medium text-black">
-                      Subscribe & Deliver every
-                    </span>
-                  </label>
-                  {purchaseType === "subscription" && (
-                    <>
-                      {/* Frequency */}
-                      <div className="mb-3">
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                          Frequency
-                        </label>
-                        <select
-                          value={selectedFrequency}
-                          onChange={(e) => setSelectedFrequency(e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm
-                            focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] transition-colors"
-                        >
-                          <option value="Every 2 Weeks">Every 2 Weeks</option>
-                          <option value="Every 4 Weeks">Every 4 Weeks</option>
-                          <option value="Every 8 Weeks">Every 8 Weeks</option>
-                        </select>
-                      </div>
-                      {/* Start Date */}
-                      <div className="mb-3">
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                          Start Date
-                        </label>
-                        <input
-                          type="date"
-                          value={selectedStartDate}
-                          onChange={(e) => setSelectedStartDate(e.target.value)}
-                          min={new Date().toISOString().split("T")[0]}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black text-sm
-                            focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-[#E03A3E] transition-colors
-                            [color-scheme:light]"
-                          style={{ colorScheme: "light", accentColor: "#E03A3E" }}
-                        />
-                      </div>
-
-                    </>
-                  )}
-                </div>
+                <label className="text-sm font-bold text-black block mb-2">
+                  Special instructions or comments
+                </label>
+                <textarea
+                  placeholder="Enter any specific requests for this item..."
+                  value={itemComments}
+                  onChange={(e) => setItemComments(e.target.value)}
+                  rows={3}
+                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E] resize-none"
+                />
               </div>
 
               {parseFloat(calculateSubtotal()) > 0 && (

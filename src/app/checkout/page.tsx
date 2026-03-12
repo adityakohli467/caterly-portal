@@ -63,6 +63,9 @@ export default function CheckoutPage() {
   const [deliveryNotes, setDeliveryNotes] = useState("")
   const [deliveryNotesImage, setDeliveryNotesImage] = useState<File | null>(null)
   const [deliveryNotesImagePreview, setDeliveryNotesImagePreview] = useState<string | null>(null)
+  const [isSubscription, setIsSubscription] = useState(false)
+  const [subscriptionFrequency, setSubscriptionFrequency] = useState("Every 1 Week")
+  const [subscriptionStartDate, setSubscriptionStartDate] = useState(new Date().toISOString().split("T")[0])
 
 
 
@@ -413,6 +416,7 @@ export default function CheckoutPage() {
         options: item.options || [],
         delivery_frequency: item.delivery_frequency || "One Time",
         delivery_start_date: item.delivery_start_date || null,
+        item_comments: item.item_comments || null,
       }))
 
       const totals = calculateTotal()
@@ -449,9 +453,9 @@ export default function CheckoutPage() {
         postcode: billingData.postcode,
         notes: deliveryNotes || null,
         // Requested subscription fields from checkout form
-        delivery_frequency: subItem ? subItem.delivery_frequency : "One Time",
-        delivery_start_date: subItem ? (subItem.delivery_start_date || null) : null,
-        delivery_date_time: subItem ? (subItem.delivery_start_date || null) : (new Date().toISOString()), // Required for backend indexing
+        delivery_frequency: isSubscription ? subscriptionFrequency : "One Time",
+        delivery_start_date: isSubscription ? subscriptionStartDate : null,
+        delivery_date_time: isSubscription ? subscriptionStartDate : (new Date().toISOString()), // Required for backend indexing
         subtotal: totals.afterDiscount,
         wholesale_discount: totals.wholesaleDiscount,
         coupon_discount: totals.couponDiscount,
@@ -492,10 +496,10 @@ export default function CheckoutPage() {
       // Clear cart after successful order
       clearCart()
 
-      // Set subscription flag if any item has a recurring frequency
-      const isSubscription = items.some(item => item.delivery_frequency && item.delivery_frequency !== "One Time")
+      // Set subscription flag if any item has a recurring frequency or if the checkbox is checked
+      const isSubscriptionOrder = isSubscription || items.some(item => item.delivery_frequency && item.delivery_frequency !== "One Time")
       if (typeof window !== "undefined") {
-        localStorage.setItem("caterly_last_order_type", isSubscription ? "subscription" : "normal")
+        localStorage.setItem("caterly_last_order_type", isSubscriptionOrder ? "subscription" : "normal")
         // Save correct checkout totals keyed by order_id — backend recalculates wrongly from items
         localStorage.setItem(`caterly_order_totals_${response.data.order_id}`, JSON.stringify({
           subtotal: totals.subtotal,
@@ -688,6 +692,58 @@ export default function CheckoutPage() {
 
 
 
+                {/* Repeat Order / Subscription */}
+                <Card className="border-[#F2CACA] bg-white">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Checkbox
+                        id="repeat-order"
+                        checked={isSubscription}
+                        onCheckedChange={(checked) => setIsSubscription(checked as boolean)}
+                      />
+                      <Label
+                        htmlFor="repeat-order"
+                        className="text-lg font-bold text-[#E03A3E] cursor-pointer"
+                      >
+                        Repeat this order?
+                      </Label>
+                    </div>
+
+                    {isSubscription && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div>
+                          <Label htmlFor="frequency" className="text-black mb-2 block">Delivery Frequency</Label>
+                          <Select
+                            value={subscriptionFrequency}
+                            onValueChange={setSubscriptionFrequency}
+                          >
+                            <SelectTrigger id="frequency" className="bg-white border-gray-300 text-gray-900">
+                              <SelectValue placeholder="Select Frequency" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Every 1 Week">Every 1 Week</SelectItem>
+                              <SelectItem value="Every 2 Weeks">Every 2 Weeks</SelectItem>
+                              <SelectItem value="Every 3 Weeks">Every 3 Weeks</SelectItem>
+                              <SelectItem value="Every 4 Weeks">Every 4 Weeks</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="start-date" className="text-black mb-2 block">Start Date</Label>
+                          <Input
+                            id="start-date"
+                            type="date"
+                            value={subscriptionStartDate}
+                            onChange={(e) => setSubscriptionStartDate(e.target.value)}
+                            min={new Date().toISOString().split("T")[0]}
+                            className="bg-white border-gray-300 text-gray-900"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Delivery Notes */}
                 <Card className="border-[#F2CACA] bg-white">
                   <CardContent className="pt-6">
@@ -809,6 +865,12 @@ export default function CheckoutPage() {
                                       )}
                                     </div>
                                   ))}
+                                </div>
+                              )}
+
+                              {item.item_comments && (
+                                <div className="mt-2 text-xs italic text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                                  "{item.item_comments}"
                                 </div>
                               )}
 
@@ -985,6 +1047,20 @@ export default function CheckoutPage() {
                       <span>Total</span>
                       <span>${mounted ? totals.total.toFixed(2) : '0.00'}</span>
                     </div>
+
+                    {!isAuthenticated && (
+                      <div className="mb-6 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg animate-in fade-in slide-in-from-top-1">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-center w-5 h-5 rounded border border-[#E03A3E] bg-[#E03A3E] text-white">
+                            <Check className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 leading-none">Guest User</p>
+                            <p className="text-xs text-gray-500 mt-1">You are checking out as a guest</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <Button
                       type="submit"
