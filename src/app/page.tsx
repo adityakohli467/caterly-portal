@@ -80,10 +80,12 @@ export default function HomePage() {
 
   // Gallery state
   const galleryImages = [
-    "/assets/images/c10.jpg",
-    "/assets/images/c11.jpg",
-    "/assets/images/c12.jpg",
-    "/assets/images/c13.jpg"
+    "/assets/images/c36.png",
+    "/assets/images/c37.jpeg",
+    "/assets/images/c38.jpeg",
+    "/assets/images/c39.jpeg",
+     "/assets/images/c40.png",
+      "/assets/images/c41.png"
   ]
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -318,32 +320,32 @@ export default function HomePage() {
               {
                 title: "Breakfast Packages",
                 desc: "Start the day right with freshly prepared breakfast selections including pastries, sandwiches, wraps, fruit platters and coffee options. Perfect for early meetings and team gatherings.",
-                img: "/assets/images/c7.jpg"
+                img: "/assets/images/c34.jpg"
               },
               {
                 title: "Morning Tea Packages",
                 desc: "A delightful mix of sweet and savoury treats designed for mid morning breaks. Includes muffins, slices, pastries, fruit and light bites to keep everyone energised.",
-                img: "/assets/images/c5.jpg"
+                img: "/assets/images/c31.jpeg"
               },
               {
                 title: "Lunch Packages",
                 desc: "Our lunch packages offer a satisfying variety of wraps, sandwiches, salads and hot food options. Ideal for corporate meetings, office lunches and team events.",
-                img: "/assets/images/c4.jpg"
+                img: "/assets/images/c32.jpeg"
               },
               {
                 title: "Assorted Platters",
                 desc: "Beautifully presented platters featuring sandwiches, wraps, fruit, pastries and gourmet selections. Perfect for sharing at meetings, functions and celebrations.",
-                img: "/assets/images/c6.jpg"
+                img: "/assets/images/c33.jpeg"
               },
               {
                 title: "Finger Food and Canapés",
                 desc: "Elegant bite sized options designed for events and networking functions. Easy to enjoy while mingling and ideal for cocktail style gatherings.",
-                img: "/assets/images/c8.jpg"
+                img: "/assets/images/c36.png"
               },
               {
                 title: "Cakes and Sweet Treats",
                 desc: "Celebrate special occasions with our delicious cakes and dessert selections including birthday cakes, slices and sweet platters.",
-                img: "/assets/images/c4.jpg"
+                img: "/assets/images/c35.png"
               },
             ].map((item, index) => (
               <div

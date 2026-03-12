@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaCcAmex, FaCcMastercard, FaCcVisa } from "react-icons/fa"
+import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn, FaCcAmex, FaCcMastercard, FaCcVisa } from "react-icons/fa"
 import { api } from "@/lib/api"
 
 export function Footer() {
@@ -184,15 +184,19 @@ export function Footer() {
 
   <span className="text-sm">Follow Us</span>
 
-  <a href="#" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+  <a href="https://www.facebook.com/profile.php?id=61584509317898" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
     <FaFacebookF size={14} />
   </a>
 
-  <a href="#" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+  <a href="https://www.instagram.com/caterly.catering?igsh=dTJndGgwOG4xbnls" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
     <FaInstagram size={14} />
   </a>
 
-  <a href="#" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+  <a href="https://www.youtube.com/@Caterly.Catering" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+    <FaYoutube size={14} />
+  </a>
+
+  <a href="https://www.linkedin.com/company/caterly-catering/" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
     <FaLinkedinIn size={14} />
   </a>
 
