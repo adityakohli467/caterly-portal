@@ -121,18 +121,14 @@ function PaymentSuccessContent() {
         <CardContent className="p-16 text-center">
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-4">Payment Successful!</h1>
-          <p className="text-gray-600 mb-6">
-            Your order #{orderId} has been paid successfully.
-            {orderType === "subscription" && " You can now manage your food subscription in your account settings."}
+          <p className="text-gray-700 text-lg mb-6 max-w-lg mx-auto leading-relaxed">
+            Thank you for your order with Caterly. Your order has been received and is being prepared. We look forward to delivering fresh and delicious food for your event.
           </p>
-          {paymentIntentId && (
-            <p className="text-sm text-gray-500 mb-6">
-              Payment Intent ID: {paymentIntentId.substring(0, 20)}...
+          {orderType === "subscription" && (
+            <p className="text-gray-600 mb-6">
+              You can now manage your food subscription in your account settings.
             </p>
           )}
-          <p className="text-sm text-gray-500 mb-8">
-            You will receive a confirmation email shortly.
-          </p>
           <div className="flex gap-4 justify-center">
             <Button
               onClick={() => router.push(orderType === "subscription" ? "/account?tab=subscriptions" : "/account")}
