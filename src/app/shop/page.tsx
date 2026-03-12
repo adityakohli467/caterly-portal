@@ -99,16 +99,8 @@ function ShopPageContent() {
 
   const fetchProducts = async () => {
     try {
-      // If a parent category (with children) is selected, show empty — user must pick a subcategory
-      if (selectedCategory && !debouncedSearch) {
-        const isParent = getParentCategory(selectedCategory)
-        if (isParent) {
-          setProducts([])
-          setLoading(false)
-          return
-        }
-      }
-
+      // (Removed restriction that showed empty products for parent categories)
+      
       setLoading(true)
       setProducts([])
 
@@ -126,70 +118,37 @@ function ShopPageContent() {
         return
       }
 
-      // ── Subcategory selected — smart dual-fetch strategy ──────────────────
-      const parent = getParentOfChild(selectedCategory)
-      const subCatNode = parent?.children?.find(c => c.category_id === selectedCategory)
-      const subCatName = subCatNode?.category_name || ""
+      // ── Category selected — simple direct fetch ─────────────────────────
+      const res = await api.get("/store/products", { 
+        params: { 
+          limit: 100, 
+          category_id: selectedCategory 
+        } 
+      })
+      const apiProducts: Product[] = res.data.products || []
+      
+      const selectedNode = findCategoryById(selectedCategory)
+      const selectedName = selectedNode?.category_name || ""
 
-      // Fetch with subcategory ID AND parent ID in parallel
-      const [subRes, parentRes] = await Promise.all([
-        api.get("/store/products", { params: { limit: 100, category_id: selectedCategory } }),
-        parent
-          ? api.get("/store/products", { params: { limit: 100, category_id: parent.category_id } })
-          : Promise.resolve({ data: { products: [] } })
-      ])
-
-      const subProducts: Product[] = subRes.data.products || []
-      const parentProducts: Product[] = parentRes.data.products || []
-
-      console.log(`[Shop] sub (id=${selectedCategory}, name="${subCatName}"): ${subProducts.length} products`)
-      console.log(`[Shop] parent (id=${parent?.category_id}): ${parentProducts.length} products`)
-      if (subProducts.length > 0) {
-        console.log("[Shop] First sub product:", JSON.stringify(subProducts[0]))
-      }
-
-      // Pool = deduplicated union of both responses (prefer parent products since they're the full set)
-      const seen = new Set<number>()
-      const allPool: Product[] = []
-      for (const p of [...parentProducts, ...subProducts]) {
-        if (!seen.has(p.product_id)) { seen.add(p.product_id); allPool.push(p) }
-      }
-
-      // ── Step 1: Try client-side filter using the direct subcategory_id field ─
-      // The API returns subcategory_id as a top-level field on each product.
-      // categories[] only contains the PARENT category — NOT the subcategory.
-      const clientFiltered = allPool.filter(p =>
+      // Client-side filter as backup (some APIs return all products if filter is not supported)
+      // If the API correctly filtered, this won't remove anything.
+      const filtered = apiProducts.filter(p => 
         p.subcategory_id === selectedCategory ||
-        (subCatName && p.subcategory_name?.toLowerCase().trim() === subCatName.toLowerCase().trim()) ||
-        // Also check inside categories[] for backwards compatibility
-        p.categories?.some(c =>
-          c.category_id === selectedCategory ||
-          (subCatName && c.category_name?.toLowerCase().trim() === subCatName.toLowerCase().trim())
-        )
+        p.parent_category_id === selectedCategory ||
+        p.categories?.some(c => c.category_id === selectedCategory) ||
+        (selectedName && (
+          p.subcategory_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
+          p.parent_category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
+          p.categories?.some(c => c.category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim())
+        ))
       )
 
-      if (clientFiltered.length > 0) {
-        console.log(`[Shop] Client filter matched ${clientFiltered.length} products ✓`)
-        setProducts(clientFiltered)
-        return
+      // If client filter results in products, use them. Otherwise, if API returned anything, trust it might be correct.
+      if (filtered.length > 0) {
+        setProducts(filtered)
+      } else {
+        setProducts(apiProducts)
       }
-
-      // ── Step 2: Client filter found nothing — check if API filters by subcategory ──
-      // If sub response has FEWER products than parent, the API is subcategory-aware → trust it
-      const apiFiltersCorrectly =
-        subProducts.length > 0 &&
-        (parentProducts.length === 0 || subProducts.length < parentProducts.length)
-
-      if (apiFiltersCorrectly) {
-        console.log(`[Shop] API-aware: showing ${subProducts.length} subcategory products ✓`)
-        setProducts(subProducts)
-        return
-      }
-
-      // ── Step 3: Neither client filter nor API filtering worked ────────────
-      // The subcategory truly has no products (or API fell back to parent)
-      console.log(`[Shop] No products found for "${subCatName}" (id=${selectedCategory})`)
-      setProducts([])
 
     } catch (err) {
       console.error("Failed to fetch products", err)
@@ -339,9 +298,8 @@ function ShopPageContent() {
                               onClick={() => {
                                 if (hasChildren) {
                                   toggleParent(parent.category_id)
-                                } else {
-                                  selectSubcategory(parent.category_id)
                                 }
+                                selectSubcategory(parent.category_id)
                               }}
                               className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                                 (hasChildren ? isExpanded : selectedCategory === parent.category_id)

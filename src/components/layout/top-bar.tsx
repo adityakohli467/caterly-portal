@@ -37,7 +37,9 @@ export function TopBar() {
               </button>
 
               <Link
-                href="/food-safety"
+                href="https://hospitalcatering.com.au/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-[#5A7D59] hover:bg-[#4a6649] text-white px-3 py-1 rounded-[6px] transition text-[11px] md:text-[12px] font-semibold"
               >
                 Healthy Choices
