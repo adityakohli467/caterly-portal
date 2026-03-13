@@ -21,6 +21,7 @@ interface CartItem {
   cart_item_id?: string // Unique ID for items with different options
   delivery_frequency?: string // "One Time", "2 Weeks", "4 Weeks", "8 Weeks"
   delivery_start_date?: string // ISO date string for subscription start
+  delivery_time?: string
   item_comments?: string
 }
 
@@ -31,6 +32,7 @@ interface CartState {
   updateQuantity: (cartItemId: string, quantity: number) => void
   updateDeliveryFrequency: (cartItemId: string, frequency: string) => void
   updateDeliveryStartDate: (cartItemId: string, startDate: string) => void
+  updateItemData: (cartItemId: string, data: Partial<CartItem>) => void
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
@@ -142,6 +144,27 @@ export const useCartStore = create<CartState>()(
             if (itemId === cartItemId) {
               const newId = generateCartItemId(i.product_id, i.options, i.delivery_frequency, startDate, i.item_comments)
               return { ...i, delivery_start_date: startDate, cart_item_id: newId }
+            }
+            return i
+          }),
+        })
+      },
+
+      updateItemData: (cartItemId, data) => {
+        set({
+          items: get().items.map((i) => {
+            const itemId = i.cart_item_id || generateCartItemId(i.product_id, i.options, i.delivery_frequency, i.delivery_start_date, i.item_comments)
+            if (itemId === cartItemId) {
+              const updatedItem = { ...i, ...data }
+              // Force ID regeneration if identifying fields changed
+              const newId = generateCartItemId(
+                updatedItem.product_id, 
+                updatedItem.options, 
+                updatedItem.delivery_frequency, 
+                updatedItem.delivery_start_date, 
+                updatedItem.item_comments
+              )
+              return { ...updatedItem, cart_item_id: newId }
             }
             return i
           }),
