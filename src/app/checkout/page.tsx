@@ -48,7 +48,7 @@ interface Coupon {
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, updateQuantity, removeItem, getTotalPrice, getItemPrice, addItem, clearCart, updateDeliveryFrequency, updateDeliveryStartDate } = useCartStore()
+  const { items, updateQuantity, removeItem, getTotalPrice, getItemPrice, addItem, clearCart, updateDeliveryFrequency, updateDeliveryStartDate, updateItemData } = useCartStore()
   const { isAuthenticated, user, customer, checkAuth } = useAuthStore()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -60,12 +60,14 @@ export default function CheckoutPage() {
   const [validatingCoupon, setValidatingCoupon] = useState(false)
   const [shippingMethod, setShippingMethod] = useState("standard")
   const [shipToDifferentAddress, setShipToDifferentAddress] = useState(false)
-  const [deliveryNotes, setDeliveryNotes] = useState("")
   const [deliveryNotesImage, setDeliveryNotesImage] = useState<File | null>(null)
   const [deliveryNotesImagePreview, setDeliveryNotesImagePreview] = useState<string | null>(null)
   const [isSubscription, setIsSubscription] = useState(false)
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("Every 1 Week")
   const [subscriptionStartDate, setSubscriptionStartDate] = useState(new Date().toISOString().split("T")[0])
+  const [deliveryDate, setDeliveryDate] = useState<string>("")
+  const [deliveryTime, setDeliveryTime] = useState<string>("")
+  const [postcodeError, setPostcodeError] = useState("")
 
 
 
@@ -82,7 +84,7 @@ export default function CheckoutPage() {
     streetAddress: "",
     apartment: "",
     suburb: "",
-    state: "",
+    state: "VIC",
     postcode: "",
     email: "",
   })
@@ -95,7 +97,7 @@ export default function CheckoutPage() {
     streetAddress: "",
     apartment: "",
     suburb: "",
-    state: "",
+    state: "VIC",
     postcode: "",
     email: "",
   })
@@ -176,11 +178,7 @@ export default function CheckoutPage() {
               currentCustomer?.city ||
               localPrefill.suburb ||
               "",
-            state:
-              currentCustomer?.state ||
-              currentCustomer?.province ||
-              localPrefill.state ||
-              "",
+            state: "VIC",
             postcode:
               currentCustomer?.postal_code ||
               currentCustomer?.postcode ||
@@ -406,6 +404,29 @@ export default function CheckoutPage() {
       return
     }
 
+    // Validate Postcode
+    const postcode = parseInt(billingData.postcode)
+    if (isNaN(postcode) || postcode < 3000 || postcode > 3207) {
+      const errorMsg = "Sorry, this delivery address is outside our service area. Please call us on 1300 827 286 with our staff to discuss any available options."
+      setPostcodeError(errorMsg)
+      toast.error(errorMsg)
+      return
+    } else {
+      setPostcodeError("")
+    }
+
+    // Validate Delivery Date and Time for One-Off Purchases
+    if (!isSubscription) {
+      if (!deliveryDate) {
+        toast.error("Please select a delivery date.")
+        return
+      }
+      if (!deliveryTime) {
+        toast.error("Please select a delivery time.")
+        return
+      }
+    }
+
     setLoading(true)
 
     try {
@@ -416,7 +437,7 @@ export default function CheckoutPage() {
         options: item.options || [],
         delivery_frequency: item.delivery_frequency || "One Time",
         delivery_start_date: item.delivery_start_date || null,
-        item_comments: item.item_comments || null,
+        delivery_time: item.delivery_time || deliveryTime || null,
       }))
 
       const totals = calculateTotal()
@@ -451,11 +472,15 @@ export default function CheckoutPage() {
         payment_method: "card",
         coupon_code: couponApplied?.code || null,
         postcode: billingData.postcode,
-        notes: deliveryNotes || null,
+        // Requested subscription fields from checkout form
         // Requested subscription fields from checkout form
         delivery_frequency: isSubscription ? subscriptionFrequency : "One Time",
         delivery_start_date: isSubscription ? subscriptionStartDate : null,
-        delivery_date_time: isSubscription ? subscriptionStartDate : (new Date().toISOString()), // Required for backend indexing
+        delivery_date: !isSubscription ? deliveryDate : null,
+        delivery_time: !isSubscription ? deliveryTime : null,
+        delivery_date_time: isSubscription 
+          ? `${subscriptionStartDate}T00:00:00` 
+          : (deliveryDate && deliveryTime ? formatDateTime(deliveryDate, deliveryTime) : new Date().toISOString()),
         subtotal: totals.afterDiscount,
         wholesale_discount: totals.wholesaleDiscount,
         coupon_discount: totals.couponDiscount,
@@ -533,6 +558,19 @@ export default function CheckoutPage() {
       setLoading(false)
     }
   }
+
+  const formatDateTime = (dateStr: string, timeStr: string) => {
+    if (!dateStr || !timeStr) return new Date().toISOString();
+    try {
+      const [time, ampm] = timeStr.split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+      if (ampm === "PM" && hours < 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+      return `${dateStr}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+    } catch (e) {
+      return new Date().toISOString();
+    }
+  };
 
   const totals = useMemo(() => calculateTotal(), [
     items,
@@ -647,21 +685,12 @@ export default function CheckoutPage() {
 
                       <div>
                         <Label htmlFor="billing-state" className="text-black">State <span className="text-red-500">*</span></Label>
-                        <Select value={billingData.state} onValueChange={(value) => setBillingData({ ...billingData, state: value })}>
-                          <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                            <SelectValue placeholder="Select State" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {/* <SelectItem value="NSW">NSW</SelectItem> */}
-                            <SelectItem value="VIC">VIC</SelectItem>
-                            {/* <SelectItem value="QLD">QLD</SelectItem>
-                            <SelectItem value="SA">SA</SelectItem>
-                            <SelectItem value="WA">WA</SelectItem>
-                            <SelectItem value="TAS">TAS</SelectItem>
-                            <SelectItem value="NT">NT</SelectItem>
-                            <SelectItem value="ACT">ACT</SelectItem> */}
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          id="billing-state"
+                          value={billingData.state}
+                          readOnly
+                          className="bg-gray-50 border-gray-300 text-gray-900 cursor-not-allowed font-semibold"
+                        />
                       </div>
 
                       <div>
@@ -669,9 +698,23 @@ export default function CheckoutPage() {
                         <Input
                           id="billing-postcode"
                           value={billingData.postcode}
-                          onChange={(e) => setBillingData({ ...billingData, postcode: e.target.value })}
+                          onChange={(e) => {
+                            setBillingData({ ...billingData, postcode: e.target.value })
+                            const pc = parseInt(e.target.value)
+                            if (e.target.value && (isNaN(pc) || pc < 3000 || pc > 3207)) {
+                              setPostcodeError("Sorry, this delivery address is outside our service area. Please call us on 1300 827 286 with our staff to discuss any available options.")
+                            } else {
+                              setPostcodeError("")
+                            }
+                          }}
                           required
+                          className={postcodeError ? "border-red-500" : ""}
                         />
+                        {postcodeError && (
+                          <p className="text-red-500 text-xs mt-1 font-medium leading-tight">
+                            {postcodeError}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -692,114 +735,259 @@ export default function CheckoutPage() {
 
 
 
-                {/* Repeat Order / Subscription */}
+                {/* Purchase Options */}
                 <Card className="border-[#F2CACA] bg-white">
                   <CardContent className="pt-6">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Checkbox
-                        id="repeat-order"
-                        checked={isSubscription}
-                        onCheckedChange={(checked) => setIsSubscription(checked as boolean)}
-                      />
-                      <Label
-                        htmlFor="repeat-order"
-                        className="text-lg font-bold text-[#E03A3E] cursor-pointer"
-                      >
-                        Repeat this order?
-                      </Label>
+                    {/* Delivery Window Banner */}
+                    <div className="mb-6 p-4 bg-[#E0F7FA] border border-[#B2EBF2] rounded-lg">
+                      <p className="text-sm text-[#006064] leading-relaxed">
+                        Please note all deliveries will have an 1 hour window. For example if the selected delivery time is 10:00am, your delivery window will be between 9:00AM - 10:00AM.
+                      </p>
                     </div>
 
-                    {isSubscription && (
+                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Purchase Options</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <button
+                        type="button"
+                        onClick={() => setIsSubscription(false)}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                          !isSubscription 
+                            ? "border-[#E03A3E] bg-[#F1F8E9] text-black" 
+                            : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
+                        }`}
+                      >
+                        <span className="font-bold">One-Off Purchases</span>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${!isSubscription ? "bg-[#E03A3E] text-white" : "border-2 border-gray-300 bg-white"}`}>
+                          {!isSubscription ? <Check className="w-4 h-4" /> : null}
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsSubscription(true)}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                          isSubscription 
+                            ? "border-[#E03A3E] bg-white text-black" 
+                            : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
+                        }`}
+                      >
+                        <span className="font-bold">Create Subscription</span>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isSubscription ? "bg-[#E03A3E] text-white" : "border-2 border-gray-300 bg-white"}`}>
+                          {isSubscription ? <Check className="w-4 h-4" /> : null}
+                        </div>
+                      </button>
+                    </div>
+
+                    {!isSubscription ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div>
-                          <Label htmlFor="frequency" className="text-black mb-2 block">Delivery Frequency</Label>
+                          <Label htmlFor="delivery-date" className="text-black mb-2 block">Delivery date</Label>
+                          <Input
+                            id="delivery-date"
+                            type="date"
+                            value={deliveryDate}
+                            onChange={(e) => setDeliveryDate(e.target.value)}
+                            min={new Date().toISOString().split("T")[0]}
+                            required={!isSubscription}
+                            className="bg-white border-gray-300 text-gray-900"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="delivery-time" className="text-black mb-2 block">Time</Label>
+                          <Select
+                            value={deliveryTime}
+                            onValueChange={setDeliveryTime}
+                            required={!isSubscription}
+                          >
+                            <SelectTrigger id="delivery-time" className="bg-white border-gray-300 text-gray-900">
+                              <SelectValue placeholder="Add Time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 18 * 4 }).map((_, i) => {
+                                const hour = Math.floor(i / 4) + 6
+                                const minute = (i % 4) * 15
+                                const h = hour > 12 ? hour - 12 : hour
+                                const m = minute === 0 ? "00" : minute
+                                const ampm = hour >= 12 ? "PM" : "AM"
+                                const timeStr = `${h}:${m} ${ampm}`
+                                return (
+                                  <SelectItem key={i} value={timeStr}>
+                                    {timeStr}
+                                  </SelectItem>
+                                )
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div>
+                          <Label htmlFor="frequency" className="text-[#004D40] font-bold text-lg mb-2 block">Choose your subscription</Label>
                           <Select
                             value={subscriptionFrequency}
                             onValueChange={setSubscriptionFrequency}
                           >
-                            <SelectTrigger id="frequency" className="bg-white border-gray-300 text-gray-900">
-                              <SelectValue placeholder="Select Frequency" />
+                            <SelectTrigger id="frequency" className="bg-white border-gray-300 text-gray-900 h-12">
+                              <SelectValue placeholder="Once a week" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Every 1 Week">Every 1 Week</SelectItem>
+                              <SelectItem value="Once a week">Once a week</SelectItem>
                               <SelectItem value="Every 2 Weeks">Every 2 Weeks</SelectItem>
                               <SelectItem value="Every 3 Weeks">Every 3 Weeks</SelectItem>
                               <SelectItem value="Every 4 Weeks">Every 4 Weeks</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        <div>
-                          <Label htmlFor="start-date" className="text-black mb-2 block">Start Date</Label>
-                          <Input
-                            id="start-date"
-                            type="date"
-                            value={subscriptionStartDate}
-                            onChange={(e) => setSubscriptionStartDate(e.target.value)}
-                            min={new Date().toISOString().split("T")[0]}
-                            className="bg-white border-gray-300 text-gray-900"
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="start-date" className="text-[#004D40] font-bold text-lg mb-2 block">First Delivery Date</Label>
+                            <Input
+                              id="start-date"
+                              type="date"
+                              value={subscriptionStartDate}
+                              onChange={(e) => setSubscriptionStartDate(e.target.value)}
+                              min={new Date().toISOString().split("T")[0]}
+                              className="bg-white border-gray-300 text-gray-900 h-10"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="sub-time" className="text-[#004D40] font-bold text-lg mb-2 block">Time</Label>
+                            <Select
+                              value={deliveryTime}
+                              onValueChange={setDeliveryTime}
+                            >
+                              <SelectTrigger id="sub-time" className="bg-white border-gray-300 text-gray-900 h-10">
+                                <SelectValue placeholder="Add Time" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 18 * 4 }).map((_, i) => {
+                                  const hour = Math.floor(i / 4) + 6
+                                  const minute = (i % 4) * 15
+                                  const h = hour > 12 ? hour - 12 : hour
+                                  const m = minute === 0 ? "00" : minute
+                                  const ampm = hour >= 12 ? "PM" : "AM"
+                                  const timeStr = `${h}:${m} ${ampm}`
+                                  return (
+                                    <SelectItem key={i} value={timeStr}>
+                                      {timeStr}
+                                    </SelectItem>
+                                  )
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </div>
                     )}
                   </CardContent>
                 </Card>
 
-                {/* Delivery Notes */}
-                <Card className="border-[#F2CACA] bg-white">
+                {/* Items Table - Moved from right column to match screenshot */}
+                <Card className="border-[#F2CACA] bg-white text-black overflow-hidden">
                   <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Delivery Notes</h2>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="delivery-notes" className="text-black">Delivery Notes (Optional)</Label>
-                        <Textarea
-                          id="delivery-notes"
-                          value={deliveryNotes}
-                          onChange={(e) => setDeliveryNotes(e.target.value)}
-                          placeholder="Add any special delivery instructions..."
-                          rows={4}
-                          className="mt-2"
-                        />
-                      </div>
-                      {/* <div>
-                        <Label htmlFor="delivery-notes-image" className="text-black">Attach Image (Optional)</Label>
-                        <div className="mt-2">
-                          {deliveryNotesImagePreview ? (
-                            <div className="relative inline-block">
-                              <img
-                                src={deliveryNotesImagePreview}
-                                alt="Delivery notes preview"
-                                className="max-w-full h-48 object-contain border rounded"
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={removeImage}
-                                className="absolute top-2 right-2 bg-white/90 hover:bg-white"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <Upload className="w-8 h-8 mb-2 text-gray-500" />
-                                <p className="mb-2 text-sm text-gray-500">
-                                  <span className="font-semibold">Click to upload</span> or drag and drop
-                                </p>
-                                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                              </div>
-                              <input
-                                id="delivery-notes-image"
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                              />
-                            </label>
-                          )}
-                        </div>
-                      </div> */}
+                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Order Summary</h2>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-[#F2CACA] text-left text-xs uppercase tracking-wider text-gray-500">
+                            <th className="pb-3 pr-4 font-semibold w-[120px]">Time</th>
+                            <th className="pb-3 pr-4 font-semibold">Product</th>
+                            <th className="pb-3 pr-4 font-semibold text-right w-[80px]">Price</th>
+                            <th className="pb-3 pr-4 font-semibold text-center w-[120px]">Quantity</th>
+                            <th className="pb-3 pr-4 font-semibold text-right w-[100px]">Total</th>
+                            <th className="pb-3 font-semibold text-right w-[100px]">Tax (Excl.)</th>
+                            <th className="pb-3 pl-4 w-[40px]"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#F2CACA]">
+                          {items.map((item) => {
+                            const cartItemId = item.cart_item_id || generateCartItemId(item.product_id, item.options)
+                            const itemPrice = getItemPrice(item)
+                            const itemTotal = itemPrice * item.quantity
+                            const itemTax = itemTotal * 0.1 // 10% GST
+
+                            return (
+                              <tr key={cartItemId} className="text-sm">
+                                <td className="py-4 pr-4">
+                                  <Select
+                                    value={item.delivery_time || deliveryTime}
+                                    onValueChange={(val) => {
+                                      updateItemData(cartItemId, { delivery_time: val })
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-[110px] bg-white border-gray-200">
+                                      <SelectValue placeholder="Time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Array.from({ length: 18 * 4 }).map((_, i) => {
+                                        const hour = Math.floor(i / 4) + 6
+                                        const minute = (i % 4) * 15
+                                        const h = hour > 12 ? hour - 12 : hour
+                                        const m = minute === 0 ? "00" : minute
+                                        const ampm = hour >= 12 ? "PM" : "AM"
+                                        const timeStr = `${h}:${m} ${ampm}`
+                                        return <SelectItem key={i} value={timeStr}>{timeStr}</SelectItem>
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="py-4 pr-4 min-w-[250px]">
+                                  <div className="flex items-center gap-3">
+                                    <div className="relative w-12 h-12 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-100">
+                                      {item.product_image ? (
+                                        <Image src={item.product_image} alt={item.product_name} fill className="object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No Pic</div>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-[#1A237E] leading-tight text-sm">{item.product_name}</div>
+                                      {item.options?.map((opt, idx) => (
+                                        <div key={idx} className="text-[10px] text-gray-500">
+                                          {opt.option_name}: {opt.option_value}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 pr-4 text-right font-medium text-gray-900">${itemPrice.toFixed(2)}</td>
+                                <td className="py-4 pr-4">
+                                  <div className="flex items-center justify-center gap-3">
+                                    <button 
+                                      onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
+                                      className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
+                                    >
+                                      <Minus className="w-3 h-3" />
+                                    </button>
+                                    <span className="font-bold min-w-[20px] text-center text-sm">{item.quantity}</span>
+                                    <button 
+                                      onClick={() => updateQuantity(cartItemId, item.quantity + 1)}
+                                      className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
+                                    >
+                                      <Plus className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="py-4 pr-4 text-right font-bold text-gray-900">${itemTotal.toFixed(2)}</td>
+                                <td className="py-4 text-right text-gray-500">${itemTax.toFixed(2)}</td>
+                                <td className="py-4 pl-4 text-right">
+                                  <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      removeItem(cartItemId);
+                                    }}
+                                    className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                                    title="Remove item"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </CardContent>
                 </Card>
@@ -812,88 +1000,10 @@ export default function CheckoutPage() {
 
                     <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">
                       Order Summary
-                    </h2>
+                    </h2>                    <div className="h-2 w-full" />
 
-                    {/* Cart Items */}
                     <div className="space-y-4 mb-6">
-                      {items.map((item) => {
-                        const cartItemId =
-                          item.cart_item_id ||
-                          generateCartItemId(item.product_id, item.options)
-                        const itemPrice = getItemPrice(item)
-
-                        return (
-                          <div key={cartItemId} className="flex gap-4 pb-4 border-b border-[#F2CACA]">
-                            <div className="relative w-20 h-20 bg-gray-100 rounded flex-shrink-0">
-                              {item.product_image ? (
-                                <Image
-                                  src={item.product_image}
-                                  alt={item.product_name}
-                                  fill
-                                  className="object-cover rounded"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                                  No Image
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex-1 text-black">
-                              <h3 className="font-semibold text-sm mb-1 text-black">
-                                {item.product_name}
-                              </h3>
-
-                              <div className="flex items-center justify-between mt-1 mb-2">
-                                <span className="text-sm text-gray-700">Qty: {item.quantity}</span>
-                                <span className="font-semibold text-sm text-black">
-                                  ${(itemPrice * item.quantity).toFixed(2)}
-                                </span>
-                              </div>
-
-                              {/* Display Options & Frequency (Add-ons) */}
-                              {(item.options && item.options.length > 0 || item.delivery_frequency && item.delivery_frequency !== "One Time") && (
-                                <div className="mb-2 space-y-1">
-                                  {item.options?.length ? (
-                                    <div className="text-xs font-semibold text-gray-800 mb-1">Add-ons:</div>
-                                  ) : null}
-                                  {item.options?.map((opt, idx) => (
-                                    <div key={idx} className="text-xs text-gray-600 flex justify-between ml-2 border-l-2 border-gray-200 pl-2">
-                                      <span>{opt.option_name}: {opt.option_value}</span>
-                                      {parseFloat(opt.option_price) > 0 && (
-                                        <span>({opt.option_price_prefix}${parseFloat(opt.option_price).toFixed(2)})</span>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-
-                              {item.item_comments && (
-                                <div className="mt-2 text-xs italic text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
-                                  "{item.item_comments}"
-                                </div>
-                              )}
-
-                              <div className="flex justify-end mt-2">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeItem(cartItemId)}
-                                  className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" /> Remove
-                                </Button>
-                              </div>
-                            </div>
-
-
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {/* Coupon Code Section */}
+    {/* Coupon Code Section */}
                     <div className="mb-6">
                       <Label className="mb-2 block text-gray-900">Coupon Code</Label>
                       <div className="flex gap-2 mb-2">
@@ -1037,13 +1147,10 @@ export default function CheckoutPage() {
                         <span>Includes GST (10%)</span>
                         <span>${mounted ? totals.gst.toFixed(2) : '0.00'}</span>
                       </div>
-
-
                     </div>
+                  </div>
 
-
-
-                    <div className="flex justify-between text-lg font-bold mb-6 pt-6 border-t border-[#F2CACA] text-black">
+                  <div className="flex justify-between text-lg font-bold mb-6 pt-6 border-t border-[#F2CACA] text-black">
                       <span>Total</span>
                       <span>${mounted ? totals.total.toFixed(2) : '0.00'}</span>
                     </div>

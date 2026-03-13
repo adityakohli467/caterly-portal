@@ -17,6 +17,7 @@ interface OrderItem {
     total: string
     delivery_frequency?: string
     options?: any[] | string
+    item_comments?: string
 }
 
 interface Order {
@@ -213,6 +214,14 @@ export default function InvoicePage() {
                                                             Delivery: {item.delivery_frequency}
                                                         </span>
                                                     )}
+                                                </div>
+                                            )}
+
+                                            {item.item_comments && (
+                                                <div className="mt-2">
+                                                    <span className="block text-gray-600 text-xs italic font-medium bg-gray-50 p-1.5 rounded">
+                                                        Item Comment: {item.item_comments}
+                                                    </span>
                                                 </div>
                                             )}
                                         </td>
