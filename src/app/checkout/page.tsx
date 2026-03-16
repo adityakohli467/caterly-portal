@@ -955,6 +955,7 @@ export default function CheckoutPage() {
                                 <td className="py-4 pr-4">
                                   <div className="flex items-center justify-center gap-3">
                                     <button 
+                                      type="button"
                                       onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
                                       className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
                                     >
@@ -962,6 +963,7 @@ export default function CheckoutPage() {
                                     </button>
                                     <span className="font-bold min-w-[20px] text-center text-sm">{item.quantity}</span>
                                     <button 
+                                      type="button"
                                       onClick={() => updateQuantity(cartItemId, item.quantity + 1)}
                                       className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
                                     >
@@ -973,10 +975,8 @@ export default function CheckoutPage() {
                                 <td className="py-4 text-right text-gray-500">${itemTax.toFixed(2)}</td>
                                 <td className="py-4 pl-4 text-right">
                                   <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      removeItem(cartItemId);
-                                    }}
+                                    type="button"
+                                    onClick={() => removeItem(cartItemId)}
                                     className="text-gray-300 hover:text-red-500 transition-colors p-1"
                                     title="Remove item"
                                   >
