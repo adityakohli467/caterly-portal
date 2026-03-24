@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuthStore } from "@/store/auth"
 import { useCartStore } from "@/store/cart"
 import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu"
@@ -9,12 +9,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { Menu, X, User, ShoppingCart, LogOut, UserCircle } from "lucide-react"
 import { useQuoteModalStore } from "@/store/quote-modal"
+import { useAuthModalStore } from "@/store/auth-modal"
 
 export function Header() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const { user, isAuthenticated, logout } = useAuthStore()
   const openQuoteModal = useQuoteModalStore((s) => s.open)
+  const openAuthModal = useAuthModalStore((s) => s.openModal)
 
   const handleLogout = () => {
     logout()
@@ -36,9 +39,9 @@ export function Header() {
               <Image
                 src="/assets/images/cat.svg"
                 alt="Caterly Logo"
-                width={140}
-                height={48}
-                className="object-contain max-h-[48px]"
+                width={200}
+                height={60}
+                className="object-contain h-[50px] md:h-[60px] lg:h-[70px] w-auto"
                 priority
               />
             </Link>
@@ -105,6 +108,13 @@ export function Header() {
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenu>
+              ) : pathname === '/checkout' ? (
+                <button
+                  onClick={() => openAuthModal('login')}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                >
+                  <User className="w-6 h-6 text-[#E03A3E]" />
+                </button>
               ) : (
                 <Link
                   href="/auth/login"
@@ -214,6 +224,17 @@ export function Header() {
                     Logout
                   </button>
                 </div>
+              ) : pathname === '/checkout' ? (
+                <button
+                  onClick={() => {
+                    openAuthModal('login')
+                    setOpen(false)
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <User className="w-5 h-5 text-[#E03A3E]" />
+                  Login
+                </button>
               ) : (
                 <Link
                   href="/auth/login"

@@ -153,47 +153,14 @@ function ProductDetailContent({
       // Initialise quantity to min_quantity (if set and > 1)
       const minQty = prod?.min_quantity ? Math.max(1, parseInt(String(prod.min_quantity))) : 1;
       setQuantity(minQty);
-      // Log options/values for debugging
       if (prod?.options?.length) {
-        const defaults: Record<number, number> = {};
-        const checkboxDefaults: Record<number, number[]> = {};
-
-        // Debug log all options
+        // Log options for debugging, no pre-selection
         prod.options.forEach((opt: any) => {
           console.log(
             `OPTION [${opt.option_id}] "${opt.option_name}" type="${opt.option_type}" values(${opt.values?.length ?? 0}):`,
             opt.values
           );
         });
-
-        // ONLY pre-select the first (top) option value of the FIRST option group
-        const firstOpt = prod.options[0];
-        const values = Array.isArray(firstOpt?.values) ? firstOpt.values : [];
-
-        if (values.length > 0) {
-          const rawType = (firstOpt.option_type || "").toLowerCase().trim();
-          const optionType =
-            rawType === "radio" || rawType === "radio_button"
-              ? "radio"
-              : rawType === "checkbox" || rawType === "check" || rawType === "check_button"
-                ? "checkbox"
-                : rawType === "dropdown" || rawType === "select" || rawType === "select_box"
-                  ? "dropdown"
-                  : "radio";
-
-          if (optionType === "checkbox") {
-            checkboxDefaults[firstOpt.option_id] = [values[0].option_value_id];
-          } else if (optionType === "radio" || optionType === "dropdown") {
-            defaults[firstOpt.option_id] = values[0].option_value_id;
-          }
-        }
-
-        if (Object.keys(defaults).length > 0) {
-          setSelectedOptions(defaults);
-        }
-        if (Object.keys(checkboxDefaults).length > 0) {
-          setSelectedCheckboxOptions(checkboxDefaults);
-        }
       }
       // Reset to first image when product changes
       setSelectedImageIndex(0);
@@ -762,7 +729,16 @@ function ProductDetailContent({
                         value.has_discount && value.discounted_option_price
                           ? value.discounted_option_price
                           : Number.parseFloat(value.product_option_price || "0");
-                      return displayPrice > 0 ? ` (+$${displayPrice.toFixed(2)})` : "";
+                      
+                      if (displayPrice <= 0) return "";
+                      
+                      const priceStr = `$${displayPrice.toFixed(2)}`;
+                      // If the label already contains the price string, don't show the suffix
+                      if (value.option_value && value.option_value.includes(priceStr)) {
+                        return "";
+                      }
+                      
+                      return ` (+${priceStr})`;
                     };
 
                     const values: any[] = Array.isArray(option.values) ? option.values : [];
@@ -940,16 +916,16 @@ function ProductDetailContent({
                 </div>
               </div>
 
-              {product && (
+              {/* {product && (
                 <div className="flex items-center justify-between mb-6 text-lg font-bold">
                   <span className="text-black">Subtotal</span>
                   <span>${calculateSubtotal()}</span>
                 </div>
-              )}
+              )} */}
 
               <div className="mb-6">
                 <label className="text-sm font-bold text-black block mb-2">
-                  Special instructions or comments
+                  Special Instructions or Comments
                 </label>
                 <textarea
                   placeholder="Enter any specific requests for this item..."

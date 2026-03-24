@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/footer"
 import { SessionManager } from "@/components/session-manager"
 import { Toaster } from "sonner"
 import { RequestAQuoteModal } from "@/components/request-a-quote-modal"
+import { AuthModal } from "@/components/auth/AuthModal"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -44,6 +45,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <RequestAQuoteModal />
+          <AuthModal />
           <Toaster
             position="top-right"
             richColors

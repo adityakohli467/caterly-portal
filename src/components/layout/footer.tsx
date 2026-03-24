@@ -208,7 +208,7 @@ export function Footer() {
 
   <span className="text-sm mr-2">We Accept</span>
 
-  <FaCcAmex size={32} />
+  {/* <FaCcAmex size={32} /> */}
   <FaCcMastercard size={32} />
   <FaCcVisa size={32} />
 

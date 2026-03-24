@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/auth"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { ArrowLeft, Package, MapPin, FileText } from "lucide-react"
+import { ArrowLeft, Package, MapPin, FileText, CheckCircle2, XCircle, Clock } from "lucide-react"
+import { PaymentModal } from "@/components/checkout/PaymentModal"
+import { getProductImageUrl } from "@/lib/product-utils"
 
 interface OrderItem {
   product_id: number
@@ -45,10 +47,11 @@ export default function OrderDetailPage() {
   const router = useRouter()
   const params = useParams()
   const orderId = params?.id as string
-  const { checkAuth } = useAuthStore()
+  const { checkAuth, user } = useAuthStore()
 
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -88,6 +91,32 @@ export default function OrderDetailPage() {
 
   if (!order) return null
 
+  const getStatusDisplay = () => {
+    switch (order.order_status) {
+      case 2:
+        return { 
+          text: "Paid", 
+          color: "text-green-600 bg-green-50 border-green-200", 
+          icon: <CheckCircle2 className="h-4 w-4" /> 
+        }
+      case 0:
+        return { 
+          text: "Cancelled", 
+          color: "text-red-600 bg-red-50 border-red-200", 
+          icon: <XCircle className="h-4 w-4" /> 
+        }
+      case 1:
+      default:
+        return { 
+          text: "Payment Pending", 
+          color: "text-[#E03A3E] bg-red-50 border-[#F2CACA]", 
+          icon: <Clock className="h-4 w-4" /> 
+        }
+    }
+  }
+
+  const status = getStatusDisplay()
+
   const parseP = (v: any) => parseFloat(String(v || "0").replace(/[^\d.-]/g, "")) || 0
 
   // Recalculate true subtotal from items since API might return inflated item totals
@@ -124,7 +153,7 @@ export default function OrderDetailPage() {
           <Button
             variant="outline"
             onClick={() => window.open(`/orders/${order.order_id}/invoice`, "_blank")}
-            className="border-[#E03A3E] text-[#E03A3E] hover:bg-[#ffebeb]"
+            className="border-gray-300 text-white bg-[#E03A3E] hover:bg-[#cc3236]"
           >
             <FileText className="h-4 w-4 mr-2" />
             View Invoice
@@ -133,7 +162,10 @@ export default function OrderDetailPage() {
 
         {/* Header */}
         <h1 className="text-3xl font-bold text-black">Order #{order.order_id}</h1>
-        <p className="mt-2 font-semibold text-[#E03A3E]">Payment Pending</p>
+        <div className={`mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-bold ${status.color}`}>
+          {status.icon}
+          {status.text}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
 
@@ -256,17 +288,38 @@ export default function OrderDetailPage() {
                 <span>${total.toFixed(2)}</span>
               </div>
 
-              <Button
-                onClick={() => router.push(`/payment?order_id=${order.order_id}`)}
-                className="w-full mt-2 bg-[#E03A3E] hover:bg-[#cc3236] text-white"
-              >
-                Make Payment
-              </Button>
+              {Number(order.order_status) !== 2 && Number(order.order_status) !== 0 && (
+                <Button
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="w-full mt-2 bg-[#E03A3E] hover:bg-[#cc3236] text-white font-bold py-5"
+                >
+                  Make Payment
+                </Button>
+              )}
             </CardContent>
           </Card>
 
         </div>
       </div>
+
+      {order && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          orderId={order.order_id}
+          orderTotal={total}
+          customerName={user?.username || order.delivery_email}
+          items={order.items?.map(item => ({
+            product_name: item.product_name,
+            quantity: item.quantity,
+            price: parseP(item.price)
+          })) || []}
+          onSuccess={() => {
+            fetchOrder()
+            // Keep modal open to show success state, but clear cart is not needed here
+          }}
+        />
+      )}
     </div>
   )
 }
