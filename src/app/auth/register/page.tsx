@@ -134,7 +134,7 @@ function RegisterPageContent() {
       <div className="lg:hidden px-4 pt-6">
         <div className="relative h-[180px] rounded-[16px] overflow-hidden">
           <img
-            src="/assets/images/log.png"
+            src="/assets/images/c28.jpg"
             className="absolute inset-0 w-full h-full object-cover"
             alt="Caterly banner"
           />
@@ -151,7 +151,7 @@ function RegisterPageContent() {
       {/* ================= DESKTOP LEFT ================= */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <Image
-          src="/assets/images/log.png"
+          src="/assets/images/c28.jpg"
           alt="Caterly background"
           fill
           className="object-cover"

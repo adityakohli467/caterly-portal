@@ -109,64 +109,68 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 1. HERO SECTION */}
       {/* ================================================= */}
-      <section className="relative w-full h-[500px] md:h-[788px] overflow-hidden bg-white">
+<section className="relative w-full h-[320px] md:h-[500px] lg:h-[650px] overflow-hidden">
 
-        {/* BACKGROUND IMAGE */}
-       <video
-  autoPlay
-  loop
-  muted
-  playsInline
-  className="absolute inset-0 w-full h-full object-cover"
->
-  <source src="/assets/video/bannervideoCaterly.mp4" type="video/mp4" />
-</video>
+  {/* BACKGROUND VIDEO */}
+  <video
+    autoPlay
+    loop
+    muted
+    playsInline
+    className="absolute inset-0 w-full h-full object-cover"
+  >
+    <source src="/assets/video/bannervideoCaterly.mp4" type="video/mp4" />
+  </video>
 
-        {/* CONTENT */}
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="flex flex-col items-center text-center max-w-[900px] px-4 md:px-6 gap-4 md:gap-[24px]">
+  {/* DARK OVERLAY */}
+  <div className="absolute inset-0 bg-black/50"></div>
 
-            {/* HEADING */}
-            <h1 className="text-[32px] md:text-[56px] leading-[1.2] font-semibold text-white">
-              Crafting{" "}
-              <span className="text-[#E03A3E] italic font-semibold">
-                unforgettable
-              </span>
-              <br />
-              event experiences.
-            </h1>
+  {/* CONTENT */}
+  <div className="relative z-10 h-full flex items-center justify-center">
+    <div className="flex flex-col items-center text-center max-w-[900px] px-4 md:px-6 gap-4 md:gap-6">
 
-            {/* SUBTEXT */}
-            {/* <p className="text-[14px] md:text-[16px] text-[#fff] max-w-[620px] px-4">
-              Elevating every event with refined flavors, flawless presentation,
-              and enduring impressions.
-            </p> */}
+      {/* HEADING */}
+      <h1 className="text-[28px] md:text-[44px] lg:text-[56px] leading-tight font-semibold text-white">
+        Crafting{" "}
+        <span className="text-[#E03A3E] italic">
+          unforgettable
+        </span>
+        <br />
+        event experiences.
+      </h1>
 
-            {/* BUTTONS */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-2 w-full sm:w-auto px-4">
-              <button
-                onClick={openQuoteModal}
-                className="
-              bg-[#E03A3E]
-              hover:bg-[#cc3236]
-              text-white
-              px-6
-              py-3
-              rounded-md
-              text-sm
-              font-semibold
-              w-full sm:w-auto
-            "
-              >
-                Book Now
-              </button>
+      {/* SUBTEXT */}
+      <p className="text-[13px] md:text-[16px] text-gray-200 max-w-[620px]">
+        Elevating every event with refined flavors, flawless presentation,
+        and lasting impressions.
+      </p>
 
-              <Link href="/shop" passHref legacyBehavior>
-                <button
-                  className="
+      {/* BUTTONS */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-3 w-full sm:w-auto">
+
+        <button
+          onClick={openQuoteModal}
+          className="
+            bg-[#E03A3E]
+            hover:bg-[#cc3236]
+            text-white
+            px-6
+            py-3
+            rounded-md
+            text-sm
+            font-semibold
+            w-full sm:w-auto
+            transition
+          "
+        >
+          Book Now
+        </button>
+
+        <Link href="/shop">
+          <button
+            className="
               bg-white
-              border
-              border-[#E6E6E6]
+              border border-[#E6E6E6]
               hover:bg-gray-100
               text-black
               px-6
@@ -174,18 +178,19 @@ export default function HomePage() {
               rounded-md
               text-sm
               font-semibold
-              cursor-pointer
               w-full sm:w-auto
+              transition
             "
-                >
-                  View Menu
-                </button>
-              </Link>
-            </div>
+          >
+            View Menu
+          </button>
+        </Link>
 
-          </div>
-        </div>
-      </section>
+      </div>
+
+    </div>
+  </div>
+</section>
 
 
 
@@ -198,7 +203,7 @@ export default function HomePage() {
           {/* SECTION HEADER */}
           <div className="text-center mb-12 md:mb-20">
             <h2 className="text-[24px] md:text-[32px] font-semibold text-black mb-3 md:mb-4">
-              Our Services
+              Private events
             </h2>
             <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto px-4">
               Complete Event Solutions Made Simple
@@ -449,136 +454,96 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 5. EXPERIENCE SECTION */}
       {/* ================================================= */}
-      <section className="bg-white py-12 md:py-[120px]">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
+ <section className="bg-white py-12 md:py-[120px]">
+  <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
 
-          {/* HEADER */}
-          <div className="text-center mb-12 md:mb-[80px]">
-            <h2 className="text-[28px] md:text-[36px] font-semibold text-black mb-3 md:mb-4">
-              Why Choose Us
-            </h2>
-            <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto px-4">
-              Freshly Prepared. Perfectly Delivered. 
-            </p>
-          </div>
+    {/* HEADER */}
+    <div className="text-center mb-12 md:mb-[80px]">
+      <h2 className="text-[28px] md:text-[36px] font-semibold text-black mb-3 md:mb-4">
+        Why Choose Us
+      </h2>
+      <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto px-4">
+        Freshly Prepared. Perfectly Delivered.
+      </p>
+    </div>
 
-          {/* FEATURES */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-center">
+    {/* FEATURES */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-center">
 
-            {/* ITEM 1 - Fresh Ingredients */}
-            <div className="flex flex-col items-center">
-              <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
-                {/* Leaf / Fresh Icon */}
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#2F5BFF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M11 20A7 7 0 0 1 9 6c0-3 5-3 5-6 0 0 5 4 5 10a7 7 0 0 1-8 7z" />
-                  <path d="M12 20v-8" />
-                </svg>
-              </div>
-              <h3 className="text-[18px] font-semibold text-black mb-2">
-                Fresh Ingredients
-              </h3>
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
-                We use high-quality, fresh ingredients to prepare every dish, ensuring great taste and consistent quality for every event.
-              </p>
-            </div>
-
-            {/* ITEM 2 - Tailored Catering Menus */}
-            <div className="flex flex-col items-center">
-              <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
-                {/* Menu / List Icon */}
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#2F5BFF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="8" y1="6" x2="21" y2="6" />
-                  <line x1="8" y1="12" x2="21" y2="12" />
-                  <line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" />
-                  <line x1="3" y1="12" x2="3.01" y2="12" />
-                  <line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-              </div>
-              <h3 className="text-[18px] font-semibold text-black mb-2">
-                Tailored Catering Menus
-              </h3>
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
-                Our menus are flexible and customised to suit offices, corporate meetings, private events, and special occasions.
-              </p>
-            </div>
-
-            {/* ITEM 3 - Reliable & On-Time Delivery */}
-            <div className="flex flex-col items-center">
-              <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
-                {/* Truck Icon */}
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#2F5BFF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="1" y="3" width="15" height="13" />
-                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                  <circle cx="5.5" cy="18.5" r="2.5" />
-                  <circle cx="18.5" cy="18.5" r="2.5" />
-                </svg>
-              </div>
-              <h3 className="text-[18px] font-semibold text-black mb-2">
-                Reliable &amp; On-Time Delivery
-              </h3>
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
-                We understand the importance of timing and ensure your catering arrives fresh and exactly when you need it.
-              </p>
-            </div>
-
-            {/* ITEM 4 - Professional Presentation */}
-            <div className="flex flex-col items-center">
-              <div className="w-[64px] h-[64px] rounded-full bg-[#EEF3FF] flex items-center justify-center mb-6">
-                {/* Star / Award Icon */}
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#2F5BFF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="8" r="6" />
-                  <path d="M9 21l3-3 3 3" />
-                  <path d="M12 15v6" />
-                </svg>
-              </div>
-              <h3 className="text-[18px] font-semibold text-black mb-2">
-                Professional Presentation
-              </h3>
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
-                Every platter and package is prepared and presented professionally to elevate your event experience.
-              </p>
-            </div>
-
-          </div>
+      {/* ITEM 1 */}
+      <div className="flex flex-col items-center">
+        <div className="w-[64px] h-[64px] rounded-full bg-[#FFECEC] flex items-center justify-center mb-6">
+          {/* Fresh / Leaf */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E03A3E" strokeWidth="2">
+            <path d="M5 21c10 0 14-10 14-14C9 7 5 11 5 21z" />
+            <path d="M5 21c0-6 6-12 14-14" />
+          </svg>
         </div>
-      </section>
+        <h3 className="text-[18px] font-semibold text-black mb-2">
+          Fresh Ingredients
+        </h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+          We use high-quality, fresh ingredients to prepare every dish, ensuring great taste and consistent quality for every event.
+        </p>
+      </div>
+
+      {/* ITEM 2 */}
+      <div className="flex flex-col items-center">
+        <div className="w-[64px] h-[64px] rounded-full bg-[#FFECEC] flex items-center justify-center mb-6">
+          {/* Menu */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E03A3E" strokeWidth="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <line x1="8" y1="8" x2="16" y2="8" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+            <line x1="8" y1="16" x2="13" y2="16" />
+          </svg>
+        </div>
+        <h3 className="text-[18px] font-semibold text-black mb-2">
+          Tailored Catering Menus
+        </h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+          Our menus are flexible and customised to suit offices, corporate meetings, private events, and special occasions.
+        </p>
+      </div>
+
+      {/* ITEM 3 */}
+      <div className="flex flex-col items-center">
+        <div className="w-[64px] h-[64px] rounded-full bg-[#FFECEC] flex items-center justify-center mb-6">
+          {/* Delivery */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E03A3E" strokeWidth="2">
+            <rect x="1" y="3" width="15" height="13" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
+        </div>
+        <h3 className="text-[18px] font-semibold text-black mb-2">
+          Reliable &amp; On-Time Delivery
+        </h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+          We ensure your catering arrives fresh and exactly when you need it, every single time.
+        </p>
+      </div>
+
+      {/* ITEM 4 */}
+      <div className="flex flex-col items-center">
+        <div className="w-[64px] h-[64px] rounded-full bg-[#FFECEC] flex items-center justify-center mb-6">
+          {/* Presentation */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E03A3E" strokeWidth="2">
+            <path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4.5L5.5 20l2-7L2 9h7z" />
+          </svg>
+        </div>
+        <h3 className="text-[18px] font-semibold text-black mb-2">
+          Professional Presentation
+        </h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed max-w-[240px]">
+          Every dish is presented with attention to detail, enhancing the overall experience of your event.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
 
 
       {/* ================================================= */}

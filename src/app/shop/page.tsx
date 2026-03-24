@@ -71,7 +71,18 @@ function ShopPageContent() {
   const fetchCategories = async () => {
     try {
       const res = await api.get("/store/products/categories")
-      setCategories(res.data.categories || [])
+      const cats = res.data.categories || []
+      setCategories(cats)
+      
+      // Auto-select "Breakfast" if no category is currently selected in URL or state
+      if (!selectedCategory && cats.length > 0) {
+        const breakfast = cats.find((c: Category) => 
+          c.category_name?.toLowerCase().includes("breakfast")
+        )
+        if (breakfast) {
+          setSelectedCategory(breakfast.category_id)
+        }
+      }
     } catch (err) {
       console.error("Failed to fetch categories", err)
     }
@@ -143,12 +154,16 @@ function ShopPageContent() {
         ))
       )
 
-      // If client filter results in products, use them. Otherwise, if API returned anything, trust it might be correct.
-      if (filtered.length > 0) {
-        setProducts(filtered)
-      } else {
-        setProducts(apiProducts)
-      }
+      // Combine and filter if needed, then sort by price low-to-high
+      let results = filtered.length > 0 ? filtered : apiProducts
+      
+      results = results.sort((a, b) => {
+        const priceA = parseFloat(a.product_price) || 0
+        const priceB = parseFloat(b.product_price) || 0
+        return priceA - priceB
+      })
+
+      setProducts(results)
 
     } catch (err) {
       console.error("Failed to fetch products", err)
@@ -231,11 +246,11 @@ function ShopPageContent() {
         className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer flex flex-col"
       >
         <div className="relative w-full bg-gray-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
-          <img
-            src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
-            alt={product.product_name}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-          />
+            <img
+              src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
+              alt={product.product_name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
         </div>
         <div className="p-4 flex flex-col flex-1">
           <h3 className="font-semibold text-gray-900 text-base leading-snug flex-1 mb-2">
@@ -267,9 +282,14 @@ function ShopPageContent() {
     <div className="bg-white min-h-screen">
 
       {/* HEADER */}
-      <section className="w-full bg-white border-b">
-        <div className="container mx-auto px-4 py-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Our Catering Services</h1>
+      <section className="bg-white py-12 md:py-16 border-b border-gray-100">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-[28px] md:text-[36px] font-bold text-primary mb-3 md:mb-4">
+            Our Catering Services
+          </h1>
+          <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto px-4">
+            Freshly prepared catering packages for every occasion, delivered to your door.
+          </p>
         </div>
       </section>
 
@@ -279,7 +299,7 @@ function ShopPageContent() {
 
             {/* LEFT SIDEBAR */}
             <aside className="lg:col-span-1">
-              <div className="sticky top-24 space-y-6">
+              <div className="sticky top-24 space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 custom-scrollbar">
 
                 <div className="mb-6">
                   <h4 className="text-[18px] font-bold text-gray-900 mb-2 border-b-2 border-red-500 pb-1 inline-block">
@@ -384,11 +404,6 @@ function ShopPageContent() {
                 </div>
               )}
 
-              {/* PAGINATION PLACEHOLDER */}
-              <div className="flex justify-center gap-3 mt-10">
-                <button className="w-10 h-10 bg-gray-100 text-gray-400 rounded-md cursor-not-allowed">←</button>
-                <button className="w-10 h-10 bg-[#E03A3E] text-white rounded-md hover:bg-[#cc3236]">→</button>
-              </div>
 
             </main>
           </div>

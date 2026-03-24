@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
       <div className="lg:hidden px-4 pt-6">
         <div className="relative w-full h-[180px] rounded-[16px] overflow-hidden">
           <img
-            src="/assets/images/log.png"
+            src="/assets/images/c28.jpg"
             alt="Caterly background"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
         {/* Left — brand image */}
         <div className="w-1/2 relative">
           <Image
-            src="/assets/images/log.png"
+            src="/assets/images/c28.jpg"
             alt="Caterly background"
             fill
             className="object-cover"

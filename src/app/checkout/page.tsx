@@ -18,11 +18,13 @@ import {
 } from "@/components/ui/select"
 import { useCartStore, generateCartItemId } from "@/store/cart"
 import { useAuthStore } from "@/store/auth"
+import { useAuthModalStore } from "@/store/auth-modal"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { Minus, Plus, Trash2, ShoppingCart, X, Upload, Check, Tag } from "lucide-react"
 import { getProductImageUrl } from "@/lib/product-utils"
 import { Textarea } from "@/components/ui/textarea"
+import { PaymentModal } from "@/components/checkout/PaymentModal"
 
 interface Product {
   product_id: number
@@ -50,6 +52,7 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { items, updateQuantity, removeItem, getTotalPrice, getItemPrice, addItem, clearCart, updateDeliveryFrequency, updateDeliveryStartDate, updateItemData } = useCartStore()
   const { isAuthenticated, user, customer, checkAuth } = useAuthStore()
+  const { openModal: openAuthModal } = useAuthModalStore()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
@@ -68,8 +71,8 @@ export default function CheckoutPage() {
   const [deliveryDate, setDeliveryDate] = useState<string>("")
   const [deliveryTime, setDeliveryTime] = useState<string>("")
   const [postcodeError, setPostcodeError] = useState("")
-
-
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
 
   // Fix hydration error - only render prices after client-side mount
   useEffect(() => {
@@ -87,25 +90,6 @@ export default function CheckoutPage() {
     state: "VIC",
     postcode: "",
     email: "",
-  })
-
-  const [shippingData, setShippingData] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    country: "Australia",
-    streetAddress: "",
-    apartment: "",
-    suburb: "",
-    state: "VIC",
-    postcode: "",
-    email: "",
-  })
-
-  const [paymentData, setPaymentData] = useState({
-    cardNumber: "",
-    expirationDate: "",
-    securityCode: "",
   })
 
   useEffect(() => {
@@ -194,12 +178,15 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Only run on mount
 
+  const [isOrderCompleted, setIsOrderCompleted] = useState(false)
+
   // Separate effect for cart items check
   useEffect(() => {
-    if (items.length === 0) {
+    // Only redirect if cart is empty AND we haven't completed an order
+    if (items.length === 0 && !isPaymentModalOpen && !isOrderCompleted) {
       router.push("/cart")
     }
-  }, [items.length, router])
+  }, [items.length, router, isPaymentModalOpen, isOrderCompleted])
 
   const fetchRelatedProducts = async () => {
     try {
@@ -224,7 +211,6 @@ export default function CheckoutPage() {
       console.error("Failed to fetch coupons:", error)
     }
   }
-
 
   const calculateTotal = () => {
     let subtotal = getTotalPrice()
@@ -325,51 +311,6 @@ export default function CheckoutPage() {
     toast.success("Coupon removed")
   }
 
-  const handleSelectCoupon = async (coupon: Coupon) => {
-    setCouponCode(coupon.code)
-    setValidatingCoupon(true)
-    try {
-      const subtotal = getTotalPrice()
-      // Calculate wholesale discount first
-      const customerType = customer?.customer_type || ''
-      const isWholesale = customerType && (customerType.includes('Wholesale') || customerType.includes('Wholesaler'))
-      let wholesaleDiscount = 0
-      if (isWholesale) {
-        const discountPercentage = customerType.includes('Full Service') ? 15 : 10
-        wholesaleDiscount = subtotal * (discountPercentage / 100)
-      }
-      const afterWholesaleDiscount = subtotal - wholesaleDiscount
-
-      // Validate coupon with backend
-      const response = await api.post("/store/coupons/validate", {
-        coupon_code: coupon.code,
-        order_total: afterWholesaleDiscount,
-      })
-
-      if (response.data.valid && response.data.coupon) {
-        setCouponApplied({
-          code: response.data.coupon.code,
-          type: response.data.coupon.type === 'percentage' ? 'P' : 'F',
-          discount_amount: response.data.coupon.discount_amount,
-          value: response.data.coupon.value,
-        })
-        toast.success(`Coupon "${response.data.coupon.code}" applied successfully!`)
-        setShowCoupons(false) // Hide coupon list after applying
-      } else {
-        toast.error("Invalid or expired coupon code")
-        setCouponApplied(null)
-      }
-    } catch (error: any) {
-      console.error("Coupon validation error:", error)
-      const errorMessage = error.response?.data?.message || error.message || "Failed to validate coupon"
-      toast.error(errorMessage)
-      setCouponApplied(null)
-    } finally {
-      setValidatingCoupon(false)
-    }
-  }
-
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -443,23 +384,13 @@ export default function CheckoutPage() {
       const totals = calculateTotal()
       // Build delivery address properly
       const addressParts: string[] = []
-      if (shipToDifferentAddress) {
-        if (shippingData.streetAddress) addressParts.push(shippingData.streetAddress)
-        if (shippingData.apartment) addressParts.push(shippingData.apartment)
-        if (shippingData.suburb) addressParts.push(shippingData.suburb)
-        if (shippingData.state) addressParts.push(shippingData.state)
-        if (shippingData.postcode) addressParts.push(shippingData.postcode)
-      } else {
-        if (billingData.streetAddress) addressParts.push(billingData.streetAddress)
-        if (billingData.apartment) addressParts.push(billingData.apartment)
-        if (billingData.suburb) addressParts.push(billingData.suburb)
-        if (billingData.state) addressParts.push(billingData.state)
-        if (billingData.postcode) addressParts.push(billingData.postcode)
-      }
-      const deliveryAddress = addressParts.join(", ") || billingData.streetAddress || ""
+      if (billingData.streetAddress) addressParts.push(billingData.streetAddress)
+      if (billingData.apartment) addressParts.push(billingData.apartment)
+      if (billingData.suburb) addressParts.push(billingData.suburb)
+      if (billingData.state) addressParts.push(billingData.state)
+      if (billingData.postcode) addressParts.push(billingData.postcode)
 
-      // Find first subscription item to get frequency/start date for top level
-      const subItem = items.find(item => item.delivery_frequency && item.delivery_frequency !== "One Time")
+      const deliveryAddress = addressParts.join(", ") || billingData.streetAddress || ""
 
       const orderPayload: any = {
         items: orderItems,
@@ -472,14 +403,12 @@ export default function CheckoutPage() {
         payment_method: "card",
         coupon_code: couponApplied?.code || null,
         postcode: billingData.postcode,
-        // Requested subscription fields from checkout form
-        // Requested subscription fields from checkout form
         delivery_frequency: isSubscription ? subscriptionFrequency : "One Time",
         delivery_start_date: isSubscription ? subscriptionStartDate : null,
         delivery_date: !isSubscription ? deliveryDate : null,
         delivery_time: !isSubscription ? deliveryTime : null,
-        delivery_date_time: isSubscription 
-          ? `${subscriptionStartDate}T00:00:00` 
+        delivery_date_time: isSubscription
+          ? `${subscriptionStartDate}T00:00:00`
           : (deliveryDate && deliveryTime ? formatDateTime(deliveryDate, deliveryTime) : new Date().toISOString()),
         subtotal: totals.afterDiscount,
         wholesale_discount: totals.wholesaleDiscount,
@@ -487,13 +416,12 @@ export default function CheckoutPage() {
         gst: totals.gst,
         gst_status: 1,
         order_total: totals.total,
-        // Detailed billing/shipping fields
         billing_address: billingData.streetAddress,
         billing_city: billingData.suburb,
         billing_postcode: billingData.postcode,
         billing_state: billingData.state,
         shipping_address: deliveryAddress,
-        shipping_postcode: shipToDifferentAddress ? shippingData.postcode : billingData.postcode,
+        shipping_postcode: billingData.postcode,
       }
 
       // Use different endpoints for authenticated vs guest checkout
@@ -513,19 +441,13 @@ export default function CheckoutPage() {
             headers: { "Content-Type": "multipart/form-data" },
           })
         } catch (uploadError) {
-          // Silently fail - order is already created, image upload is optional
           console.log("Image upload skipped (optional):", uploadError)
         }
       }
 
-      // Clear cart after successful order
-      clearCart()
-
-      // Set subscription flag if any item has a recurring frequency or if the checkbox is checked
       const isSubscriptionOrder = isSubscription || items.some(item => item.delivery_frequency && item.delivery_frequency !== "One Time")
       if (typeof window !== "undefined") {
         localStorage.setItem("caterly_last_order_type", isSubscriptionOrder ? "subscription" : "normal")
-        // Save correct checkout totals keyed by order_id — backend recalculates wrongly from items
         localStorage.setItem(`caterly_order_totals_${response.data.order_id}`, JSON.stringify({
           subtotal: totals.subtotal,
           couponDiscount: totals.couponDiscount,
@@ -537,26 +459,25 @@ export default function CheckoutPage() {
         }))
       }
 
-      toast.success("Order placed successfully!")
-
-      // Redirect to payment page
-      setTimeout(() => {
-        router.push(`/payment?order_id=${response.data.order_id}`)
-      }, 1000)
+      setCurrentOrderId(response.data.order_id)
+      setIsPaymentModalOpen(true)
     } catch (error: any) {
       console.error("Order creation error:", error)
-      // Only show error if it's not a network/server error that might be temporary
       const errorMessage = error.response?.data?.message || error.message || "Failed to place order"
-      // Don't show error toast if order might have been created (check response)
       if (!error.response || error.response.status < 500) {
         toast.error(errorMessage)
       } else {
-        // Server error - might have been created, check with user
         toast.error("Order may have been placed. Please check your order history.")
       }
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePaymentSuccess = () => {
+    setIsOrderCompleted(true)
+    clearCart()
+    // Success state is now handled within PaymentModal
   }
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
@@ -579,22 +500,24 @@ export default function CheckoutPage() {
     shippingMethod,
   ])
 
+  if (!mounted) return null
+
   return (
     <div className="flex flex-col bg-white">
       {/* Main Checkout Content */}
       <section className="py-8">
         <div className="container mx-auto px-6">
-          {mounted && !isAuthenticated && (
+          {!isAuthenticated && (
             <div className="mb-6 p-4 rounded-md bg-[#F2CACA]/20 border border-[#F2CACA] text-center">
               <p className="text-gray-700">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="text-[#E03A3E] font-semibold hover:underline">
+                <button type="button" onClick={() => openAuthModal('login')} className="text-[#E03A3E] font-semibold hover:underline">
                   Login.
-                </Link>{" "}
+                </button>{" "}
                 New here?{" "}
-                <Link href="/auth/register" className="text-[#E03A3E] font-semibold hover:underline">
+                <button type="button" onClick={() => openAuthModal('register')} className="text-[#E03A3E] font-semibold hover:underline">
                   Register
-                </Link>{" "}
+                </button>{" "}
                 to create an account.
               </p>
             </div>
@@ -604,7 +527,154 @@ export default function CheckoutPage() {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Left Column - Billing and Shipping */}
               <div className="lg:col-span-2 space-y-6">
-                {/* Billing Details */}
+
+                {/* Purchase Options */}
+                <Card className="border-[#F2CACA] bg-white">
+                  <CardContent className="pt-6">
+                    {/* Delivery Window Banner */}
+                    <div className="mb-6 p-4 bg-[#FFF1F1] border border-[#F2CACA] rounded-lg">
+                      <p className="text-sm text-[#E03A3E] leading-relaxed font-medium">
+                        Please note all deliveries will have an 1 hour window. For example if the selected delivery time is 10:00am, your delivery window will be between 9:00AM - 10:00AM.
+                      </p>
+                    </div>
+
+                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Purchase Options</h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <button
+                        type="button"
+                        onClick={() => setIsSubscription(false)}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${!isSubscription
+                          ? "border-[#E03A3E] bg-[#F1F8E9] text-black"
+                          : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
+                          }`}
+                      >
+                        <span className="font-bold">One-Off Purchases</span>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${!isSubscription ? "bg-[#E03A3E] text-white" : "border-2 border-gray-300 bg-white"}`}>
+                          {!isSubscription ? <Check className="w-4 h-4" /> : null}
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsSubscription(true)}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${isSubscription
+                          ? "border-[#E03A3E] bg-white text-black"
+                          : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
+                          }`}
+                      >
+                        <span className="font-bold">Create Subscription</span>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isSubscription ? "bg-[#E03A3E] text-white" : "border-2 border-gray-300 bg-white"}`}>
+                          {isSubscription ? <Check className="w-4 h-4" /> : null}
+                        </div>
+                      </button>
+                    </div>
+
+                    {!isSubscription ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div>
+                          <Label htmlFor="delivery-date" className="text-black mb-2 block">Delivery date</Label>
+                          <Input
+                            id="delivery-date"
+                            type="date"
+                            value={deliveryDate}
+                            onChange={(e) => setDeliveryDate(e.target.value)}
+                            min={new Date().toISOString().split("T")[0]}
+                            required={!isSubscription}
+                            className="bg-white border-gray-300 text-gray-900 focus:ring-[#E03A3E] focus:border-[#E03A3E]"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="delivery-time" className="text-black mb-2 block">Delivery Time</Label>
+                          <Select
+                            value={deliveryTime}
+                            onValueChange={setDeliveryTime}
+                            required={!isSubscription}
+                          >
+                            <SelectTrigger id="delivery-time" className="bg-white border-gray-300 text-gray-900 focus:ring-[#E03A3E]">
+                              <SelectValue placeholder="Add Time" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white text-gray-900 border-gray-200">
+                              {Array.from({ length: 18 * 4 }).map((_, i) => {
+                                const hour = Math.floor(i / 4) + 6
+                                const minute = (i % 4) * 15
+                                const h = hour > 12 ? hour - 12 : hour
+                                const m = minute === 0 ? "00" : minute
+                                const ampm = hour >= 12 ? "PM" : "AM"
+                                const timeStr = `${h}:${m} ${ampm}`
+                                return (
+                                  <SelectItem key={i} value={timeStr}>
+                                    {timeStr}
+                                  </SelectItem>
+                                )
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div>
+                          <Label htmlFor="frequency" className="text-[#E03A3E] font-bold text-lg mb-2 block">Choose your subscription</Label>
+                          <Select
+                            value={subscriptionFrequency}
+                            onValueChange={setSubscriptionFrequency}
+                          >
+                            <SelectTrigger id="frequency" className="bg-white border-gray-300 text-gray-900 h-12 focus:ring-[#E03A3E]">
+                              <SelectValue placeholder="Once a week" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white text-gray-900 border-gray-200">
+                              <SelectItem value="Once a week">Once a week</SelectItem>
+                              <SelectItem value="Every 2 Weeks">Every 2 Weeks</SelectItem>
+                              <SelectItem value="Every 3 Weeks">Every 3 Weeks</SelectItem>
+                              <SelectItem value="Every 4 Weeks">Every 4 Weeks</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="start-date" className="text-[#E03A3E] font-bold text-lg mb-2 block">First Delivery Date</Label>
+                            <Input
+                              id="start-date"
+                              type="date"
+                              value={subscriptionStartDate}
+                              onChange={(e) => setSubscriptionStartDate(e.target.value)}
+                              min={new Date().toISOString().split("T")[0]}
+                              className="bg-white border-gray-300 text-gray-900 h-10 focus:ring-[#E03A3E] focus:border-[#E03A3E]"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="sub-time" className="text-[#E03A3E] font-bold text-lg mb-2 block">Delivery Time</Label>
+                            <Select
+                              value={deliveryTime}
+                              onValueChange={setDeliveryTime}
+                            >
+                              <SelectTrigger id="sub-time" className="bg-white border-gray-300 text-gray-900 h-10 focus:ring-[#E03A3E]">
+                                <SelectValue placeholder="Add Time" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white text-gray-900 border-gray-200">
+                                {Array.from({ length: 18 * 4 }).map((_, i) => {
+                                  const hour = Math.floor(i / 4) + 6
+                                  const minute = (i % 4) * 15
+                                  const h = hour > 12 ? hour - 12 : hour
+                                  const m = minute === 0 ? "00" : minute
+                                  const ampm = hour >= 12 ? "PM" : "AM"
+                                  const timeStr = `${h}:${m} ${ampm}`
+                                  return (
+                                    <SelectItem key={i} value={timeStr}>
+                                      {timeStr}
+                                    </SelectItem>
+                                  )
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Delivery Details */}
                 <Card className="border-[#F2CACA] bg-white">
                   <CardContent className="pt-6">
                     <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Delivery Details</h2>
@@ -640,19 +710,6 @@ export default function CheckoutPage() {
                           required
                         />
                       </div>
-
-                      {/* <div>
-                        <Label htmlFor="billing-country" className="text-black">Country Region</Label>
-                        <Select value={billingData.country} onValueChange={(value) => setBillingData({ ...billingData, country: value })}>
-                          <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Australia">Australia</SelectItem>
-                            <SelectItem value="New Zealand">New Zealand</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div> */}
 
                       <div>
                         <Label htmlFor="billing-street" className="text-black">Delivery Address <span className="text-red-500">*</span></Label>
@@ -731,159 +788,7 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-
-
-
-
-                {/* Purchase Options */}
-                <Card className="border-[#F2CACA] bg-white">
-                  <CardContent className="pt-6">
-                    {/* Delivery Window Banner */}
-                    <div className="mb-6 p-4 bg-[#E0F7FA] border border-[#B2EBF2] rounded-lg">
-                      <p className="text-sm text-[#006064] leading-relaxed">
-                        Please note all deliveries will have an 1 hour window. For example if the selected delivery time is 10:00am, your delivery window will be between 9:00AM - 10:00AM.
-                      </p>
-                    </div>
-
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Purchase Options</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <button
-                        type="button"
-                        onClick={() => setIsSubscription(false)}
-                        className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                          !isSubscription 
-                            ? "border-[#E03A3E] bg-[#F1F8E9] text-black" 
-                            : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
-                        }`}
-                      >
-                        <span className="font-bold">One-Off Purchases</span>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${!isSubscription ? "bg-[#E03A3E] text-white" : "border-2 border-gray-300 bg-white"}`}>
-                          {!isSubscription ? <Check className="w-4 h-4" /> : null}
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsSubscription(true)}
-                        className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                          isSubscription 
-                            ? "border-[#E03A3E] bg-white text-black" 
-                            : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
-                        }`}
-                      >
-                        <span className="font-bold">Create Subscription</span>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isSubscription ? "bg-[#E03A3E] text-white" : "border-2 border-gray-300 bg-white"}`}>
-                          {isSubscription ? <Check className="w-4 h-4" /> : null}
-                        </div>
-                      </button>
-                    </div>
-
-                    {!isSubscription ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div>
-                          <Label htmlFor="delivery-date" className="text-black mb-2 block">Delivery date</Label>
-                          <Input
-                            id="delivery-date"
-                            type="date"
-                            value={deliveryDate}
-                            onChange={(e) => setDeliveryDate(e.target.value)}
-                            min={new Date().toISOString().split("T")[0]}
-                            required={!isSubscription}
-                            className="bg-white border-gray-300 text-gray-900"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="delivery-time" className="text-black mb-2 block">Time</Label>
-                          <Select
-                            value={deliveryTime}
-                            onValueChange={setDeliveryTime}
-                            required={!isSubscription}
-                          >
-                            <SelectTrigger id="delivery-time" className="bg-white border-gray-300 text-gray-900">
-                              <SelectValue placeholder="Add Time" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 18 * 4 }).map((_, i) => {
-                                const hour = Math.floor(i / 4) + 6
-                                const minute = (i % 4) * 15
-                                const h = hour > 12 ? hour - 12 : hour
-                                const m = minute === 0 ? "00" : minute
-                                const ampm = hour >= 12 ? "PM" : "AM"
-                                const timeStr = `${h}:${m} ${ampm}`
-                                return (
-                                  <SelectItem key={i} value={timeStr}>
-                                    {timeStr}
-                                  </SelectItem>
-                                )
-                              })}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div>
-                          <Label htmlFor="frequency" className="text-[#004D40] font-bold text-lg mb-2 block">Choose your subscription</Label>
-                          <Select
-                            value={subscriptionFrequency}
-                            onValueChange={setSubscriptionFrequency}
-                          >
-                            <SelectTrigger id="frequency" className="bg-white border-gray-300 text-gray-900 h-12">
-                              <SelectValue placeholder="Once a week" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Once a week">Once a week</SelectItem>
-                              <SelectItem value="Every 2 Weeks">Every 2 Weeks</SelectItem>
-                              <SelectItem value="Every 3 Weeks">Every 3 Weeks</SelectItem>
-                              <SelectItem value="Every 4 Weeks">Every 4 Weeks</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="start-date" className="text-[#004D40] font-bold text-lg mb-2 block">First Delivery Date</Label>
-                            <Input
-                              id="start-date"
-                              type="date"
-                              value={subscriptionStartDate}
-                              onChange={(e) => setSubscriptionStartDate(e.target.value)}
-                              min={new Date().toISOString().split("T")[0]}
-                              className="bg-white border-gray-300 text-gray-900 h-10"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="sub-time" className="text-[#004D40] font-bold text-lg mb-2 block">Time</Label>
-                            <Select
-                              value={deliveryTime}
-                              onValueChange={setDeliveryTime}
-                            >
-                              <SelectTrigger id="sub-time" className="bg-white border-gray-300 text-gray-900 h-10">
-                                <SelectValue placeholder="Add Time" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: 18 * 4 }).map((_, i) => {
-                                  const hour = Math.floor(i / 4) + 6
-                                  const minute = (i % 4) * 15
-                                  const h = hour > 12 ? hour - 12 : hour
-                                  const m = minute === 0 ? "00" : minute
-                                  const ampm = hour >= 12 ? "PM" : "AM"
-                                  const timeStr = `${h}:${m} ${ampm}`
-                                  return (
-                                    <SelectItem key={i} value={timeStr}>
-                                      {timeStr}
-                                    </SelectItem>
-                                  )
-                                })}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Items Table - Moved from right column to match screenshot */}
+                {/* Order Summary Items */}
                 <Card className="border-[#F2CACA] bg-white text-black overflow-hidden">
                   <CardContent className="pt-6">
                     <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Order Summary</h2>
@@ -891,12 +796,10 @@ export default function CheckoutPage() {
                       <table className="w-full border-collapse">
                         <thead>
                           <tr className="border-b border-[#F2CACA] text-left text-xs uppercase tracking-wider text-gray-500">
-                            <th className="pb-3 pr-4 font-semibold w-[120px]">Time</th>
                             <th className="pb-3 pr-4 font-semibold">Product</th>
                             <th className="pb-3 pr-4 font-semibold text-right w-[80px]">Price</th>
                             <th className="pb-3 pr-4 font-semibold text-center w-[120px]">Quantity</th>
                             <th className="pb-3 pr-4 font-semibold text-right w-[100px]">Total</th>
-                            <th className="pb-3 font-semibold text-right w-[100px]">Tax (Excl.)</th>
                             <th className="pb-3 pl-4 w-[40px]"></th>
                           </tr>
                         </thead>
@@ -905,33 +808,9 @@ export default function CheckoutPage() {
                             const cartItemId = item.cart_item_id || generateCartItemId(item.product_id, item.options)
                             const itemPrice = getItemPrice(item)
                             const itemTotal = itemPrice * item.quantity
-                            const itemTax = itemTotal * 0.1 // 10% GST
 
                             return (
                               <tr key={cartItemId} className="text-sm">
-                                <td className="py-4 pr-4">
-                                  <Select
-                                    value={item.delivery_time || deliveryTime}
-                                    onValueChange={(val) => {
-                                      updateItemData(cartItemId, { delivery_time: val })
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-[110px] bg-white border-gray-200">
-                                      <SelectValue placeholder="Time" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 18 * 4 }).map((_, i) => {
-                                        const hour = Math.floor(i / 4) + 6
-                                        const minute = (i % 4) * 15
-                                        const h = hour > 12 ? hour - 12 : hour
-                                        const m = minute === 0 ? "00" : minute
-                                        const ampm = hour >= 12 ? "PM" : "AM"
-                                        const timeStr = `${h}:${m} ${ampm}`
-                                        return <SelectItem key={i} value={timeStr}>{timeStr}</SelectItem>
-                                      })}
-                                    </SelectContent>
-                                  </Select>
-                                </td>
                                 <td className="py-4 pr-4 min-w-[250px]">
                                   <div className="flex items-center gap-3">
                                     <div className="relative w-12 h-12 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-100">
@@ -954,7 +833,7 @@ export default function CheckoutPage() {
                                 <td className="py-4 pr-4 text-right font-medium text-gray-900">${itemPrice.toFixed(2)}</td>
                                 <td className="py-4 pr-4">
                                   <div className="flex items-center justify-center gap-3">
-                                    <button 
+                                    <button
                                       type="button"
                                       onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
                                       className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
@@ -962,7 +841,7 @@ export default function CheckoutPage() {
                                       <Minus className="w-3 h-3" />
                                     </button>
                                     <span className="font-bold min-w-[20px] text-center text-sm">{item.quantity}</span>
-                                    <button 
+                                    <button
                                       type="button"
                                       onClick={() => updateQuantity(cartItemId, item.quantity + 1)}
                                       className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
@@ -972,7 +851,6 @@ export default function CheckoutPage() {
                                   </div>
                                 </td>
                                 <td className="py-4 pr-4 text-right font-bold text-gray-900">${itemTotal.toFixed(2)}</td>
-                                <td className="py-4 text-right text-gray-500">${itemTax.toFixed(2)}</td>
                                 <td className="py-4 pl-4 text-right">
                                   <button
                                     type="button"
@@ -993,181 +871,163 @@ export default function CheckoutPage() {
                 </Card>
               </div>
 
-              {/* Right Column - Order Summary */}
+              {/* Right Column - Order Summary and Action */}
               <div className="lg:col-span-1">
                 <Card className="sticky top-24 border-[#F2CACA] bg-white text-black">
                   <CardContent className="pt-6 text-black">
-
                     <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">
                       Order Summary
-                    </h2>                    <div className="h-2 w-full" />
+                    </h2>
 
                     <div className="space-y-4 mb-6">
-    {/* Coupon Code Section */}
-                    <div className="mb-6">
-                      <Label className="mb-2 block text-gray-900">Coupon Code</Label>
-                      <div className="flex gap-2 mb-2">
-                        <Input
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value)}
-                          placeholder="Enter coupon code"
-                          disabled={!!couponApplied || validatingCoupon}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              if (!couponApplied && !validatingCoupon) {
-                                handleApplyCoupon()
+                      {/* Coupon Code Section */}
+                      <div className="mb-6">
+                        <Label className="mb-2 block text-gray-900">Coupon Code</Label>
+                        <div className="flex gap-2 mb-2">
+                          <Input
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            placeholder="Enter coupon code"
+                            disabled={!!couponApplied || validatingCoupon}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                if (!couponApplied && !validatingCoupon) {
+                                  handleApplyCoupon()
+                                }
                               }
-                            }
-                          }}
-                          className="bg-white text-gray-900"
-                        />
-                        {couponApplied ? (
-                          <Button
-                            type="button"
-                            onClick={handleRemoveCoupon}
-                            disabled={validatingCoupon}
-                            className="bg-[#E03A3E] hover:bg-[#cc3236] text-white"
-                          >
-                            Remove
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            onClick={handleApplyCoupon}
-                            disabled={!couponCode.trim() || validatingCoupon}
-                            className="bg-[#E03A3E] hover:bg-[#cc3236] text-white"
-                          >
-                            {validatingCoupon ? "Validating..." : "Apply"}
-                          </Button>
-                        )}
-                      </div>
-                      {couponApplied && (
-                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
-                          <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm font-medium text-green-900">
-                              Coupon "{couponApplied.code}" applied!
-                            </p>
-                            <p className="text-xs text-green-700 mt-0.5">
-                              {couponApplied.type === 'P'
-                                ? `${couponApplied.value}% discount`
-                                : `$${couponApplied.value} discount`}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {!couponApplied && (
-                        <div className="mt-4">
-                          <button
-                            type="button"
-                            onClick={() => setShowCoupons(!showCoupons)}
-                            className="text-sm text-[#E03A3E] hover:text-[#cc3236] font-medium mb-2 flex items-center gap-1"
-                          >
-                            <Tag className="w-4 h-4" />
-                            {showCoupons ? "Hide" : "View"} Available Coupons
-                            {availableCoupons.length > 0 && (
-                              <span className="ml-1 bg-red-100 text-[#E03A3E] text-xs px-2 py-0.5 rounded-full">
-                                {availableCoupons.length}
-                              </span>
-                            )}
-                          </button>
-
-                          {showCoupons && (
-                            <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar animate-in fade-in slide-in-from-top-1">
-                              {availableCoupons.length > 0 ? (
-                                availableCoupons.map((coupon) => (
-                                  <div
-                                    key={coupon.id || coupon.code}
-                                    onClick={() => {
-                                      setCouponCode(coupon.code)
-                                    }}
-                                    className="border border-dashed border-gray-300 rounded-md p-2 hover:bg-red-50 hover:border-[#E03A3E] cursor-pointer transition-colors flex items-center gap-3 group"
-                                  >
-                                    <div className="bg-red-100 text-[#E03A3E] p-1.5 rounded group-hover:bg-red-200 transition-colors">
-                                      <Tag className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex justify-between items-center">
-                                        <span className="font-bold text-sm text-gray-800 truncate">{coupon.code}</span>
-                                        <span className="text-xs font-medium bg-gray-100 px-2 py-0.5 rounded text-gray-600">
-                                          {coupon.type === 'percentage' || coupon.type === 'P'
-                                            ? `${parseFloat(coupon.value)}% OFF`
-                                            : `$${parseFloat(coupon.value)} OFF`}
-                                        </span>
-                                      </div>
-                                      {coupon.description && (
-                                        <p className="text-xs text-gray-500 truncate mt-0.5">{coupon.description}</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-center py-4 px-3 bg-gray-50 rounded-md border border-dashed border-gray-300">
-                                  <p className="text-sm text-gray-600">No coupons available at the moment</p>
-                                  <p className="text-xs text-gray-500 mt-1">Check back later for special offers!</p>
-                                </div>
-                              )}
-                            </div>
+                            }}
+                            className="bg-white text-gray-900"
+                          />
+                          {couponApplied ? (
+                            <Button
+                              type="button"
+                              onClick={handleRemoveCoupon}
+                              disabled={validatingCoupon}
+                              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                            >
+                              Remove
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              onClick={handleApplyCoupon}
+                              disabled={!couponCode.trim() || validatingCoupon}
+                              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                            >
+                              {validatingCoupon ? "Validating..." : "Apply"}
+                            </Button>
                           )}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Cost Breakdown */}
-                    <div className="space-y-2 mb-6 pb-6 border-b border-[#F2CACA] text-black">
-                      <div className="flex justify-between text-sm">
-                        <span>Subtotal (includes GST)</span>
-                        <span>${mounted ? totals.subtotal.toFixed(2) : '0.00'}</span>
+                        {couponApplied && (
+                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md flex items-start gap-3">
+                            <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-green-900">
+                                Coupon "{couponApplied.code}" applied!
+                              </p>
+                              <p className="text-xs text-green-700 mt-0.5">
+                                {couponApplied.type === 'P'
+                                  ? `${couponApplied.value}% discount`
+                                  : `$${couponApplied.value} discount`}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {!couponApplied && (
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={() => setShowCoupons(!showCoupons)}
+                              className="text-sm text-[#E03A3E] hover:text-[#cc3236] font-medium mb-2 flex items-center gap-1"
+                            >
+                              <Tag className="w-4 h-4" />
+                              {showCoupons ? "Hide" : "View"} Available Coupons
+                              {availableCoupons.length > 0 && (
+                                <span className="ml-1 bg-red-100 text-[#E03A3E] text-xs px-2 py-0.5 rounded-full">
+                                  {availableCoupons.length}
+                                </span>
+                              )}
+                            </button>
+
+                            {showCoupons && (
+                              <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                                {availableCoupons.length > 0 ? (
+                                  availableCoupons.map((coupon) => (
+                                    <div
+                                      key={coupon.id || coupon.code}
+                                      onClick={() => {
+                                        setCouponCode(coupon.code)
+                                      }}
+                                      className="border border-dashed border-gray-300 rounded-md p-2 hover:bg-red-50 hover:border-[#E03A3E] cursor-pointer transition-colors flex items-center gap-3 group"
+                                    >
+                                      <div className="bg-red-100 text-[#E03A3E] p-1.5 rounded">
+                                        <Tag className="w-4 h-4" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-center">
+                                          <span className="font-bold text-sm text-gray-800 truncate">{coupon.code}</span>
+                                          <span className="text-xs font-medium bg-gray-100 px-2 py-0.5 rounded text-gray-600">
+                                            {coupon.type === 'percentage' || coupon.type === 'P'
+                                              ? `${parseFloat(coupon.value)}% OFF`
+                                              : `$${parseFloat(coupon.value)} OFF`}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-center py-4 px-3 bg-gray-50 rounded-md">
+                                    <p className="text-sm text-gray-600">No coupons available</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      {totals.wholesaleDiscount > 0 && (
-                        <div className="flex justify-between text-sm text-blue-600">
-                          <span>Wholesale Discount</span>
-                          <span>- ${mounted ? totals.wholesaleDiscount.toFixed(2) : '0.00'}</span>
-                        </div>
-                      )}
-
-                      {totals.couponDiscount > 0 && (
-                        <div className="flex justify-between text-sm text-green-600">
-                          <span>
-                            Coupon Discount {couponApplied?.code && `(${couponApplied.code})`}
-                          </span>
-                          <span>- ${mounted ? totals.couponDiscount.toFixed(2) : '0.00'}</span>
-                        </div>
-                      )}
-                      {totals.shippingFee > 0 && (
+                      {/* Cost Breakdown */}
+                      <div className="space-y-2 mb-6 pb-6 border-b border-[#F2CACA] text-black">
                         <div className="flex justify-between text-sm">
-                          <span>Delivery Fee</span>
-                          <span>${mounted ? totals.shippingFee.toFixed(2) : '0.00'}</span>
+                          <span>Subtotal (includes GST)</span>
+                          <span>${totals.subtotal.toFixed(2)}</span>
                         </div>
-                      )}
-                      <div className="flex justify-between text-xs text-gray-500 italic mt-2">
-                        <span>Includes GST (10%)</span>
-                        <span>${mounted ? totals.gst.toFixed(2) : '0.00'}</span>
+
+                        {totals.wholesaleDiscount > 0 && (
+                          <div className="flex justify-between text-sm text-blue-600">
+                            <span>Wholesale Discount</span>
+                            <span>- ${totals.wholesaleDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
+
+                        {totals.couponDiscount > 0 && (
+                          <div className="flex justify-between text-sm text-green-600">
+                            <span>
+                              Coupon Discount {couponApplied?.code && `(${couponApplied.code})`}
+                            </span>
+                            <span>- ${totals.couponDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {totals.shippingFee > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span>Delivery Fee</span>
+                            <span>${totals.shippingFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-xs text-gray-500 italic mt-2">
+                          <span>Includes GST (10%)</span>
+                          <span>${totals.gst.toFixed(2)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex justify-between text-lg font-bold mb-6 pt-6 border-t border-[#F2CACA] text-black">
+                    <div className="flex justify-between text-lg font-bold mb-6 pt-6 border-t border-[#F2CACA] text-black">
                       <span>Total</span>
-                      <span>${mounted ? totals.total.toFixed(2) : '0.00'}</span>
+                      <span>${totals.total.toFixed(2)}</span>
                     </div>
-
-                    {!isAuthenticated && (
-                      <div className="mb-6 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg animate-in fade-in slide-in-from-top-1">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center justify-center w-5 h-5 rounded border border-[#E03A3E] bg-[#E03A3E] text-white">
-                            <Check className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-gray-900 leading-none">Guest User</p>
-                            <p className="text-xs text-gray-500 mt-1">You are checking out as a guest</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     <Button
                       type="submit"
@@ -1175,13 +1035,12 @@ export default function CheckoutPage() {
                       disabled={loading}
                     >
                       <ShoppingCart className="w-5 h-5 mr-2" />
-                      {loading ? "Placing Order..." : "Place Order"}
+                      {loading ? "Processing..." : "Proceed to Payment"}
                     </Button>
 
                   </CardContent>
                 </Card>
               </div>
-
             </div>
           </form>
         </div>
@@ -1195,13 +1054,13 @@ export default function CheckoutPage() {
               You may also like
             </h2>
 
-            <div className="flex gap-5 overflow-x-auto pb-4">
+            <div className="flex gap-5 overflow-x-auto pb-4 items-stretch">
               {relatedProducts.map((product) => (
                 <Card
                   key={product.product_id}
-                  className="min-w-[200px] flex-shrink-0 border border-[#F2CACA] bg-white shadow-sm rounded-xl"
+                  className="w-[220px] flex-shrink-0 border border-[#F2CACA] bg-white shadow-sm rounded-xl flex flex-col"
                 >
-                  <div className="relative aspect-square bg-[#F9F9F9] rounded-t-xl overflow-hidden">
+                  <div className="relative bg-[#F9F9F9] rounded-t-xl overflow-hidden aspect-[4/3] w-full">
                     {getProductImageUrl(product) ? (
                       <Image
                         src={getProductImageUrl(product)!}
@@ -1216,7 +1075,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 flex-1 flex flex-col">
                     <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">
                       {product.product_name}
                     </h3>
@@ -1226,7 +1085,7 @@ export default function CheckoutPage() {
 
                     <Button
                       size="sm"
-                      className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white"
+                      className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white mt-auto"
                       onClick={() =>
                         addItem({
                           product_id: product.product_id,
@@ -1246,6 +1105,20 @@ export default function CheckoutPage() {
           </div>
         </section>
       )}
+
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        orderId={currentOrderId}
+        orderTotal={totals.total}
+        customerName={`${billingData.firstName} ${billingData.lastName}`}
+        items={items.map(item => ({
+          product_name: item.product_name,
+          quantity: item.quantity,
+          price: getItemPrice(item)
+        }))}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   )
 }

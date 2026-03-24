@@ -88,7 +88,7 @@ function ResetPasswordPageContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2952E6] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E03A3E] mx-auto mb-4"></div>
           <p className="text-gray-600">Verifying reset token...</p>
         </div>
       </div>
@@ -105,7 +105,7 @@ function ResetPasswordPageContent() {
               This password reset link is invalid or has expired. Please request a new one.
             </p>
             <Link href="/auth/forgot-password">
-              <Button className="bg-[#2952E6] hover:bg-[#1e3fb3] text-white">
+              <Button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white">
                 Request New Reset Link
               </Button>
             </Link>
@@ -120,7 +120,7 @@ function ResetPasswordPageContent() {
       {/* Left Side - Brand Image */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-[#1a1a1a] items-center justify-center overflow-hidden">
         <Image
-          src="/assets/images/reg.png"
+          src="/assets/images/c28.jpg"
           alt="CaterlyCoffee"
           fill
           className="object-cover"
@@ -129,9 +129,9 @@ function ResetPasswordPageContent() {
         <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-transparent z-10" />
         <div className="relative z-20 text-center">
           <h1 className="text-white font-script text-7xl mb-2" style={{ fontFamily: 'cursive' }}>
-            St. Dreux
+            Caterly
           </h1>
-          <p className="text-white tracking-[0.5em] text-sm font-light">COFFEE</p>
+          <p className="text-white tracking-[0.5em] text-sm font-light uppercase">Events & Catering</p>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ function ResetPasswordPageContent() {
                 placeholder="New Password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E03A3E]"
                 required
               />
               <p className="text-xs mt-1 text-gray-500">
@@ -166,14 +166,14 @@ function ResetPasswordPageContent() {
                 placeholder="Confirm New Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-6 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E03A3E]"
                 required
               />
             </div>
 
             <Button 
               type="submit" 
-              className="w-full py-6 bg-[#2952E6] hover:bg-[#1e3fb3] text-white font-semibold rounded-lg transition-colors"
+              className="w-full py-6 bg-[#E03A3E] hover:bg-[#cc3236] text-white font-semibold rounded-lg transition-colors"
               disabled={loading}
             >
               {loading ? "Resetting..." : "Reset Password"}
@@ -182,7 +182,7 @@ function ResetPasswordPageContent() {
 
           <p className="text-center text-gray-600 mt-8">
             Remember your password?{" "}
-            <Link href="/auth/login" className="text-[#2952E6] font-semibold hover:underline">
+            <Link href="/auth/login" className="text-[#E03A3E] font-semibold hover:underline">
               Login
             </Link>
           </p>

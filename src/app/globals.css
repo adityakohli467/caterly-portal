@@ -13,20 +13,20 @@
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 15%;
     --popover-foreground: 0 0% 100%;
-    /* Primary teal #055160 - Caterly brand color */
-    --primary: 188 90% 20%;
+    /* Primary #E03A3E - Caterly brand color */
+    --primary: 359 74% 55%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 20%;
     --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 80%;
-    --accent: 188 90% 20%;
+    --accent: 359 74% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 0 0% 25%;
     --input: 0 0% 25%;
-    --ring: 188 90% 20%;
+    --ring: 359 74% 55%;
     --radius: 0.5rem;
   }
 }
@@ -39,4 +39,20 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom Scrollbar Utility */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E03A3E;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cc3236;
 }
