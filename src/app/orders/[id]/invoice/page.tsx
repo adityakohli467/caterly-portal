@@ -92,9 +92,9 @@ export default function InvoicePage() {
 
     const parseP = (v: any) => parseFloat(String(v || "0").replace(/[^\d.-]/g, "")) || 0
 
-    // Recalculate true subtotal from items since API might return inflated item totals
+    // Use item.total as it correctly includes base price, options, and quantity
     const trueSubtotal = order.items?.reduce((sum, item) => {
-        return sum + (parseP(item.price) * (item.quantity || 1))
+        return sum + parseP(item.total)
     }, 0) || 0
 
     const deliveryFee = parseP(order.delivery_fee)
@@ -226,8 +226,8 @@ export default function InvoicePage() {
                                             )}
                                         </td>
                                         <td className="py-4 text-center text-gray-700">{item.quantity}</td>
-                                        <td className="py-4 text-right text-gray-700">${parseP(item.price).toFixed(2)}</td>
-                                        <td className="py-4 text-right font-medium text-black">${(parseP(item.price) * (item.quantity || 1)).toFixed(2)}</td>
+                                        <td className="py-4 text-right text-gray-700">${(parseP(item.total) / (item.quantity || 1)).toFixed(2)}</td>
+                                        <td className="py-4 text-right font-medium text-black">${parseP(item.total).toFixed(2)}</td>
                                     </tr>
                                 )
                             })}
