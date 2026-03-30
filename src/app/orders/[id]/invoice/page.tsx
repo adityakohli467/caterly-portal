@@ -41,6 +41,12 @@ interface Order {
     gst?: string
     delivery_fee?: string
     total?: string
+    location_name?: string
+    location_company_name?: string
+    location_abn?: string
+    location_email?: string
+    location_address?: string
+    location_phone?: string
 }
 
 export default function InvoicePage() {
@@ -137,10 +143,20 @@ export default function InvoicePage() {
                                 priority
                             />
                         </div>
-                        <p>123 Catering Way</p>
-                        <p>Sydney, NSW 2000</p>
-                        <p>contact@caterly.com.au</p>
-                        <p>ABN: XX XXX XXX XXX</p>
+                        <p className="font-semibold text-black">{order.location_company_name || 'Caterly'}</p>
+                        {order.location_address ? (
+                            order.location_address.split('\n').map((line, idx) => (
+                                <p key={idx}>{line}</p>
+                            ))
+                        ) : (
+                            <>
+                                <p>123 Catering Way</p>
+                                <p>Sydney, NSW 2000</p>
+                            </>
+                        )}
+                        <p>{order.location_email || 'contact@caterly.com.au'}</p>
+                        {order.location_phone && <p>{order.location_phone}</p>}
+                        <p>ABN: {order.location_abn || 'XX XXX XXX XXX'}</p>
                     </div>                </div>
 
                 {/* Customer & Invoice Details */}
@@ -274,7 +290,7 @@ export default function InvoicePage() {
                 {/* Footer */}
                 <div className="mt-16 pt-8 border-t text-center text-gray-500 text-sm">
                     <p>Thank you for your business!</p>
-                    <p className="mt-1">If you have any questions about this invoice, please contact contact@caterly.com.au</p>
+                    <p className="mt-1">If you have any questions about this invoice, please contact {order.location_email || 'contact@caterly.com.au'}</p>
                 </div>
 
             </div>
