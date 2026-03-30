@@ -103,6 +103,48 @@ export default function HomePage() {
     }
   }
 
+  // Catering card slideshow images
+  const corporateImages = [
+    "/assets/images/c42.png",
+    "/assets/images/c43.png",
+    "/assets/images/c44.png",
+    "/assets/images/c45.png",
+  ]
+  const eventImages = [
+    "/assets/images/c46.png",
+    "/assets/images/c47.png",
+    "/assets/images/c48.png",
+    "/assets/images/c49.png",
+    "/assets/images/c50.png",
+    "/assets/images/c51.png",
+  ]
+  const weddingImages = [
+    "/assets/images/c52.png",
+    "/assets/images/c53.png",
+    "/assets/images/c54.png",
+    "/assets/images/c55.png",
+    "/assets/images/c56.png",
+  ]
+
+  const [corpIdx, setCorpIdx] = useState(0)
+  const [eventIdx, setEventIdx] = useState(0)
+  const [weddingIdx, setWeddingIdx] = useState(0)
+
+  useEffect(() => {
+    const t = setInterval(() => setCorpIdx(i => (i + 1) % corporateImages.length), 2000)
+    return () => clearInterval(t)
+  }, [])
+
+  useEffect(() => {
+    const t = setInterval(() => setEventIdx(i => (i + 1) % eventImages.length), 2000)
+    return () => clearInterval(t)
+  }, [])
+
+  useEffect(() => {
+    const t = setInterval(() => setWeddingIdx(i => (i + 1) % weddingImages.length), 2000)
+    return () => clearInterval(t)
+  }, [])
+
   return (
     <div className="w-full overflow-x-hidden">
 
@@ -197,109 +239,151 @@ export default function HomePage() {
       {/* ================================================= */}
       {/* 2. OUR SERVICES */}
       {/* ================================================= */}
-      <section className="bg-white py-12 md:py-16">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
+<section className="bg-white py-12 md:py-16">
+  <div className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[120px]">
 
-          {/* SECTION HEADER */}
-          <div className="text-center mb-12 md:mb-20">
-            <h2 className="text-[24px] md:text-[32px] font-semibold text-black mb-3 md:mb-4">
-              Private events
-            </h2>
-            <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto px-4">
-              Complete Event Solutions Made Simple
-            </p>
-          </div>
+    {/* SECTION HEADER */}
+    <div className="text-center mb-12 md:mb-20">
+      <h2 className="text-[24px] md:text-[32px] font-semibold text-black mb-3 md:mb-4">
+        Catering for Every Occasion
+      </h2>
+      <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[520px] mx-auto px-4">
+        Catering Every Moment with Excellence
+      </p>
+    </div>
 
-          {/* CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-[64px]">
+    {/* CARDS */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-[64px]">
 
-            {/* CARD 1 - Catering Services */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
-              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-                <Image
-                  src="/assets/images/c1.png"
-                  alt="Catering Services"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
-                Catering Services
-              </h3>
-
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
-                Freshly prepared catering packages for offices, meetings, private events, and special occasions. From breakfast to lunch, platters, and finger food, we deliver delicious food tailored to your event.
-              </p>
-
-              <div className="mt-auto">
-                <Link href="/shop" passHref legacyBehavior>
-                  <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-                    Order Now
-                  </button>
-                </Link>
-              </div>
-            </div>
-
-            {/* CARD 2 - Staff Hire */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col h-full">
-              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-                <Image
-                  src="/assets/images/c3.jpg"
-                  alt="Staff Hire"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
-                Staff Hire
-              </h3>
-
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
-                Professional and experienced hospitality staff available to support your event. Our team ensures smooth service, presentation, and a great experience for your guests.
-              </p>
-
-              <div className="mt-auto">
-                <Link href="/staff" passHref legacyBehavior>
-                  <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-                    Order Now
-                  </button>
-                </Link>
-              </div>
-            </div>
-
-            {/* CARD 3 - Venue Hire */}
-            <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col h-full">
-              <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-                <Image
-                  src="/assets/images/c2.jpg"
-                  alt="Venue Hire"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-3">
-                Venue Hire
-              </h3>
-
-              <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
-                Flexible venue options for meetings, celebrations, and private functions. We help create the perfect setting for your event with catering and service support available.
-              </p>
-
-              <div className="mt-auto">
-                <Link href="/venue" passHref legacyBehavior>
-                  <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-                    Order Now
-                  </button>
-                </Link>
-              </div>
-            </div>
-
-          </div>
+      {/* CARD 1 - Corporate Catering */}
+      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
+        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
+          {corporateImages.map((src, i) => (
+            <Image
+              key={src}
+              src={src}
+              alt="Corporate Catering"
+              fill
+              className="object-cover transition-opacity duration-700"
+              style={{ opacity: i === corpIdx ? 1 : 0, zIndex: i === corpIdx ? 1 : 0 }}
+            />
+          ))}
         </div>
-      </section>
+
+        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">
+          Corporate Catering
+        </h3>
+
+        <p className="text-[13px] font-medium text-black mb-3">
+          Impress. Engage. Deliver Excellence.
+        </p>
+
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
+          From meetings to large corporate events, Caterly provides professional catering that enhances productivity and leaves a lasting impression.
+        </p>
+
+        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
+          <li>✔ Reliable & on-time delivery</li>
+          <li>✔ Perfect for meetings & events</li>
+          <li>✔ Wide variety of menu options</li>
+        </ul>
+
+        <div className="mt-auto">
+          <Link href="/shop" passHref legacyBehavior>
+            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+              Order Now
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* CARD 2 - Event Catering */}
+      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
+        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
+          {eventImages.map((src, i) => (
+            <Image
+              key={src}
+              src={src}
+              alt="Event Catering"
+              fill
+              className="object-cover transition-opacity duration-700"
+              style={{ opacity: i === eventIdx ? 1 : 0, zIndex: i === eventIdx ? 1 : 0 }}
+            />
+          ))}
+        </div>
+
+        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">
+          Event Catering
+        </h3>
+
+        <p className="text-[13px] font-medium text-black mb-3">
+          Perfect Catering for Every Occasion
+        </p>
+
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
+          Whether it’s a private event, celebration, or special gathering, Caterly offers versatile catering solutions designed to suit every occasion.
+        </p>
+
+        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
+          <li>✔ Flexible catering packages</li>
+          <li>✔ Beautifully presented platters</li>
+          <li>✔ Hassle-free experience</li>
+        </ul>
+
+        <div className="mt-auto">
+          <Link href="/shop" passHref legacyBehavior>
+            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+              Order Now
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* CARD 3 - Wedding Catering */}
+      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
+        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
+          {weddingImages.map((src, i) => (
+            <Image
+              key={src}
+              src={src}
+              alt="Wedding Catering"
+              fill
+              className="object-cover transition-opacity duration-700"
+              style={{ opacity: i === weddingIdx ? 1 : 0, zIndex: i === weddingIdx ? 1 : 0 }}
+            />
+          ))}
+        </div>
+
+        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">
+          Wedding Catering
+        </h3>
+
+        <p className="text-[13px] font-medium text-black mb-3">
+          Where Love Meets Exceptional Taste
+        </p>
+
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
+          Your big day deserves unforgettable food. Caterly crafts exquisite wedding menus tailored to your style, ensuring every bite reflects elegance, love, and celebration.
+        </p>
+
+        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
+          <li>✔ Tailored wedding packages</li>
+          <li>✔ Premium presentation & service</li>
+          <li>✔ Seamless event execution</li>
+        </ul>
+
+        <div className="mt-auto">
+          <Link href="/shop" passHref legacyBehavior>
+            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
+              Order Now
+            </button>
+          </Link>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
 
 
       {/* ================================================= */}

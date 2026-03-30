@@ -167,25 +167,15 @@ export function AuthModal() {
         <DialogTitle className="sr-only">{view === "login" ? "Login" : "Register"}</DialogTitle>
         <DialogDescription className="sr-only">Authenticate to Caterly</DialogDescription>
         
-        {/* Banner Image */}
-        <div className="relative w-full h-[140px]">
+        {/* Logo Only */}
+        <div className="flex items-center justify-center pt-8 pb-2">
           <Image
-            src="/assets/images/c28.jpg"
-            alt="Caterly background"
-            fill
-            className="object-cover"
+            src="/assets/images/cat.svg"
+            alt="Caterly logo"
+            width={140}
+            height={80}
             priority
           />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <Image
-              src="/assets/images/cat.svg"
-              alt="Caterly logo"
-              width={140}
-              height={100}
-              priority
-              className="drop-shadow-lg"
-            />
-          </div>
         </div>
 
         {/* Content Area */}

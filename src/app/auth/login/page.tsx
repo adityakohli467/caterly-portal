@@ -52,7 +52,7 @@ function LoginPageContent() {
 
           {/* BACKGROUND IMAGE */}
           <img
-            src="/assets/images/c28.jpg"
+            src="/assets/images/log.png"
             alt="Caterly background"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -72,7 +72,7 @@ function LoginPageContent() {
       <div className="hidden lg:flex min-h-screen">
         <div className="w-1/2 relative">
           <Image
-            src="/assets/images/c28.jpg"
+            src="/assets/images/log.png"
             alt="Caterly background"
             fill
             className="object-cover"

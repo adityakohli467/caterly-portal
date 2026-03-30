@@ -528,6 +528,88 @@ export default function CheckoutPage() {
               {/* Left Column - Billing and Shipping */}
               <div className="lg:col-span-2 space-y-6">
 
+                {/* Order Summary Items */}
+                <Card className="border-[#F2CACA] bg-white text-black overflow-hidden">
+                  <CardContent className="pt-6">
+                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Order Summary</h2>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-[#F2CACA] text-left text-xs uppercase tracking-wider text-gray-500">
+                            <th className="pb-3 pr-4 font-semibold">Product</th>
+                            <th className="pb-3 pr-4 font-semibold text-right w-[80px]">Price</th>
+                            <th className="pb-3 pr-4 font-semibold text-center w-[120px]">Quantity</th>
+                            <th className="pb-3 pr-4 font-semibold text-right w-[100px]">Total</th>
+                            <th className="pb-3 pl-4 w-[40px]"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#F2CACA]">
+                          {items.map((item) => {
+                            const cartItemId = item.cart_item_id || generateCartItemId(item.product_id, item.options)
+                            const itemPrice = getItemPrice(item)
+                            const itemTotal = itemPrice * item.quantity
+
+                            return (
+                              <tr key={cartItemId} className="text-sm">
+                                <td className="py-4 pr-4 min-w-[250px]">
+                                  <div className="flex items-center gap-3">
+                                    <div className="relative w-12 h-12 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-100">
+                                      {item.product_image ? (
+                                        <Image src={item.product_image} alt={item.product_name} fill className="object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No Pic</div>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-[#1A237E] leading-tight text-sm">{item.product_name}</div>
+                                      {item.options?.map((opt, idx) => (
+                                        <div key={idx} className="text-[10px] text-gray-500">
+                                          {opt.option_name}: {opt.option_value}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 pr-4 text-right font-medium text-gray-900">${itemPrice.toFixed(2)}</td>
+                                <td className="py-4 pr-4">
+                                  <div className="flex items-center justify-center gap-3">
+                                    <button
+                                      type="button"
+                                      onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
+                                      className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
+                                    >
+                                      <Minus className="w-3 h-3" />
+                                    </button>
+                                    <span className="font-bold min-w-[20px] text-center text-sm">{item.quantity}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateQuantity(cartItemId, item.quantity + 1)}
+                                      className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
+                                    >
+                                      <Plus className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="py-4 pr-4 text-right font-bold text-gray-900">${itemTotal.toFixed(2)}</td>
+                                <td className="py-4 pl-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeItem(cartItemId)}
+                                    className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                                    title="Remove item"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Purchase Options */}
                 <Card className="border-[#F2CACA] bg-white">
                   <CardContent className="pt-6">
@@ -545,7 +627,7 @@ export default function CheckoutPage() {
                         type="button"
                         onClick={() => setIsSubscription(false)}
                         className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${!isSubscription
-                          ? "border-[#E03A3E] bg-[#F1F8E9] text-black"
+                          ? "border-[#E03A3E] bg-white text-black"
                           : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
                           }`}
                       >
@@ -712,6 +794,17 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
+                        <Label htmlFor="billing-email" className="text-black">Email Address</Label>
+                        <Input
+                          id="billing-email"
+                          type="email"
+                          value={billingData.email}
+                          onChange={(e) => setBillingData({ ...billingData, email: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div>
                         <Label htmlFor="billing-street" className="text-black">Delivery Address <span className="text-red-500">*</span></Label>
                         <Input
                           id="billing-street"
@@ -741,16 +834,6 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
-                        <Label htmlFor="billing-state" className="text-black">State <span className="text-red-500">*</span></Label>
-                        <Input
-                          id="billing-state"
-                          value={billingData.state}
-                          readOnly
-                          className="bg-gray-50 border-gray-300 text-gray-900 cursor-not-allowed font-semibold"
-                        />
-                      </div>
-
-                      <div>
                         <Label htmlFor="billing-postcode" className="text-black">Postcode <span className="text-red-500">*</span></Label>
                         <Input
                           id="billing-postcode"
@@ -775,97 +858,14 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
-                        <Label htmlFor="billing-email" className="text-black">Email Address</Label>
+                        <Label htmlFor="billing-state" className="text-black">State <span className="text-red-500">*</span></Label>
                         <Input
-                          id="billing-email"
-                          type="email"
-                          value={billingData.email}
-                          onChange={(e) => setBillingData({ ...billingData, email: e.target.value })}
-                          required
+                          id="billing-state"
+                          value={billingData.state}
+                          readOnly
+                          className="bg-gray-50 border-gray-300 text-gray-900 cursor-not-allowed font-semibold"
                         />
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Order Summary Items */}
-                <Card className="border-[#F2CACA] bg-white text-black overflow-hidden">
-                  <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Order Summary</h2>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="border-b border-[#F2CACA] text-left text-xs uppercase tracking-wider text-gray-500">
-                            <th className="pb-3 pr-4 font-semibold">Product</th>
-                            <th className="pb-3 pr-4 font-semibold text-right w-[80px]">Price</th>
-                            <th className="pb-3 pr-4 font-semibold text-center w-[120px]">Quantity</th>
-                            <th className="pb-3 pr-4 font-semibold text-right w-[100px]">Total</th>
-                            <th className="pb-3 pl-4 w-[40px]"></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#F2CACA]">
-                          {items.map((item) => {
-                            const cartItemId = item.cart_item_id || generateCartItemId(item.product_id, item.options)
-                            const itemPrice = getItemPrice(item)
-                            const itemTotal = itemPrice * item.quantity
-
-                            return (
-                              <tr key={cartItemId} className="text-sm">
-                                <td className="py-4 pr-4 min-w-[250px]">
-                                  <div className="flex items-center gap-3">
-                                    <div className="relative w-12 h-12 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-100">
-                                      {item.product_image ? (
-                                        <Image src={item.product_image} alt={item.product_name} fill className="object-cover" />
-                                      ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No Pic</div>
-                                      )}
-                                    </div>
-                                    <div>
-                                      <div className="font-bold text-[#1A237E] leading-tight text-sm">{item.product_name}</div>
-                                      {item.options?.map((opt, idx) => (
-                                        <div key={idx} className="text-[10px] text-gray-500">
-                                          {opt.option_name}: {opt.option_value}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="py-4 pr-4 text-right font-medium text-gray-900">${itemPrice.toFixed(2)}</td>
-                                <td className="py-4 pr-4">
-                                  <div className="flex items-center justify-center gap-3">
-                                    <button
-                                      type="button"
-                                      onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
-                                      className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
-                                    >
-                                      <Minus className="w-3 h-3" />
-                                    </button>
-                                    <span className="font-bold min-w-[20px] text-center text-sm">{item.quantity}</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => updateQuantity(cartItemId, item.quantity + 1)}
-                                      className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
-                                    >
-                                      <Plus className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                </td>
-                                <td className="py-4 pr-4 text-right font-bold text-gray-900">${itemTotal.toFixed(2)}</td>
-                                <td className="py-4 pl-4 text-right">
-                                  <button
-                                    type="button"
-                                    onClick={() => removeItem(cartItemId)}
-                                    className="text-gray-300 hover:text-red-500 transition-colors p-1"
-                                    title="Remove item"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
                     </div>
                   </CardContent>
                 </Card>
