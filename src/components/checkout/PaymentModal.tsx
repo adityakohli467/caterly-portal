@@ -38,12 +38,14 @@ export function PaymentModal({
 }: PaymentModalProps) {
   const [showSuccess, setShowSuccess] = useState(false)
   const [localItems, setLocalItems] = useState<OrderItem[]>([])
+  const [localOrderTotal, setLocalOrderTotal] = useState<number>(0)
   const router = useRouter()
 
   if (!orderId) return null
 
   const handlePaymentSuccess = () => {
     setLocalItems([...items]) // Capture items before they are cleared from the store
+    setLocalOrderTotal(orderTotal) // Capture total before cart recalculates to 0
     setShowSuccess(true)
     onSuccess() // Clear cart etc. in parent
   }
@@ -110,7 +112,7 @@ export function PaymentModal({
 
               <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
                 <span className="text-gray-900 font-bold">Total Amount</span>
-                <span className="text-lg font-bold text-[#E03A3E]">${orderTotal.toFixed(2)}</span>
+                <span className="text-lg font-bold text-[#E03A3E]">${localOrderTotal.toFixed(2)}</span>
               </div>
             </div>
 

@@ -707,6 +707,62 @@ function ProductDetailContent({
                 </div>
               )} */}
 
+              {/* Quantity Selector */}
+              <div className="border rounded-lg overflow-hidden mb-6">
+                <div className="grid grid-cols-2 bg-gray-50 p-4 font-medium text-sm">
+                  <div className="text-black">
+                    Quantity
+                    {product?.min_quantity && parseInt(String(product.min_quantity)) > 1 && (
+                      <span className="ml-2 text-xs font-normal text-[#E03A3E]">(Min: {product.min_quantity})</span>
+                    )}
+                  </div>
+                  <div className="text-right">Price</div>
+                </div>
+                <div className="grid grid-cols-2 p-4 items-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      onClick={() => updateQuantity(-1)}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="w-8 text-center text-black">
+                      {quantity}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      onClick={() => updateQuantity(1)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="text-right font-bold text-black">
+                    {(() => {
+                      const unitPrice = calculateUnitPrice();
+                      const total = unitPrice * quantity;
+                      return `$${total.toFixed(2)}`;
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="text-sm font-bold text-black block mb-2">
+                  Special Instructions or Comments
+                </label>
+                <textarea
+                  placeholder="Enter any specific requests for this item..."
+                  value={itemComments}
+                  onChange={(e) => setItemComments(e.target.value)}
+                  rows={3}
+                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E] resize-none"
+                />
+              </div>
+
               {/* Product Options */}
               {product.options && product.options.length > 0 && (
                 <div className="space-y-4 mb-6">
@@ -873,68 +929,7 @@ function ProductDetailContent({
                 </div>
               )}
 
-              {/* Quantity Selector */}
-              <div className="border rounded-lg overflow-hidden mb-6">
-                <div className="grid grid-cols-2 bg-gray-50 p-4 font-medium text-sm">
-                  <div className="text-black">
-                    Quantity
-                    {product?.min_quantity && parseInt(String(product.min_quantity)) > 1 && (
-                      <span className="ml-2 text-xs font-normal text-[#E03A3E]">(Min: {product.min_quantity})</span>
-                    )}
-                  </div>
-                  <div className="text-right">Price</div>
-                </div>
-                <div className="grid grid-cols-2 p-4 items-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8"
-                      onClick={() => updateQuantity(-1)}
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                    <span className="w-8 text-center text-black">
-                      {quantity}
-                    </span>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8"
-                      onClick={() => updateQuantity(1)}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="text-right font-bold text-black">
-                    {(() => {
-                      const unitPrice = calculateUnitPrice();
-                      const total = unitPrice * quantity;
-                      return `$${total.toFixed(2)}`;
-                    })()}
-                  </div>
-                </div>
-              </div>
 
-              {/* {product && (
-                <div className="flex items-center justify-between mb-6 text-lg font-bold">
-                  <span className="text-black">Subtotal</span>
-                  <span>${calculateSubtotal()}</span>
-                </div>
-              )} */}
-
-              <div className="mb-6">
-                <label className="text-sm font-bold text-black block mb-2">
-                  Special Instructions or Comments
-                </label>
-                <textarea
-                  placeholder="Enter any specific requests for this item..."
-                  value={itemComments}
-                  onChange={(e) => setItemComments(e.target.value)}
-                  rows={3}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E] resize-none"
-                />
-              </div>
 
               {parseFloat(calculateSubtotal()) > 0 && (
                 <Button
