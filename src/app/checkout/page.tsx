@@ -379,6 +379,11 @@ export default function CheckoutPage() {
         delivery_frequency: item.delivery_frequency || "One Time",
         delivery_start_date: item.delivery_start_date || null,
         delivery_time: item.delivery_time || deliveryTime || null,
+        item_comments: item.item_comments || null,
+        special_instructions: item.item_comments || null,
+        comments: item.item_comments || null,
+        comment: item.item_comments || null,
+        notes: item.item_comments || null,
       }))
 
       const totals = calculateTotal()
