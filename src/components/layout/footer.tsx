@@ -46,16 +46,19 @@ export function Footer() {
         {/* LOGO */}
         <div>
           <Image
-            src="/assets/images/cat.svg"
+            src="/assets/images/l1.png"
             alt="Caterly Logo"
-            width={160}
-            height={70}
-            className="mb-6"
+            width={0}
+            height={0}
+            sizes="100vw"
+            className="mb-4 ml-6 -mt-4"
+            style={{ width: '130px', height: '130px' }}
+            
           />
-
-          <p className="text-sm text-white/70">
+  <p className="text-sm text-white/70 ml-6 -mt-6">
             Premium catering services delivered fresh and on time.
           </p>
+        
         </div>
 
         {/* CONTACT */}
@@ -147,7 +150,7 @@ export function Footer() {
               type="email"
               placeholder="Email address"
               value={email}
-              onChange={(e)=>setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 text-black text-sm outline-none"
             />
 
@@ -177,42 +180,42 @@ export function Footer() {
 
         <div className="max-w-7xl mx-auto px-10 flex flex-col md:flex-row justify-between items-center">
 
-   
-
-{/* FOLLOW */}
-<div className="flex items-center gap-4 mb-4 md:mb-0">
-
-  <span className="text-sm">Follow Us</span>
-
-  <a href="https://www.facebook.com/profile.php?id=61584509317898" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-    <FaFacebookF size={14} />
-  </a>
-
-  <a href="https://www.instagram.com/caterly.catering?igsh=dTJndGgwOG4xbnls" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-    <FaInstagram size={14} />
-  </a>
-
-  <a href="https://www.youtube.com/@Caterly.Catering" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-    <FaYoutube size={14} />
-  </a>
-
-  <a href="https://www.linkedin.com/company/caterly-catering/" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-    <FaLinkedinIn size={14} />
-  </a>
-
-</div>
 
 
-{/* PAYMENTS */}
-<div className="flex items-center gap-3">
+          {/* FOLLOW */}
+          <div className="flex items-center gap-4 mb-4 md:mb-0">
 
-  <span className="text-sm mr-2">We Accept</span>
+            <span className="text-sm">Follow Us</span>
 
-  {/* <FaCcAmex size={32} /> */}
-  <FaCcMastercard size={32} />
-  <FaCcVisa size={32} />
+            <a href="https://www.facebook.com/profile.php?id=61584509317898" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+              <FaFacebookF size={14} />
+            </a>
 
-</div>
+            <a href="https://www.instagram.com/caterly.catering?igsh=dTJndGgwOG4xbnls" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+              <FaInstagram size={14} />
+            </a>
+
+            <a href="https://www.youtube.com/@Caterly.Catering" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+              <FaYoutube size={14} />
+            </a>
+
+            <a href="https://www.linkedin.com/company/caterly-catering/" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
+              <FaLinkedinIn size={14} />
+            </a>
+
+          </div>
+
+
+          {/* PAYMENTS */}
+          <div className="flex items-center gap-3">
+
+            <span className="text-sm mr-2">We Accept</span>
+
+            {/* <FaCcAmex size={32} /> */}
+            <FaCcMastercard size={32} />
+            <FaCcVisa size={32} />
+
+          </div>
 
         </div>
 
