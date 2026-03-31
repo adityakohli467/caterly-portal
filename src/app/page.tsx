@@ -409,32 +409,38 @@ export default function HomePage() {
               {
                 title: "Breakfast Packages",
                 desc: "Start the day right with freshly prepared breakfast selections including pastries, sandwiches, wraps, fruit platters and coffee options. Perfect for early meetings and team gatherings.",
-                img: "/assets/images/c34.jpg"
+                img: "/assets/images/c34.jpg",
+                search: "breakfast"
               },
               {
                 title: "Morning Tea Packages",
                 desc: "A delightful mix of sweet and savoury treats designed for mid morning breaks. Includes muffins, slices, pastries, fruit and light bites to keep everyone energised.",
-                img: "/assets/images/c31.jpeg"
+                img: "/assets/images/c31.jpeg",
+                search: "morning tea"
               },
               {
                 title: "Lunch Packages",
                 desc: "Our lunch packages offer a satisfying variety of wraps, sandwiches, salads and hot food options. Ideal for corporate meetings, office lunches and team events.",
-                img: "/assets/images/c32.jpeg"
+                img: "/assets/images/c32.jpeg",
+                search: "lunch"
               },
               {
                 title: "Assorted Platters",
                 desc: "Beautifully presented platters featuring sandwiches, wraps, fruit, pastries and gourmet selections. Perfect for sharing at meetings, functions and celebrations.",
-                img: "/assets/images/c33.jpeg"
+                img: "/assets/images/c33.jpeg",
+                search: "platter"
               },
               {
                 title: "Finger Food and Canapés",
                 desc: "Elegant bite sized options designed for events and networking functions. Easy to enjoy while mingling and ideal for cocktail style gatherings.",
-                img: "/assets/images/c36.png"
+                img: "/assets/images/c36.png",
+                search: "finger food"
               },
               {
                 title: "Cakes and Sweet Treats",
                 desc: "Celebrate special occasions with our delicious cakes and dessert selections including birthday cakes, slices and sweet platters.",
-                img: "/assets/images/c35.png"
+                img: "/assets/images/c35.png",
+                search: "cake"
               },
             ].map((item, index) => (
               <div
@@ -461,7 +467,7 @@ export default function HomePage() {
                     {item.desc}
                   </p>
 
-                  <Link href="/shop" passHref legacyBehavior>
+                  <Link href={`/shop?search=${encodeURIComponent(item.search)}`} passHref legacyBehavior>
                     <a className="bg-[#E03A3E] hover:bg-[#cc3236] text-white text-sm font-semibold px-5 py-2 rounded-md inline-block transition">
                       Order Now
                     </a>
@@ -928,6 +934,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 
                 <button
+                  onClick={openQuoteModal}
                   className="
               bg-white
               text-black
@@ -943,7 +950,8 @@ export default function HomePage() {
                   Request a Quote
                 </button>
 
-                <button
+                <a
+                  href="tel:1300827286"
                   className="
               bg-[#E03A3E]
               text-white
@@ -954,10 +962,11 @@ export default function HomePage() {
               font-semibold
               hover:bg-[#cc3236]
               transition
+              inline-block
             "
                 >
                   Call Now
-                </button>
+                </a>
 
               </div>
             </div>

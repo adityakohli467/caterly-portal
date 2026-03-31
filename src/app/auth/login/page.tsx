@@ -138,7 +138,7 @@ function FormSection({
             Email
           </label>
           <Input
-            placeholder="Enter Here"
+            placeholder="Enter Email"
             value={formData.username}
             onChange={(e) =>
               setFormData({ ...formData, username: e.target.value })
@@ -154,7 +154,7 @@ function FormSection({
           </label>
           <Input
             type="password"
-            placeholder="Enter Here"
+            placeholder="Enter Password"
             value={formData.password}
             onChange={(e) =>
               setFormData({ ...formData, password: e.target.value })
@@ -164,10 +164,10 @@ function FormSection({
           />
         </div>
 
-        <div className="flex justify-end -mt-2">
+        <div className="flex justify-end mt-1">
           <Link
             href="/auth/forgot-password"
-            className="text-sm text-[#E03A3E] font-medium hover:underline"
+            className="text-[13px] text-[#E03A3E] font-medium hover:underline transition-all"
           >
             Forgot Password?
           </Link>

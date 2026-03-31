@@ -51,9 +51,22 @@ export function Header() {
           <div className="hidden md:flex items-center gap-10">
             {/* NAVIGATION LINKS */}
             <nav className="flex items-center gap-10 text-[16px] font-medium text-black">
-              <Link href="/" className="hover:text-[#E03A3E]">Home</Link>
-              <Link href="/shop" className="text-[#E03A3E] font-semibold hover:text-[#cc3236]">Order Now</Link>
-              <Link href="/call" className="hover:text-[#E03A3E]">
+              <Link
+                href="/"
+                className={`transition-colors hover:text-[#E03A3E] ${pathname === '/' ? 'text-[#E03A3E] font-semibold' : ''}`}
+              >
+                Home
+              </Link>
+              <Link
+                href="/shop"
+                className={`transition-colors hover:text-[#cc3236] ${pathname.startsWith('/shop') ? 'text-[#E03A3E] font-semibold' : ''}`}
+              >
+                Order Now
+              </Link>
+              <Link
+                href="/call"
+                className={`transition-colors hover:text-[#E03A3E] ${pathname === '/call' ? 'text-[#E03A3E] font-semibold' : ''}`}
+              >
                 Contact
               </Link>
             </nav>
@@ -62,11 +75,11 @@ export function Header() {
             <div className="flex items-center gap-6">
               <Link
                 href="/checkout"
-                className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 group transition-colors"
               >
                 <ShoppingCart className="w-6 h-6 text-[#E03A3E]" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#E03A3E] text-white text-xs font-bold rounded-full px-2">
+                  <span className="absolute -top-1 -right-1 bg-[#E03A3E] text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
                     {totalItems}
                   </span>
                 )}
