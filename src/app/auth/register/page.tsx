@@ -121,7 +121,12 @@ function RegisterPageContent() {
       toast.success("Thank you for registering with us.")
       router.push("/")
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Registration failed")
+      const message = error.message || "Registration failed"
+      if (message.toLowerCase().includes("email") && (message.toLowerCase().includes("exists") || message.toLowerCase().includes("already"))) {
+        toast.error("the email already existed")
+      } else {
+        toast.error(message)
+      }
     } finally {
       setLoading(false)
     }
@@ -134,7 +139,7 @@ function RegisterPageContent() {
       <div className="lg:hidden px-4 pt-6">
         <div className="relative h-[180px] rounded-[16px] overflow-hidden">
           <img
-            src="/assets/images/c28.jpg"
+            src="/assets/images/log.png"
             className="absolute inset-0 w-full h-full object-cover"
             alt="Caterly banner"
           />
@@ -151,7 +156,7 @@ function RegisterPageContent() {
       {/* ================= DESKTOP LEFT ================= */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <Image
-          src="/assets/images/c28.jpg"
+          src="/assets/images/log.png"
           alt="Caterly background"
           fill
           className="object-cover"

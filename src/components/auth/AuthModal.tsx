@@ -69,7 +69,7 @@ export function AuthModal() {
       await login(loginForm.username, loginForm.password)
       toast.success("Login successful")
       closeModal()
-      
+
       // Attempt manual refresh of the page or just clear checkout items if needed
       // Currently using window.location.reload() for a full application state refresh (if necessary depending on use case), but next router is better
       router.refresh()
@@ -155,7 +155,12 @@ export function AuthModal() {
       closeModal()
       router.refresh()
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Registration failed")
+      const message = error.message || "Registration failed"
+      if (message.toLowerCase().includes("email") && (message.toLowerCase().includes("exists") || message.toLowerCase().includes("already"))) {
+        toast.error("the email already existed")
+      } else {
+        toast.error(message)
+      }
     } finally {
       setIsRegisterLoading(false)
     }
@@ -166,7 +171,7 @@ export function AuthModal() {
       <DialogContent className="max-w-[480px] p-0 border-none bg-white rounded-2xl overflow-hidden shadow-2xl">
         <DialogTitle className="sr-only">{view === "login" ? "Login" : "Register"}</DialogTitle>
         <DialogDescription className="sr-only">Authenticate to Caterly</DialogDescription>
-        
+
         {/* Logo Only */}
         <div className="flex items-center justify-center pt-8 pb-2">
           <Image
@@ -180,7 +185,7 @@ export function AuthModal() {
 
         {/* Content Area */}
         <div className="p-6 sm:p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-          
+
           {view === "login" ? (
             /* ================= LOGIN VIEW ================= */
             <div className="w-full">

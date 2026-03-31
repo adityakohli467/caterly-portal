@@ -75,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
           // Wait a moment to ensure state is persisted
           await new Promise(resolve => setTimeout(resolve, 100))
         } catch (error: any) {
-          const message = error.response?.data?.message || "Login failed"
+          const message = error.message || "Login failed"
           throw new Error(message)
         }
       },
@@ -125,7 +125,7 @@ export const useAuthStore = create<AuthState>()(
             }
           }
         } catch (error: any) {
-          const message = error.response?.data?.message || "Registration failed"
+          const message = error.message || "Registration failed"
           throw new Error(message)
         }
       },
