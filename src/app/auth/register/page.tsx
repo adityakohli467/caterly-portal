@@ -195,22 +195,26 @@ function RegisterPageContent() {
             </div>
 
             {/* Phone & Email */}
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                placeholder="Phone Number"
-                value={form.phoneNumber}
-                onChange={(e) => handleChange("phoneNumber", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
-                required
-              />
-              <Input
-                type="email"
-                placeholder="Email"
-                value={form.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
-                required
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Input
+                  placeholder="Phone Number"
+                  value={form.phoneNumber}
+                  onChange={(e) => handleChange("phoneNumber", e.target.value)}
+                  className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
+                  required
+                />
+              </div>
             </div>
 
             {/* Address */}
@@ -223,21 +227,25 @@ function RegisterPageContent() {
             />
 
             {/* Suburb & State */}
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                placeholder="Suburb"
-                value={form.suburb}
-                onChange={(e) => handleChange("suburb", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
-                required
-              />
-              <Input
-                placeholder="State"
-                value={form.state}
-                onChange={(e) => handleChange("state", e.target.value)}
-                className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
-                required
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Input
+                  placeholder="Suburb"
+                  value={form.suburb}
+                  onChange={(e) => handleChange("suburb", e.target.value)}
+                  className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Input
+                  placeholder="State"
+                  value={form.state}
+                  onChange={(e) => handleChange("state", e.target.value)}
+                  className="h-[48px] rounded-[10px] border border-gray-300 text-black placeholder:text-gray-500 focus:border-[#E03A3E] focus:ring-1 focus:ring-[#E03A3E]"
+                  required
+                />
+              </div>
             </div>
 
             {/* Postal Code */}
@@ -275,14 +283,16 @@ function RegisterPageContent() {
             />
 
             {/* Terms */}
-            <div className="flex items-center gap-2 mt-4">
-              <Checkbox
-                checked={form.agree}
-                onCheckedChange={(checked) =>
-                  handleChange("agree", checked)
-                }
-              />
-              <p className="text-[13px] text-gray-700">
+            <div className="flex items-start gap-3 mt-4">
+              <div className="pt-0.5">
+                <Checkbox
+                  checked={form.agree}
+                  onCheckedChange={(checked) =>
+                    handleChange("agree", checked)
+                  }
+                />
+              </div>
+              <p className="text-[13px] text-gray-700 leading-tight">
                 I agree to all{" "}
                 <Link href="/terms" className="text-[#E03A3E] font-medium hover:underline">
                   Terms & Conditions

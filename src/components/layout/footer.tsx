@@ -53,12 +53,12 @@ export function Footer() {
             sizes="100vw"
             className="mb-4 ml-6 -mt-4"
             style={{ width: '130px', height: '130px' }}
-            
+
           />
-  <p className="text-sm text-white/70 ml-6 -mt-6">
+          <p className="text-sm text-white/70 ml-6 -mt-6">
             Premium catering services delivered fresh and on time.
           </p>
-        
+
         </div>
 
         {/* CONTACT */}
@@ -67,13 +67,17 @@ export function Footer() {
             Contact
           </h4>
 
-          <p className="text-white/80 mb-3">
-            <strong>Phone:</strong> 1300 827 286
-          </p>
+          <div className="flex flex-col gap-3">
+            <div className="flex text-white/80">
+              <strong className="min-w-[65px] inline-block">Phone:</strong>
+              <span>1300 827 286</span>
+            </div>
 
-          <p className="text-white/80">
-            <strong>Email:</strong> Catering@caterly.com.au
-          </p>
+            <div className="flex text-white/80">
+              <strong className="min-w-[65px] inline-block">Email:</strong>
+              <span className="break-all">Catering@caterly.com.au</span>
+            </div>
+          </div>
         </div>
 
         {/* QUICK LINKS */}
@@ -144,20 +148,20 @@ export function Footer() {
             Get updates and exclusive offers.
           </p>
 
-          <div className="flex">
+          <div className="flex h-10 rounded-sm overflow-hidden border border-white/20">
 
             <input
               type="email"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 text-black text-sm outline-none"
+              className="flex-1 px-3 py-0 text-black text-sm outline-none border-0 min-w-0"
             />
 
             <button
               onClick={handleSubscribe}
               disabled={loading}
-              className="bg-[#E03A3E] px-4 text-sm font-semibold"
+              className="bg-[#E03A3E] text-white px-4 text-sm font-bold h-full flex items-center justify-center hover:bg-[#cc3236] transition-colors shrink-0 whitespace-nowrap"
             >
               {loading ? "..." : "Join"}
             </button>
@@ -185,23 +189,25 @@ export function Footer() {
           {/* FOLLOW */}
           <div className="flex items-center gap-4 mb-4 md:mb-0">
 
-            <span className="text-sm">Follow Us</span>
+            <span className="text-sm font-medium">Follow Us</span>
 
-            <a href="https://www.facebook.com/profile.php?id=61584509317898" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-              <FaFacebookF size={14} />
-            </a>
+            <div className="flex items-center gap-3">
+              <a href="https://www.facebook.com/profile.php?id=61584509317898" target="_blank" rel="noopener noreferrer" className="bg-white/20 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/30 transition-colors">
+                <FaFacebookF size={14} />
+              </a>
 
-            <a href="https://www.instagram.com/caterly.catering?igsh=dTJndGgwOG4xbnls" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-              <FaInstagram size={14} />
-            </a>
+              <a href="https://www.instagram.com/caterly.catering?igsh=dTJndGgwOG4xbnls" target="_blank" rel="noopener noreferrer" className="bg-white/20 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/30 transition-colors">
+                <FaInstagram size={14} />
+              </a>
 
-            <a href="https://www.youtube.com/@Caterly.Catering" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-              <FaYoutube size={14} />
-            </a>
+              <a href="https://www.youtube.com/@Caterly.Catering" target="_blank" rel="noopener noreferrer" className="bg-white/20 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/30 transition-colors">
+                <FaYoutube size={14} />
+              </a>
 
-            <a href="https://www.linkedin.com/company/caterly-catering/" target="_blank" rel="noopener noreferrer" className="bg-white/20 p-2 rounded-full hover:bg-white/30">
-              <FaLinkedinIn size={14} />
-            </a>
+              <a href="https://www.linkedin.com/company/caterly-catering/" target="_blank" rel="noopener noreferrer" className="bg-white/20 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/30 transition-colors">
+                <FaLinkedinIn size={14} />
+              </a>
+            </div>
 
           </div>
 

@@ -56,8 +56,8 @@ function ShopPageContent() {
     return c ? parseInt(c) : null
   })
   const [expandedParents, setExpandedParents] = useState<Set<number>>(new Set())
-  const [search, setSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [search, setSearch] = useState(() => searchParams.get('search') || "")
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || "")
   const [loading, setLoading] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
 
@@ -73,10 +73,11 @@ function ShopPageContent() {
       const res = await api.get("/store/products/categories")
       const cats = res.data.categories || []
       setCategories(cats)
-      
-      // Auto-select "Breakfast" if no category is currently selected in URL or state
-      if (!selectedCategory && cats.length > 0) {
-        const breakfast = cats.find((c: Category) => 
+
+      // Auto-select "Breakfast" only if no category AND no search param is in the URL
+      const hasSearch = !!searchParams.get('search')
+      if (!selectedCategory && !hasSearch && cats.length > 0) {
+        const breakfast = cats.find((c: Category) =>
           c.category_name?.toLowerCase().includes("breakfast")
         )
         if (breakfast) {
@@ -111,7 +112,7 @@ function ShopPageContent() {
   const fetchProducts = async () => {
     try {
       // (Removed restriction that showed empty products for parent categories)
-      
+
       setLoading(true)
       setProducts([])
 
@@ -130,20 +131,20 @@ function ShopPageContent() {
       }
 
       // ── Category selected — simple direct fetch ─────────────────────────
-      const res = await api.get("/store/products", { 
-        params: { 
-          limit: 100, 
-          category_id: selectedCategory 
-        } 
+      const res = await api.get("/store/products", {
+        params: {
+          limit: 100,
+          category_id: selectedCategory
+        }
       })
       const apiProducts: Product[] = res.data.products || []
-      
+
       const selectedNode = findCategoryById(selectedCategory)
       const selectedName = selectedNode?.category_name || ""
 
       // Client-side filter as backup (some APIs return all products if filter is not supported)
       // If the API correctly filtered, this won't remove anything.
-      const filtered = apiProducts.filter(p => 
+      const filtered = apiProducts.filter(p =>
         p.subcategory_id === selectedCategory ||
         p.parent_category_id === selectedCategory ||
         p.categories?.some(c => c.category_id === selectedCategory) ||
@@ -156,7 +157,7 @@ function ShopPageContent() {
 
       // Combine and filter if needed, then sort by price low-to-high
       let results = filtered.length > 0 ? filtered : apiProducts
-      
+
       results = results.sort((a, b) => {
         const priceA = parseFloat(a.product_price) || 0
         const priceB = parseFloat(b.product_price) || 0
@@ -231,10 +232,12 @@ function ShopPageContent() {
     }
   }, [selectedCategory, categories])
 
-  // Determine view mode
-  const selectedCatName = selectedCategory
-    ? findCategoryById(selectedCategory)?.category_name ?? "Products"
-    : ""
+  // Determine view mode — show search term as heading if searching, else category name
+  const selectedCatName = debouncedSearch
+    ? debouncedSearch
+    : selectedCategory
+      ? findCategoryById(selectedCategory)?.category_name ?? "Products"
+      : "All Products"
 
   const ProductCard = ({ product }: { product: Product }) => {
     const productUrl = selectedCategory
@@ -243,32 +246,36 @@ function ShopPageContent() {
     return (
       <div
         onClick={() => router.push(productUrl)}
-        className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer flex flex-col"
+        className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer flex flex-col h-full"
       >
         <div className="relative w-full bg-gray-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
-            <img
-              src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
-              alt={product.product_name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+          <img
+            src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
+            alt={product.product_name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
         </div>
         <div className="p-4 flex flex-col flex-1">
-          <h3 className="font-semibold text-gray-900 text-base leading-snug flex-1 mb-2">
-            {product.product_name}
-          </h3>
-          <div className="flex items-center justify-between mt-auto">
-            {parseFloat(product.has_discount && product.discounted_price
-              ? product.discounted_price.toString()
-              : product.product_price) > 0 && (
-                <span className="text-lg font-bold text-gray-900">
-                  ${product.has_discount && product.discounted_price
-                    ? product.discounted_price
-                    : product.product_price}
-                </span>
-              )}
+          <div className="min-h-[3rem] mb-2">
+            <h3 className="font-semibold text-gray-900 text-base leading-snug line-clamp-2">
+              {product.product_name}
+            </h3>
+          </div>
+          <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
+            <div className="flex flex-col">
+              {parseFloat(product.has_discount && product.discounted_price
+                ? product.discounted_price.toString()
+                : product.product_price) > 0 && (
+                  <span className="text-lg font-bold text-[#E03A3E]">
+                    ${product.has_discount && product.discounted_price
+                      ? product.discounted_price
+                      : product.product_price}
+                  </span>
+                )}
+            </div>
             <button
               onClick={(e) => { e.stopPropagation(); router.push(productUrl) }}
-              className="ml-auto bg-[#E03A3E] text-white px-5 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition"
+              className="ml-auto bg-[#E03A3E] text-white px-5 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition shadow-sm"
             >
               Order Now
             </button>
@@ -321,20 +328,18 @@ function ShopPageContent() {
                                 }
                                 selectSubcategory(parent.category_id)
                               }}
-                              className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
-                                (hasChildren ? isExpanded : selectedCategory === parent.category_id)
+                              className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
                                   ? "bg-red-50 text-[#E03A3E]"
                                   : "hover:bg-gray-50 text-gray-700"
-                              }`}
+                                }`}
                             >
                               <span className="font-semibold text-[15px] capitalize">
                                 {parent.category_name?.toLowerCase() || ''}
                               </span>
                               {hasChildren && (
-                                <ChevronRight 
-                                  className={`h-4 w-4 transition-transform duration-200 ${
-                                    isExpanded ? "rotate-90 text-[#E03A3E]" : "text-gray-400 group-hover:text-gray-600"
-                                  }`} 
+                                <ChevronRight
+                                  className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-90 text-[#E03A3E]" : "text-gray-400 group-hover:text-gray-600"
+                                    }`}
                                 />
                               )}
                             </div>
@@ -346,15 +351,13 @@ function ShopPageContent() {
                                   <li
                                     key={child.category_id}
                                     onClick={() => selectSubcategory(child.category_id)}
-                                    className={`relative pl-4 pr-3 py-1.5 rounded-md cursor-pointer text-[14px] transition-all duration-200 capitalize ${
-                                      selectedCategory === child.category_id
+                                    className={`relative pl-4 pr-3 py-1.5 rounded-md cursor-pointer text-[14px] transition-all duration-200 capitalize ${selectedCategory === child.category_id
                                         ? "text-[#E03A3E] font-bold bg-white shadow-sm ring-1 ring-red-100"
                                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                                    }`}
+                                      }`}
                                   >
-                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${
-                                      selectedCategory === child.category_id ? "bg-[#E03A3E]" : "bg-gray-200"
-                                    }`} />
+                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${selectedCategory === child.category_id ? "bg-[#E03A3E]" : "bg-gray-200"
+                                      }`} />
                                     {child.category_name?.toLowerCase() || ''}
                                   </li>
                                 ))}
@@ -372,21 +375,22 @@ function ShopPageContent() {
             <main className="lg:col-span-3">
 
               {/* TOOLBAR */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
-                <div>
-                  <h2 className="text-3xl font-bold text-black leading-tight">
-                    {selectedCatName}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                <div className="text-center md:text-left">
+                  <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    {selectedCatName || "All Products"}
                   </h2>
+                  <div className="h-1 w-12 bg-[#E03A3E] mt-2 rounded-full mx-auto md:mx-0"></div>
                 </div>
-                <div className="relative w-full sm:w-[320px]">
+                <div className="relative w-full max-w-[400px]">
                   <Input
                     type="text"
-                    placeholder="Search Products"
+                    placeholder="Search catering packages..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full border border-[#F1C6C6] rounded-lg pl-10 pr-4 py-2.5 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
+                    className="w-full border-gray-200 rounded-xl pl-12 pr-4 py-6 text-[16px] text-black placeholder:text-gray-400 focus:border-[#E03A3E] focus:ring-4 focus:ring-red-50 shadow-sm transition-all"
                   />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#E03A3E]" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#E03A3E]" />
                 </div>
               </div>
 
