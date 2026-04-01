@@ -106,6 +106,15 @@ export function RequestAQuoteModal() {
 
   return (
     <>
+      <style>{`
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          filter: invert(0.3);
+        }
+        input[type="datetime-local"] {
+          accent-color: #E03A3E;
+        }
+      `}</style>
       {isOpen && (
 
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -117,23 +126,23 @@ export function RequestAQuoteModal() {
           />
 
           {/* Modal */}
-          <div className="relative w-full max-w-[520px] bg-white rounded-2xl shadow-2xl z-10">
+          <div className="relative w-full max-w-[550px] bg-white rounded-2xl shadow-2xl z-10 overflow-y-auto max-h-[90vh]">
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between px-8 py-5 border-b border-gray-200 bg-gray-50">
 
               <div>
-                <h2 className="text-lg font-semibold text-black">
+                <h2 className="text-xl font-bold text-gray-900">
                   Request a Quote
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-1">
                   We'll get back to you within 24 hours
                 </p>
               </div>
 
               <button
                 onClick={handleClose}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-600 text-lg"
               >
                 ✕
               </button>
@@ -142,13 +151,13 @@ export function RequestAQuoteModal() {
 
             {/* Form */}
             <form
-              className="px-6 py-5 space-y-3"
+              className="px-8 py-6 space-y-5"
               onSubmit={handleQuoteSubmit}
             >
 
               {/* Name */}
               <div>
-                <label className="text-sm font-medium text-black">Name</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Name</label>
 
                 <input
                   type="text"
@@ -158,13 +167,13 @@ export function RequestAQuoteModal() {
                     setQuoteForm({ ...quoteForm, name: e.target.value })
                   }
                   placeholder="Enter your full name"
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-transparent"
                 />
               </div>
 
               {/* Contact */}
               <div>
-                <label className="text-sm font-medium text-black">Contact</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Contact</label>
 
                 <input
                   type="tel"
@@ -174,13 +183,13 @@ export function RequestAQuoteModal() {
                     setQuoteForm({ ...quoteForm, contact: e.target.value })
                   }
                   placeholder="Phone number"
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-transparent"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="text-sm font-medium text-black">Email</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Email</label>
 
                 <input
                   type="email"
@@ -190,13 +199,13 @@ export function RequestAQuoteModal() {
                     setQuoteForm({ ...quoteForm, email: e.target.value })
                   }
                   placeholder="Email address"
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-transparent"
                 />
               </div>
 
               {/* Delivery Date */}
               <div>
-                <label className="text-sm font-medium text-black">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
                   Delivery Date & Time
                 </label>
 
@@ -210,13 +219,13 @@ export function RequestAQuoteModal() {
                       deliveryDateTime: e.target.value
                     })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-transparent"
                 />
               </div>
 
               {/* Occasion */}
               <div>
-                <label className="text-sm font-medium text-black">Occasion</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Occasion</label>
 
                 <select
                   required
@@ -224,7 +233,7 @@ export function RequestAQuoteModal() {
                   onChange={(e) =>
                     setQuoteForm({ ...quoteForm, occasion: e.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-transparent"
                 >
                   <option value="">Select Occasion</option>
                   <option>Wedding</option>
@@ -239,74 +248,74 @@ export function RequestAQuoteModal() {
 
               {/* Message */}
               <div>
-                <label className="text-sm font-medium text-black">Message</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Message</label>
 
                 <textarea
-                  rows={2}
+                  rows={3}
                   required
                   value={quoteForm.message}
                   onChange={(e) =>
                     setQuoteForm({ ...quoteForm, message: e.target.value })
                   }
                   placeholder="Tell us about your event..."
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm resize-none focus:outline-none focus:border-[#E03A3E]"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-transparent"
                 />
               </div>
 
               {/* Captcha */}
-              <div>
-                <label className="text-sm font-medium text-black">Captcha</label>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <label className="block text-sm font-semibold text-gray-800 mb-3">Verification Code</label>
 
-                <div className="mt-1 flex items-center gap-2">
+                <div className="flex items-center gap-3 mb-3">
 
-                  <div className="border-2 border-dashed border-[#E03A3E] px-4 py-1 rounded-md font-bold text-[#E03A3E] tracking-widest">
+                  <div className="border-2 border-dashed border-[#E03A3E] px-5 py-2 rounded-lg font-bold text-lg text-[#E03A3E] tracking-widest bg-white min-w-fit select-none pointer-events-none">
                     {captchaCode}
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setCaptchaCode(generateCaptcha())}
-                    className="text-xs text-[#E03A3E] underline"
+                    className="text-xs font-medium text-[#E03A3E] hover:underline whitespace-nowrap"
                   >
-                    Refresh
+                    🔄 Refresh
                   </button>
 
-                  <input
-                    type="text"
-                    required
-                    value={quoteForm.captchaInput}
-                    onChange={(e) =>
-                      setQuoteForm({
-                        ...quoteForm,
-                        captchaInput: e.target.value
-                      })
-                    }
-                    placeholder="Enter"
-                    className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#E03A3E]"
-                  />
-
                 </div>
+
+                <input
+                  type="text"
+                  required
+                  value={quoteForm.captchaInput}
+                  onChange={(e) =>
+                    setQuoteForm({
+                      ...quoteForm,
+                      captchaInput: e.target.value
+                    })
+                  }
+                  placeholder="Enter the code above"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:border-transparent"
+                />
 
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 pt-4">
 
                 <button
                   type="submit"
                   disabled={submittingQuote}
-                  className="flex-1 bg-[#E03A3E] hover:bg-[#c73236] text-white py-2 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                  className="flex-1 bg-[#E03A3E] hover:bg-[#c73236] text-white py-3 rounded-lg text-sm font-semibold transition disabled:opacity-50"
                 >
                   {submittingQuote ? "Submitting..." : "Submit Request"}
                 </button>
 
-            <button
-  type="button"
-  onClick={handleClose}
-  className="flex-1 border border-gray-300 py-2 rounded-md text-sm font-semibold text-black hover:bg-gray-50"
->
-  Cancel
-</button>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex-1 border-2 border-gray-300 py-3 rounded-lg text-sm font-semibold text-gray-800 hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
 
               </div>
 
