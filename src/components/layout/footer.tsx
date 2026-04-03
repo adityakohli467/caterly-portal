@@ -228,6 +228,11 @@ export function Footer() {
       </div>
 
 
+      {/* DISCLAIMER */}
+      <div className="text-center text-[10px] text-white/40 pb-2">
+        All images are for illustrative purpose only*
+      </div>
+
       {/* COPYRIGHT */}
       <div className="text-center text-sm text-white/60 pb-6">
         © 2025 Caterly. All Rights Reserved.

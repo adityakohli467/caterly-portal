@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { LoadingWithLogo } from "@/components/loading-with-logo"
 import { getProductImageUrl, getProductImageUrls } from "@/lib/product-utils"
 import { Search, ChevronRight, ChevronDown } from "lucide-react"
+import Link from "next/link"
 
 interface ProductCategory {
   category_id: number
@@ -35,6 +36,7 @@ interface Product {
   parent_category_id?: number | null
   parent_category_name?: string | null
   min_quantity?: number | null
+  show_in_storefront?: boolean | number
 }
 
 interface Category {
@@ -241,11 +243,12 @@ function ShopPageContent() {
   }, [selectedCategory, categories])
 
   // Determine view mode — show search term as heading if searching, else category name
-  const selectedCatName = debouncedSearch
+  const rawCatName = debouncedSearch
     ? debouncedSearch
     : selectedCategory
       ? findCategoryById(selectedCategory)?.category_name ?? "Products"
       : "All Products"
+  const selectedCatName = rawCatName?.toLowerCase() === 'bbq' ? 'BBQ' : rawCatName
 
   const ProductCard = ({ product }: { product: Product }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -314,15 +317,19 @@ function ShopPageContent() {
   return (
     <div className="bg-white min-h-screen">
 
-      {/* HEADER */}
-      <section className="bg-white py-12 md:py-16 border-b border-gray-100">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-[28px] md:text-[36px] font-bold text-primary mb-3 md:mb-4">
-            Our Catering Services
-          </h1>
-          <p className="text-[14px] md:text-[16px] text-[#6B6B6B] max-w-[640px] mx-auto px-4">
-            Freshly prepared catering packages for every occasion, delivered to your door.
-          </p>
+      {/* HEADER SECTION - DASHBOARD STYLE */}
+      <section className="bg-white py-10 md:py-14 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <h1 className="text-[32px] md:text-[42px] font-bold text-gray-900 leading-tight">
+                Our Catering <span className="text-[#E03A3E]">Services!</span>
+              </h1>
+              <p className="text-[14px] md:text-[16px] text-gray-500 mt-2">
+                Freshly prepared catering packages for every occasion, delivered to your door.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -355,12 +362,12 @@ function ShopPageContent() {
                                 selectSubcategory(parent.category_id)
                               }}
                               className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
-                                  ? "bg-red-50 text-[#E03A3E]"
-                                  : "hover:bg-gray-50 text-gray-700"
+                                ? "bg-red-50 text-[#E03A3E]"
+                                : "hover:bg-gray-50 text-gray-700"
                                 }`}
                             >
-                              <span className="font-semibold text-[15px] capitalize">
-                                {parent.category_name?.toLowerCase() || ''}
+                              <span className={`font-semibold text-[15px] ${parent.category_name?.toLowerCase() === 'bbq' ? '' : 'capitalize'}`}>
+                                {parent.category_name?.toLowerCase() === 'bbq' ? 'BBQ' : (parent.category_name?.toLowerCase() || '')}
                               </span>
                               {hasChildren && (
                                 <ChevronRight
@@ -377,14 +384,14 @@ function ShopPageContent() {
                                   <li
                                     key={child.category_id}
                                     onClick={() => selectSubcategory(child.category_id)}
-                                    className={`relative pl-4 pr-3 py-1.5 rounded-md cursor-pointer text-[14px] transition-all duration-200 capitalize ${selectedCategory === child.category_id
+                                    className={`relative pl-4 pr-3 py-1.5 rounded-md cursor-pointer text-[14px] transition-all duration-200 ${child.category_name?.toLowerCase() === 'bbq' ? 'font-bold' : 'capitalize'} ${selectedCategory === child.category_id
                                         ? "text-[#E03A3E] font-bold bg-white shadow-sm ring-1 ring-red-100"
                                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                                       }`}
                                   >
                                     <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${selectedCategory === child.category_id ? "bg-[#E03A3E]" : "bg-gray-200"
                                       }`} />
-                                    {child.category_name?.toLowerCase() || ''}
+                                    {child.category_name?.toLowerCase() === 'bbq' ? 'BBQ' : (child.category_name?.toLowerCase() || '')}
                                   </li>
                                 ))}
                               </ul>
@@ -403,7 +410,7 @@ function ShopPageContent() {
               {/* TOOLBAR */}
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
                 <div className="text-center md:text-left">
-                  <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight capitalize">
+                  <h2 className={`text-3xl font-extrabold text-gray-900 tracking-tight ${selectedCatName?.toLowerCase() === 'bbq' ? '' : 'capitalize'}`}>
                     {selectedCatName || "All Products"}
                   </h2>
                   <div className="h-1 w-12 bg-[#E03A3E] mt-2 rounded-full mx-auto md:mx-0"></div>
@@ -428,9 +435,11 @@ function ShopPageContent() {
                 <div className="text-center py-12 text-gray-500">No products found</div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map(product => (
-                    <ProductCard key={product.product_id} product={product} />
-                  ))}
+                  {products
+                    .filter((p) => p.show_in_storefront !== false && p.show_in_storefront !== 0)
+                    .map(product => (
+                      <ProductCard key={product.product_id} product={product} />
+                    ))}
                 </div>
               )}
 
