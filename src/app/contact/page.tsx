@@ -218,41 +218,47 @@ export default function ContactPage() {
   return (
     <div className="flex flex-col bg-white">
       {/* Hero Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-6">
+      <section className="py-12 md:py-20 bg-white">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="grid lg:grid-cols-2 gap-16">
             {/* Left Column - Contact Info */}
             <div>
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
                 Get in Touch
               </h1>
-              <p className="text-gray-600 mb-12 leading-relaxed">
-                Have a question, idea, or just want to say hi? We'd love to hear from you. Drop us a message below, and we'll get back to you soon — preferably before your next cup runs out.
+              <p className="text-gray-600 text-lg mb-12 leading-relaxed max-w-lg">
+                Have a question, idea, or just want to discuss your next event? We'd love to hear from you. Drop us a message below, and our team will get back to you shortly.
               </p>
 
               <div className="space-y-6">
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#2952E6] mt-1 flex-shrink-0" />
+                <div className="flex items-start gap-4">
+                  <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                    <MapPin className="w-5 h-5 text-[#E03A3E] flex-shrink-0" />
+                  </div>
                   <div>
-                    <p className="text-gray-900 font-medium mb-1">Address</p>
-                    <p className="text-gray-700">Caterly Coffee Roasters</p>
+                    <p className="text-gray-900 font-bold mb-1">Address</p>
+                    <p className="text-gray-700">Caterly HQ</p>
                     <p className="text-gray-700">3/93 Jedda Rd, Prestons NSW 2170</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-[#2952E6] mt-1 flex-shrink-0" />
+                <div className="flex items-start gap-4">
+                  <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                    <Mail className="w-5 h-5 text-[#E03A3E] flex-shrink-0" />
+                  </div>
                   <div>
-                    <p className="text-gray-900 font-medium">Email</p>
-                    <p className="text-gray-700">contact@stdreux.com.au</p>
+                    <p className="text-gray-900 font-bold mb-1">Email</p>
+                    <p className="text-gray-700">catering@caterly.com.au</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-[#2952E6] mt-1 flex-shrink-0" />
+                <div className="flex items-start gap-4">
+                  <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                    <Phone className="w-5 h-5 text-[#E03A3E] flex-shrink-0" />
+                  </div>
                   <div>
-                    <p className="text-gray-900 font-medium">Phone</p>
-                    <p className="text-gray-700">(02) 4611 7229</p>
+                    <p className="text-gray-900 font-bold mb-1">Phone</p>
+                    <p className="text-gray-700">1300 827 286</p>
                   </div>
                 </div>
               </div>
@@ -260,11 +266,14 @@ export default function ContactPage() {
 
             {/* Right Column - Contact Form */}
             <div>
-              <Card className="border-2">
-                <CardContent className="p-8">
-                  <h2 className="text-2xl font-bold text-white mb-6">
-                    Contact Form
+              <Card className="border border-red-100 shadow-xl rounded-3xl overflow-hidden">
+                <div className="bg-[#E03A3E] py-6 px-8 flex items-center gap-3">
+                  <Mail className="w-6 h-6 text-white" />
+                  <h2 className="text-xl font-bold text-white uppercase tracking-wider">
+                    Call For Any Question
                   </h2>
+                </div>
+                <CardContent className="p-8">
                   
                   {submitted ? (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
@@ -282,7 +291,7 @@ export default function ContactPage() {
                     </div>
                   ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Input
                           type="text"
@@ -305,7 +314,7 @@ export default function ContactPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Input
                           type="tel"
@@ -345,10 +354,10 @@ export default function ContactPage() {
 
                     <Button 
                       type="submit" 
-                      className="w-full py-6 bg-[#2952E6] hover:bg-[#1e3fb3] text-white font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-7 bg-[#E03A3E] hover:bg-[#cc3236] text-white font-bold text-lg rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={loading}
                     >
-                      {loading ? "Sending..." : "Submit"}
+                      {loading ? "Sending Message..." : "Send Message"}
                     </Button>
                   </form>
                   )}
@@ -377,7 +386,7 @@ export default function ContactPage() {
             />
           </div>
           <div className="mt-6 text-center">
-            <p className="text-gray-700 font-medium"> Coffee Roasters</p>
+            <p className="text-gray-700 font-bold text-lg">Caterly HQ</p>
             <p className="text-gray-600">3/93 Jedda Rd, Prestons NSW 2170</p>
           </div>
         </div>

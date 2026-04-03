@@ -170,13 +170,15 @@ export function Header() {
         <div className="md:hidden fixed inset-0 z-50 bg-white">
           {/* TOP BAR */}
           <div className="flex items-center justify-between h-[72px] px-4 border-b border-[#E6E6E6]">
-            <Image
-              src="/assets/images/cat_logo.png"
-              alt="Caterly Logo"
-              width={140}
-              height={48}
-              className="object-contain max-h-[48px]"
-            />
+            <Link href="/" onClick={() => setOpen(false)}>
+              <Image
+                src="/assets/images/cat.svg"
+                alt="Caterly Logo"
+                width={120}
+                height={40}
+                className="object-contain max-h-[48px] w-auto h-auto"
+              />
+            </Link>
             <button onClick={() => setOpen(false)}>
               <X className="w-7 h-7 text-[#E03A3E]" />
             </button>
@@ -186,9 +188,8 @@ export function Header() {
           <div className="px-6 pt-8 space-y-8">
 
             <nav className="flex flex-col gap-6 text-[16px] font-medium text-black">
-              <Link href="/" onClick={() => setOpen(false)}>Home</Link>
-              <Link href="/shop" onClick={() => setOpen(false)} className="text-[#E03A3E] font-semibold">Order Now</Link>
-              <Link href="/blogs" onClick={() => setOpen(false)}>Blogs</Link>
+              <Link href="/" onClick={() => setOpen(false)} className={`transition-colors hover:text-[#E03A3E] ${pathname === '/' ? 'text-[#E03A3E] font-semibold' : ''}`}>Home</Link>
+              <Link href="/shop" onClick={() => setOpen(false)} className={`transition-colors hover:text-[#E03A3E] ${pathname.startsWith('/shop') ? 'text-[#E03A3E] font-semibold' : ''}`}>Order Now</Link>
 
               <Link
                 href="/call"

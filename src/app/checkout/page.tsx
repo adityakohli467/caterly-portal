@@ -512,20 +512,20 @@ export default function CheckoutPage() {
   return (
     <div className="flex flex-col bg-white">
       {/* Main Checkout Content */}
-      <section className="py-8">
-        <div className="container mx-auto px-6">
+      <section className="py-6 md:py-8">
+        <div className="container mx-auto px-4 md:px-6">
           {!isAuthenticated && (
-            <div className="mb-6 p-4 rounded-md bg-[#F2CACA]/20 border border-[#F2CACA] text-center">
-              <p className="text-gray-700">
-                Already have an account?{" "}
-                <button type="button" onClick={() => openAuthModal('login')} className="text-[#E03A3E] font-semibold hover:underline">
-                  Login.
+            <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-[#FFF1F1] to-white border border-[#F2CACA] shadow-sm text-center">
+              <p className="text-gray-800 text-sm md:text-base">
+                <span className="font-medium">Already have an account?</span>{" "}
+                <button type="button" onClick={() => openAuthModal('login')} className="text-[#E03A3E] font-extrabold hover:underline transition-all">
+                  Sign In
                 </button>{" "}
-                New here?{" "}
-                <button type="button" onClick={() => openAuthModal('register')} className="text-[#E03A3E] font-semibold hover:underline">
-                  Register
-                </button>{" "}
-                to create an account.
+                <span className="mx-2 text-gray-300">|</span>
+                <span className="font-medium">New here?</span>{" "}
+                <button type="button" onClick={() => openAuthModal('register')} className="text-[#E03A3E] font-extrabold hover:underline transition-all">
+                  Create Account
+                </button>
               </p>
             </div>
           )}
@@ -537,9 +537,10 @@ export default function CheckoutPage() {
 
                 {/* Order Summary Items */}
                 <Card className="border-[#F2CACA] bg-white text-black overflow-hidden">
-                  <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Order Summary</h2>
-                    <div className="overflow-x-auto">
+                  <CardContent className="p-4 md:pt-6">
+                    <h2 className="text-xl md:text-2xl font-bold text-[#E03A3E] mb-4 md:mb-6">Order Summary</h2>
+                    {/* Desktop View Table */}
+                    <div className="hidden md:block overflow-x-auto">
                       <table className="w-full border-collapse">
                         <thead>
                           <tr className="border-b border-[#F2CACA] text-left text-xs uppercase tracking-wider text-gray-500">
@@ -619,6 +620,75 @@ export default function CheckoutPage() {
                         </tbody>
                       </table>
                     </div>
+
+                    {/* Mobile View Item Cards */}
+                    <div className="md:hidden space-y-6">
+                      {items.map((item) => {
+                        const cartItemId = item.cart_item_id || generateCartItemId(item.product_id, item.options)
+                        const itemPrice = getItemPrice(item)
+                        const itemTotal = itemPrice * item.quantity
+
+                        return (
+                          <div key={cartItemId} className="flex flex-col gap-4 border-b border-[#F2CACA] last:border-0 pb-6 last:pb-0">
+                            <div className="flex gap-4">
+                              <div className="relative w-20 h-20 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100 shadow-sm">
+                                {item.product_image ? (
+                                  <Image src={item.product_image} alt={item.product_name} fill className="object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No Pic</div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="font-bold text-[#1A237E] text-base leading-tight truncate">{item.product_name}</div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeItem(cartItemId)}
+                                    className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                                {item.options?.map((opt, idx) => (
+                                  <div key={idx} className="text-xs text-gray-500 mt-1">
+                                    {opt.option_name}: {opt.option_value}
+                                  </div>
+                                ))}
+                                {item.item_comments && (
+                                  <div className="text-[11px] text-[#E03A3E] mt-2 italic font-medium bg-red-50/50 p-2 rounded-md">
+                                    Note: {item.item_comments}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center gap-4 bg-gray-50 rounded-full px-4 py-2 border border-gray-200">
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
+                                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 active:bg-gray-100 shadow-sm"
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </button>
+                                <span className="font-bold text-lg min-w-[20px] text-center">{item.quantity}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuantity(cartItemId, item.quantity + 1)}
+                                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 active:bg-gray-100 shadow-sm"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-500 mb-1">Item Total</div>
+                                <div className="text-xl font-bold text-gray-900">${itemTotal.toFixed(2)}</div>
+                                <div className="text-[10px] text-gray-400 font-medium">${itemPrice.toFixed(2)} each</div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -626,13 +696,18 @@ export default function CheckoutPage() {
                 <Card className="border-[#F2CACA] bg-white">
                   <CardContent className="pt-6">
                     {/* Delivery Window Banner */}
-                    <div className="mb-6 p-4 bg-[#FFF1F1] border border-[#F2CACA] rounded-lg">
-                      <p className="text-sm text-[#E03A3E] leading-relaxed font-medium">
-                        Please note all deliveries will have an 1 hour window. For example if the selected delivery time is 10:00am, your delivery window will be between 9:00AM - 10:00AM.
-                      </p>
+                    <div className="mb-8 p-5 bg-[#FFF8F8] border-l-4 border-[#E03A3E] rounded-r-xl shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-[#E03A3E] text-white p-1 rounded-full mt-0.5">
+                          <Check className="w-3 h-3" />
+                        </div>
+                        <p className="text-xs md:text-sm text-gray-800 leading-relaxed font-medium">
+                          <span className="font-bold text-[#E03A3E]">Standard 1-hour delivery window:</span> For example, a 10:00am selection means your delivery will arrive between 9:00am - 10:00am.
+                        </p>
+                      </div>
                     </div>
 
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Purchase Options</h2>
+                    <h2 className="text-xl md:text-2xl font-bold text-[#E03A3E] mb-6">Purchase Options</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       <button
@@ -770,10 +845,10 @@ export default function CheckoutPage() {
 
                 {/* Delivery Details */}
                 <Card className="border-[#F2CACA] bg-white">
-                  <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">Delivery Details</h2>
+                  <CardContent className="p-4 md:pt-6">
+                    <h2 className="text-xl md:text-2xl font-bold text-[#E03A3E] mb-6">Delivery Details</h2>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="billing-firstname" className="text-black">First Name <span className="text-red-500">*</span></Label>
                           <Input
@@ -894,10 +969,10 @@ export default function CheckoutPage() {
               </div>
 
               {/* Right Column - Order Summary and Action */}
-              <div className="lg:col-span-1">
-                <Card className="sticky top-24 border-[#F2CACA] bg-white text-black">
-                  <CardContent className="pt-6 text-black">
-                    <h2 className="text-2xl font-bold text-[#E03A3E] mb-6">
+              <div className="lg:col-span-1 mt-8 lg:mt-0">
+                <Card className="lg:sticky lg:top-24 border-[#F2CACA] bg-white text-black">
+                  <CardContent className="p-4 md:pt-6 text-black">
+                    <h2 className="text-xl md:text-2xl font-bold text-[#E03A3E] mb-6">
                       Order Summary
                     </h2>
 
@@ -1053,7 +1128,7 @@ export default function CheckoutPage() {
 
                     <Button
                       type="submit"
-                      className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white py-6 text-lg rounded-lg font-semibold"
+                      className="w-full bg-[#E03A3E] hover:bg-[#cc3236] text-white py-4 md:py-6 text-base md:text-lg rounded-lg font-semibold"
                       disabled={loading}
                     >
                       <ShoppingCart className="w-5 h-5 mr-2" />
