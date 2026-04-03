@@ -22,6 +22,7 @@ interface Product {
   has_discount?: boolean
   product_image?: string
   product_images?: Array<{ image_url: string; image_order?: number } | string> | null
+  show_in_storefront?: boolean | number
 }
 
 export default function ProductsPage() {
@@ -113,9 +114,11 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard key={product.product_id} product={product} />
-          ))}
+          {products
+            .filter((p) => p.show_in_storefront !== false && p.show_in_storefront !== 0)
+            .map((product) => (
+              <ProductCard key={product.product_id} product={product} />
+            ))}
         </div>
       )}
     </div>

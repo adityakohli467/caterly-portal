@@ -90,6 +90,7 @@ export default function CheckoutPage() {
     state: "VIC",
     postcode: "",
     email: "",
+    deliveryNotes: "",
   })
 
   useEffect(() => {
@@ -427,6 +428,7 @@ export default function CheckoutPage() {
         billing_state: billingData.state,
         shipping_address: deliveryAddress,
         shipping_postcode: billingData.postcode,
+        delivery_notes: billingData.deliveryNotes,
       }
 
       // Use different endpoints for authenticated vs guest checkout
@@ -565,14 +567,19 @@ export default function CheckoutPage() {
                                         <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No Pic</div>
                                       )}
                                     </div>
-                                    <div>
-                                      <div className="font-bold text-[#1A237E] leading-tight text-sm">{item.product_name}</div>
-                                      {item.options?.map((opt, idx) => (
-                                        <div key={idx} className="text-[10px] text-gray-500">
-                                          {opt.option_name}: {opt.option_value}
-                                        </div>
-                                      ))}
-                                    </div>
+                                      <div>
+                                        <div className="font-bold text-[#1A237E] leading-tight text-sm">{item.product_name}</div>
+                                        {item.options?.map((opt, idx) => (
+                                          <div key={idx} className="text-[10px] text-gray-500">
+                                            {opt.option_name}: {opt.option_value}
+                                          </div>
+                                        ))}
+                                        {item.item_comments && (
+                                          <div className="text-[11px] text-[#E03A3E] mt-1 italic font-medium">
+                                            Note: {item.item_comments}
+                                          </div>
+                                        )}
+                                      </div>
                                   </div>
                                 </td>
                                 <td className="py-4 pr-4 text-right font-medium text-gray-900">${itemPrice.toFixed(2)}</td>
@@ -869,6 +876,16 @@ export default function CheckoutPage() {
                           value={billingData.state}
                           readOnly
                           className="bg-gray-50 border-gray-300 text-gray-900 cursor-not-allowed font-semibold"
+                        />
+                      </div>
+
+                      <div className="pt-2">
+                        <Label htmlFor="delivery-notes" className="text-black mb-2 block">Delivery Notes (Optional)</Label>
+                        <Textarea
+                          id="delivery-notes"
+                          value={billingData.deliveryNotes}
+                          onChange={(e) => setBillingData({ ...billingData, deliveryNotes: e.target.value })}
+                          className="min-h-[100px] bg-white border-gray-300 text-gray-900 focus:ring-[#E03A3E] focus:border-[#E03A3E]"
                         />
                       </div>
                     </div>

@@ -43,8 +43,19 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
   }
 
   const formatExpiry = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "").slice(0, 4)
+    let v = value.replace(/\D/g, "").slice(0, 4)
+    
+    // Month validation (cap at 12, floor at 01)
     if (v.length >= 2) {
+      let month = v.slice(0, 2)
+      const m = parseInt(month)
+      if (m > 12) month = "12"
+      else if (m === 0 && month.length === 2) month = "01"
+      v = month + v.slice(2)
+    }
+
+    // Only add separator if we have year digits, which allows easy backspacing of the month
+    if (v.length > 2) {
       return v.slice(0, 2) + " / " + v.slice(2)
     }
     return v
@@ -140,20 +151,6 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="country" className="text-black font-medium">Country</Label>
-          <select
-            id="country"
-            value={formData.country}
-            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-            className="w-full flex h-10 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-[#E03A3E] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-black"
-          >
-            <option value="AU">Australia</option>
-            <option value="IN">India</option>
-            <option value="US">United States</option>
-            <option value="GB">United Kingdom</option>
-          </select>
-        </div>
       </div>
 
       <div className="pt-4 space-y-3">
