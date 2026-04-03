@@ -75,7 +75,7 @@ export function Footer() {
 
             <div className="flex text-white/80">
               <strong className="min-w-[65px] inline-block">Email:</strong>
-              <span className="break-all">Catering@caterly.com.au</span>
+              <span className="break-all">catering@caterly.com.au</span>
             </div>
           </div>
         </div>

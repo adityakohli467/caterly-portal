@@ -7,7 +7,7 @@ import { useCartStore } from "@/store/cart"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { LoadingWithLogo } from "@/components/loading-with-logo"
-import { getProductImageUrl } from "@/lib/product-utils"
+import { getProductImageUrl, getProductImageUrls } from "@/lib/product-utils"
 import { Search, ChevronRight, ChevronDown } from "lucide-react"
 
 interface ProductCategory {
@@ -109,79 +109,87 @@ function ShopPageContent() {
     return undefined
   }
 
-  const fetchProducts = async () => {
-    try {
-      // (Removed restriction that showed empty products for parent categories)
-
-      setLoading(true)
-      setProducts([])
-
-      // ── Search mode ──────────────────────────────────────────────────────
-      if (debouncedSearch) {
-        const res = await api.get("/store/products", { params: { limit: 100, search: debouncedSearch } })
-        setProducts(res.data.products || [])
-        return
-      }
-
-      // ── No category selected — show all ───────────────────────────────────
-      if (!selectedCategory) {
-        const res = await api.get("/store/products", { params: { limit: 100 } })
-        setProducts(res.data.products || [])
-        return
-      }
-
-      // ── Category selected — simple direct fetch ─────────────────────────
-      const res = await api.get("/store/products", {
-        params: {
-          limit: 100,
-          category_id: selectedCategory
-        }
-      })
-      const apiProducts: Product[] = res.data.products || []
-
-      const selectedNode = findCategoryById(selectedCategory)
-      const selectedName = selectedNode?.category_name || ""
-
-      // Client-side filter as backup (some APIs return all products if filter is not supported)
-      // If the API correctly filtered, this won't remove anything.
-      const filtered = apiProducts.filter(p =>
-        p.subcategory_id === selectedCategory ||
-        p.parent_category_id === selectedCategory ||
-        p.categories?.some(c => c.category_id === selectedCategory) ||
-        (selectedName && (
-          p.subcategory_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
-          p.parent_category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
-          p.categories?.some(c => c.category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim())
-        ))
-      )
-
-      // Combine and filter if needed, then sort by price low-to-high
-      let results = filtered.length > 0 ? filtered : apiProducts
-
-      results = results.sort((a, b) => {
-        const priceA = parseFloat(a.product_price) || 0
-        const priceB = parseFloat(b.product_price) || 0
-        return priceA - priceB
-      })
-
-      setProducts(results)
-
-    } catch (err) {
-      console.error("Failed to fetch products", err)
-      setProducts([])
-    } finally {
-      setLoading(false)
-      setSearchLoading(false)
-    }
-  }
-
-
-
   useEffect(() => { fetchCategories() }, [])
 
   useEffect(() => {
+    let isActive = true
+
+    const fetchProducts = async () => {
+      try {
+        // (Removed restriction that showed empty products for parent categories)
+
+        setLoading(true)
+        if (isActive) setProducts([])
+
+        const sortAndSetProducts = (productList: Product[]) => {
+          const sorted = [...productList].sort((a, b) => {
+            const priceA = parseFloat(a.product_price) || 0
+            const priceB = parseFloat(b.product_price) || 0
+            return priceA - priceB
+          })
+          if (isActive) setProducts(sorted)
+        }
+
+        // ── Search mode ──────────────────────────────────────────────────────
+        if (debouncedSearch) {
+          const res = await api.get("/store/products", { params: { limit: 100, search: debouncedSearch } })
+          sortAndSetProducts(res.data.products || [])
+          return
+        }
+
+        // ── No category selected — show all ───────────────────────────────────
+        if (!selectedCategory) {
+          const res = await api.get("/store/products", { params: { limit: 100 } })
+          sortAndSetProducts(res.data.products || [])
+          return
+        }
+
+        // ── Category selected — simple direct fetch ─────────────────────────
+        const res = await api.get("/store/products", {
+          params: {
+            limit: 100,
+            category_id: selectedCategory
+          }
+        })
+        const apiProducts: Product[] = res.data.products || []
+
+        const selectedNode = findCategoryById(selectedCategory)
+        const selectedName = selectedNode?.category_name || ""
+
+        // Client-side filter as backup (some APIs return all products if filter is not supported)
+        // If the API correctly filtered, this won't remove anything.
+        const filtered = apiProducts.filter(p =>
+          p.subcategory_id === selectedCategory ||
+          p.parent_category_id === selectedCategory ||
+          p.categories?.some(c => c.category_id === selectedCategory) ||
+          (selectedName && (
+            p.subcategory_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
+            p.parent_category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
+            p.categories?.some(c => c.category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim())
+          ))
+        )
+
+        // Use client-side filtered result to prevent showing all items if category has no items.
+        sortAndSetProducts(filtered)
+
+      } catch (err) {
+        console.error("Failed to fetch products", err)
+        if (isActive) setProducts([])
+      } finally {
+        if (isActive) {
+          setLoading(false)
+          setSearchLoading(false)
+        }
+      }
+    }
+
     if (categories.length > 0 || selectedCategory === null) {
       fetchProducts()
+    }
+
+    // Cleanup to prevent race conditions during rapid clicking
+    return () => {
+      isActive = false
     }
   }, [selectedCategory, debouncedSearch, categories])
 
@@ -240,20 +248,38 @@ function ShopPageContent() {
       : "All Products"
 
   const ProductCard = ({ product }: { product: Product }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [isHovered, setIsHovered] = useState(false)
+    const imageUrls = getProductImageUrls(product)
+
+    useEffect(() => {
+      if (imageUrls.length <= 1) return
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % imageUrls.length)
+      }, 2000) // cycle every 2s automatically
+      return () => clearInterval(interval)
+    }, [imageUrls.length])
+
     const productUrl = selectedCategory
       ? `/shop/${product.product_id}?from=${selectedCategory}`
       : `/shop/${product.product_id}`
     return (
       <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={() => router.push(productUrl)}
         className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer flex flex-col h-full"
       >
         <div className="relative w-full bg-gray-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
-          <img
-            src={getProductImageUrl(product) || "/assets/images/placeholder.jpg"}
-            alt={product.product_name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          {imageUrls.map((url, index) => (
+            <img
+              key={url + index}
+              src={url || "/assets/images/placeholder.jpg"}
+              alt={product.product_name}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"
+                } group-hover:scale-105 transition-transform duration-500`}
+            />
+          ))}
         </div>
         <div className="p-4 flex flex-col flex-1">
           <div className="min-h-[3rem] mb-2">
@@ -377,7 +403,7 @@ function ShopPageContent() {
               {/* TOOLBAR */}
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
                 <div className="text-center md:text-left">
-                  <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                  <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight capitalize">
                     {selectedCatName || "All Products"}
                   </h2>
                   <div className="h-1 w-12 bg-[#E03A3E] mt-2 rounded-full mx-auto md:mx-0"></div>
