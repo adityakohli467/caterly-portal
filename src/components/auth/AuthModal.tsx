@@ -184,7 +184,7 @@ export function AuthModal() {
         </div>
 
         {/* Content Area */}
-        <div className="p-6 sm:p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+        <div className="p-6 sm:p-8 max-h-[85vh] overflow-y-auto custom-scrollbar">
 
           {view === "login" ? (
             /* ================= LOGIN VIEW ================= */
@@ -287,7 +287,7 @@ export function AuthModal() {
                 </div>
 
                 {/* Phone & Email */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
                     placeholder="Phone Number"
                     value={registerForm.phoneNumber}
@@ -315,7 +315,7 @@ export function AuthModal() {
                 />
 
                 {/* Suburb & State */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
                     placeholder="Suburb"
                     value={registerForm.suburb}

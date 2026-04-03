@@ -241,33 +241,29 @@ export default function HomePage() {
   return (
     <div className="w-full overflow-x-hidden">
 
-      {/* 1. HERO SECTION - FULL VISIBILITY */}
-      <section className="relative w-full bg-[#B5B796] overflow-hidden min-h-[380px] md:min-h-[400px] lg:min-h-[500px]">
-
-        {/* BACKGROUND IMAGE - NO CUTTING */}
-        <div className="relative w-full h-full">
+      {/* 1. HERO SECTION */}
+      <section className="relative w-full bg-[#f8fbd3] overflow-hidden min-h-[220px] md:h-[520px] lg:h-[620px]">
+        {/* IMAGE — Full width, height follows content/min-height */}
+        <div className="w-full">
           <img
             src="/assets/images/ban.jpeg"
-            alt="Wide Banner"
-            className="w-full h-full object-contain md:object-cover lg:object-contain object-center"
+            alt="Caterly Hero Banner"
+            className="w-full h-full object-cover object-center md:object-left-top"
           />
-
-          {/* LIGHT OVERLAY FOR CLARITY */}
-          <div className="absolute inset-0 bg-black/10"></div>
         </div>
 
-        {/* BUTTONS ALIGNED TO IMAGE CONTENT */}
-        <div className="absolute inset-0 z-10 flex items-end justify-start pb-6 md:pb-24 lg:pb-32 px-4 md:px-20 lg:px-44">
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        {/* CONTENT — Buttons left-aligned and compact */}
+        <div className="absolute inset-0 z-10 flex flex-col justify-end px-4 pb-4 md:px-20 md:pb-24 lg:px-44 lg:pb-32">
+          <div className="flex flex-row items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <button
               onClick={openQuoteModal}
-              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl text-sm md:text-md font-bold w-full sm:w-auto transition-all shadow-xl hover:scale-105 active:scale-95"
+              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-4 py-2 md:px-8 md:py-3.5 rounded-lg text-xs md:text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95"
             >
               Book Now
             </button>
 
-            <Link href="/shop" className="w-full sm:w-auto">
-              <button className="bg-white/95 backdrop-blur-sm border border-white/20 hover:bg-white text-gray-900 px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl text-sm md:text-md font-bold w-full sm:w-auto transition-all shadow-xl hover:scale-105 active:scale-95">
+            <Link href="/shop">
+              <button className="bg-white/95 border border-white/20 hover:bg-white text-gray-900 px-4 py-2 md:px-8 md:py-3.5 rounded-lg text-xs md:text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95">
                 View Menu
               </button>
             </Link>
