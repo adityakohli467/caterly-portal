@@ -243,7 +243,7 @@ export default function CheckoutPage() {
 
     const afterDiscount = afterWholesaleDiscount - couponDiscount
     const shippingFee = shippingMethod === "standard" ? 50 : 0
-    const gst = afterDiscount * 0.1 // 10% GST (display only, not added to total)
+    const gst = afterWholesaleDiscount * 0.1 // 10% GST (calculated on subtotal before coupons)
     const total = afterDiscount + shippingFee // GST is shown but not charged separately
 
     return {

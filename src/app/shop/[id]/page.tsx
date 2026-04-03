@@ -185,6 +185,19 @@ function ProductDetailContent({
     }
   };
 
+  // Auto-slideshow for product gallery
+  useEffect(() => {
+    if (!product) return;
+    const imageUrls = getProductImageUrls(product!);
+    if (imageUrls.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setSelectedImageIndex((prev) => (prev + 1) % imageUrls.length);
+    }, 5000); // 5 seconds per image
+
+    return () => clearInterval(interval);
+  }, [product, selectedImageIndex]);
+
   const handleAddToCart = () => {
     if (!product) return;
 
@@ -485,7 +498,7 @@ function ProductDetailContent({
               href="/shop"
               className="px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
             >
-              Product Catalogue
+              Packages
             </Link>
             {breadcrumbMainCat && (
               <>
@@ -523,30 +536,30 @@ function ProductDetailContent({
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
             {/* Product Image Gallery */}
             <div className="space-y-4">
-              {/* Main Image */}
-              <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+              {/* Main Image */}              <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
                 {(() => {
-                  const imageUrls = getProductImageUrls(product);
-                  const mainImage =
-                    imageUrls[selectedImageIndex] ||
-                    getProductImageUrl(product);
+                  const imageUrls = getProductImageUrls(product!);
+                  if (imageUrls.length === 0) {
+                    return (
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-200 flex items-center justify-center">
+                        <span className="text-gray-500 text-lg">
+                          {product.product_name}
+                        </span>
+                      </div>
+                    );
+                  }
 
-                  return mainImage ? (
+                  return imageUrls.map((url, index) => (
                     <Image
-                      src={mainImage}
-                      alt={`${product.product_name} - Image ${selectedImageIndex + 1
-                        }`}
+                      key={url + index}
+                      src={url}
+                      alt={`${product.product_name} - Image ${index + 1}`}
                       fill
-                      className="object-cover "
-                      priority
+                      className={`object-cover transition-opacity duration-700 ease-in-out ${index === selectedImageIndex ? "opacity-100" : "opacity-0"
+                        }`}
+                      priority={index === 0}
                     />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500 text-lg">
-                        {product.product_name}
-                      </span>
-                    </div>
-                  );
+                  ));
                 })()}
 
                 {/* Navigation arrows for multiple images */}
@@ -561,7 +574,7 @@ function ProductDetailContent({
                               prev > 0 ? prev - 1 : imageUrls.length - 1
                             )
                           }
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2.5 rounded-full transition-all duration-200 shadow-lg z-10 border border-gray-100"
                           aria-label="Previous image"
                         >
                           <ChevronLeft className="w-5 h-5" />
@@ -572,7 +585,7 @@ function ProductDetailContent({
                               prev < imageUrls.length - 1 ? prev + 1 : 0
                             )
                           }
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2.5 rounded-full transition-all duration-200 shadow-lg z-10 border border-gray-100"
                           aria-label="Next image"
                         >
                           <ChevronRight className="w-5 h-5" />
@@ -979,9 +992,9 @@ function ProductDetailContent({
                 {/* Header bar */}
                 <div className="flex items-center gap-3 px-8 py-5 border-b border-gray-100 bg-gray-50/60">
                   <div className="w-1 h-6 rounded-full bg-[#E03A3E]" />
-                  <h3 className="text-lg font-bold text-gray-900 tracking-tight">
-                    About This Product
-                  </h3>
+                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+                      {product.product_name}
+                    </h3>
                 </div>
                 {/* Body */}
                 <div className="px-8 py-7">

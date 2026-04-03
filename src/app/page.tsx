@@ -6,6 +6,7 @@ import Image from "next/image"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { useQuoteModalStore } from "@/store/quote-modal"
+import { getProductImageUrls } from "@/lib/product-utils"
 
 interface Review {
   review_id: number
@@ -88,6 +89,34 @@ export default function HomePage() {
       "/assets/images/c41.png"
   ]
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [categoryImages, setCategoryImages] = useState<Record<string, string[]>>({})
+
+  useEffect(() => {
+    const fetchCategoryProducts = async () => {
+      try {
+        const response = await api.get("/store/products", { params: { limit: 100 } })
+        const products = response.data.products || []
+
+        const mapping: Record<string, string[]> = {}
+        const searchTerms = ["breakfast", "morning tea", "lunch", "platter", "finger food", "cake"]
+
+        searchTerms.forEach(term => {
+          // Find products matching the term and collect unique image URLs
+          const matches = products.filter((p: any) =>
+            p.product_name?.toLowerCase().includes(term) ||
+            p.product_description?.toLowerCase().includes(term)
+          )
+          const urls = matches.flatMap((p: any) => getProductImageUrls(p))
+          // Filter to unique URLs only
+          mapping[term] = Array.from(new Set(urls))
+        })
+        setCategoryImages(mapping)
+      } catch (err) {
+        console.error("Failed to fetch category products:", err)
+      }
+    }
+    fetchCategoryProducts()
+  }, [])
 
   const visibleImages = galleryImages.slice(currentIndex, currentIndex + 3)
 
@@ -126,24 +155,85 @@ export default function HomePage() {
     "/assets/images/c56.png",
   ]
 
-  const [corpIdx, setCorpIdx] = useState(0)
-  const [eventIdx, setEventIdx] = useState(0)
-  const [weddingIdx, setWeddingIdx] = useState(0)
+  const ServiceCard = ({ title, subtitle, description, points, images }: { title: string, subtitle: string, description: string, points: string[], images: string[] }) => {
+    const [index, setIndex] = useState(0)
 
-  useEffect(() => {
-    const t = setInterval(() => setCorpIdx(i => (i + 1) % corporateImages.length), 2000)
-    return () => clearInterval(t)
-  }, [])
+    useEffect(() => {
+      if (!images || images.length <= 1) return
+      const t = setInterval(() => setIndex(i => (i + 1) % images.length), 2000)
+      return () => clearInterval(t)
+    }, [images.length])
 
-  useEffect(() => {
-    const t = setInterval(() => setEventIdx(i => (i + 1) % eventImages.length), 2000)
-    return () => clearInterval(t)
-  }, [])
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col group transition-all duration-300">
+        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
+          {images.map((src, i) => (
+            <Image
+              key={src}
+              src={src}
+              alt={title}
+              fill
+              className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
+            />
+          ))}
+        </div>
 
-  useEffect(() => {
-    const t = setInterval(() => setWeddingIdx(i => (i + 1) % weddingImages.length), 2000)
-    return () => clearInterval(t)
-  }, [])
+        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">{title}</h3>
+        <p className="text-[13px] font-medium text-black mb-3">{subtitle}</p>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">{description}</p>
+
+        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
+          {points.map((p, i) => <li key={i}>✔ {p}</li>)}
+        </ul>
+
+        <div className="mt-auto">
+          <Link href="/shop" passHref legacyBehavior>
+            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full transition-colors">
+              Order Now
+            </button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const CategoryCard = ({ item, dynamicImages }: { item: any, dynamicImages: string[] }) => {
+    const [index, setIndex] = useState(0)
+    // Placeholder first, then dynamic ones
+    const allImages = dynamicImages.length > 0 ? [item.img, ...dynamicImages] : [item.img]
+
+    useEffect(() => {
+      if (allImages.length <= 1) return
+      const t = setInterval(() => setIndex(i => (i + 1) % allImages.length), 2000)
+      return () => clearInterval(t)
+    }, [allImages.length])
+
+    return (
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col h-full group transition-all duration-300">
+        <div className="relative h-[240px] w-full bg-gray-100">
+          {allImages.map((src, i) => (
+            <Image
+              key={src + i}
+              src={src}
+              alt={item.title}
+              fill
+              className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
+            />
+          ))}
+        </div>
+
+        <div className="p-6 flex flex-col flex-grow">
+          <h3 className="text-[18px] font-semibold text-black mb-3">{item.title}</h3>
+          <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-4 flex-grow">{item.desc}</p>
+          <Link href={`/shop?search=${encodeURIComponent(item.search)}`} passHref legacyBehavior>
+            <a className="bg-[#E03A3E] hover:bg-[#cc3236] text-white text-sm font-semibold px-5 py-2 rounded-md inline-block transition w-fit">
+              Order Now
+            </a>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -254,133 +344,29 @@ export default function HomePage() {
 
     {/* CARDS */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-[64px]">
+      <ServiceCard
+        title="Corporate Catering"
+        subtitle="Impress. Engage. Deliver Excellence."
+        description="From meetings to large corporate events, Caterly provides professional catering that enhances productivity and leaves a lasting impression."
+        points={["Reliable & on-time delivery", "Perfect for meetings & events", "Wide variety of menu options"]}
+        images={corporateImages}
+      />
 
-      {/* CARD 1 - Corporate Catering */}
-      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
-        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-          {corporateImages.map((src, i) => (
-            <Image
-              key={src}
-              src={src}
-              alt="Corporate Catering"
-              fill
-              className="object-cover transition-opacity duration-700"
-              style={{ opacity: i === corpIdx ? 1 : 0, zIndex: i === corpIdx ? 1 : 0 }}
-            />
-          ))}
-        </div>
+      <ServiceCard
+        title="Event Catering"
+        subtitle="Perfect Catering for Every Occasion"
+        description="Whether it’s a private event, celebration, or special gathering, Caterly offers versatile catering solutions designed to suit every occasion."
+        points={["Flexible catering packages", "Beautifully presented platters", "Hassle-free experience"]}
+        images={eventImages}
+      />
 
-        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">
-          Corporate Catering
-        </h3>
-
-        <p className="text-[13px] font-medium text-black mb-3">
-          Impress. Engage. Deliver Excellence.
-        </p>
-
-        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
-          From meetings to large corporate events, Caterly provides professional catering that enhances productivity and leaves a lasting impression.
-        </p>
-
-        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
-          <li>✔ Reliable & on-time delivery</li>
-          <li>✔ Perfect for meetings & events</li>
-          <li>✔ Wide variety of menu options</li>
-        </ul>
-
-        <div className="mt-auto">
-          <Link href="/shop" passHref legacyBehavior>
-            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-              Order Now
-            </button>
-          </Link>
-        </div>
-      </div>
-
-      {/* CARD 2 - Event Catering */}
-      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
-        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-          {eventImages.map((src, i) => (
-            <Image
-              key={src}
-              src={src}
-              alt="Event Catering"
-              fill
-              className="object-cover transition-opacity duration-700"
-              style={{ opacity: i === eventIdx ? 1 : 0, zIndex: i === eventIdx ? 1 : 0 }}
-            />
-          ))}
-        </div>
-
-        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">
-          Event Catering
-        </h3>
-
-        <p className="text-[13px] font-medium text-black mb-3">
-          Perfect Catering for Every Occasion
-        </p>
-
-        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
-          Whether it’s a private event, celebration, or special gathering, Caterly offers versatile catering solutions designed to suit every occasion.
-        </p>
-
-        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
-          <li>✔ Flexible catering packages</li>
-          <li>✔ Beautifully presented platters</li>
-          <li>✔ Hassle-free experience</li>
-        </ul>
-
-        <div className="mt-auto">
-          <Link href="/shop" passHref legacyBehavior>
-            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-              Order Now
-            </button>
-          </Link>
-        </div>
-      </div>
-
-      {/* CARD 3 - Wedding Catering */}
-      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col">
-        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-          {weddingImages.map((src, i) => (
-            <Image
-              key={src}
-              src={src}
-              alt="Wedding Catering"
-              fill
-              className="object-cover transition-opacity duration-700"
-              style={{ opacity: i === weddingIdx ? 1 : 0, zIndex: i === weddingIdx ? 1 : 0 }}
-            />
-          ))}
-        </div>
-
-        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">
-          Wedding Catering
-        </h3>
-
-        <p className="text-[13px] font-medium text-black mb-3">
-          Where Love Meets Exceptional Taste
-        </p>
-
-        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">
-          Your big day deserves unforgettable food. Caterly crafts exquisite wedding menus tailored to your style, ensuring every bite reflects elegance, love, and celebration.
-        </p>
-
-        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
-          <li>✔ Tailored wedding packages</li>
-          <li>✔ Premium presentation & service</li>
-          <li>✔ Seamless event execution</li>
-        </ul>
-
-        <div className="mt-auto">
-          <Link href="/shop" passHref legacyBehavior>
-            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full">
-              Order Now
-            </button>
-          </Link>
-        </div>
-      </div>
-
+      <ServiceCard
+        title="Wedding Catering"
+        subtitle="Where Love Meets Exceptional Taste"
+        description="Your big day deserves unforgettable food. Caterly crafts exquisite wedding menus tailored to your style, ensuring every bite reflects elegance, love, and celebration."
+        points={["Tailored wedding packages", "Premium presentation & service", "Seamless event execution"]}
+        images={weddingImages}
+      />
     </div>
   </div>
 </section>
@@ -403,9 +389,7 @@ export default function HomePage() {
           </div>
 
           {/* CARDS GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-x-[40px] md:gap-y-[64px]">
-
-            {[
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-x-[40px] md:gap-y-[64px]">            {[
               {
                 title: "Breakfast Packages",
                 desc: "Start the day right with freshly prepared breakfast selections including pastries, sandwiches, wraps, fruit platters and coffee options. Perfect for early meetings and team gatherings.",
@@ -421,7 +405,7 @@ export default function HomePage() {
               {
                 title: "Lunch Packages",
                 desc: "Our lunch packages offer a satisfying variety of wraps, sandwiches, salads and hot food options. Ideal for corporate meetings, office lunches and team events.",
-                img: "/assets/images/c32.jpeg",
+                img: "/assets/images/c58.png",
                 search: "lunch"
               },
               {
@@ -443,37 +427,11 @@ export default function HomePage() {
                 search: "cake"
               },
             ].map((item, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl shadow-md overflow-hidden"
-              >
-                {/* IMAGE */}
-                <div className="relative h-[240px] w-full">
-                  <Image
-                    src={item.img}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-
-                {/* CONTENT */}
-                <div className="p-6">
-                  <h3 className="text-[18px] font-semibold text-black mb-3">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-4">
-                    {item.desc}
-                  </p>
-
-                  <Link href={`/shop?search=${encodeURIComponent(item.search)}`} passHref legacyBehavior>
-                    <a className="bg-[#E03A3E] hover:bg-[#cc3236] text-white text-sm font-semibold px-5 py-2 rounded-md inline-block transition">
-                      Order Now
-                    </a>
-                  </Link>
-                </div>
-              </div>
+              <CategoryCard 
+                key={index} 
+                item={item} 
+                dynamicImages={categoryImages[item.search] || []} 
+              />
             ))}
           </div>
 

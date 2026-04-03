@@ -106,7 +106,7 @@ export function RequestAQuoteModal() {
 
   return (
     <>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         input[type="datetime-local"]::-webkit-calendar-picker-indicator {
           cursor: pointer;
           filter: invert(0.3);
@@ -114,7 +114,7 @@ export function RequestAQuoteModal() {
         input[type="datetime-local"] {
           accent-color: #E03A3E;
         }
-      `}</style>
+      `}} />
       {isOpen && (
 
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">

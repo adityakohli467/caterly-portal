@@ -9,7 +9,7 @@ import { api } from "@/lib/api"
 import { useCartStore } from "@/store/cart"
 import { Search, ShoppingCart } from "lucide-react"
 import { toast } from "sonner"
-import { getProductImageUrl } from "@/lib/product-utils"
+import { getProductImageUrl, getProductImageUrls } from "@/lib/product-utils"
 
 interface Product {
   product_id: number
@@ -114,63 +114,82 @@ export default function ProductsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <Card key={product.product_id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-square bg-gray-200 relative">
-                {getProductImageUrl(product) ? (
-                  <img
-                    src={getProductImageUrl(product)!}
-                    alt={product.product_name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    No Image
-                  </div>
-                )}
-              </div>
-              <CardContent className="pt-4">
-                <h3 className="font-bold text-lg mb-2">{product.product_name}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {product.product_description}
-                </p>
-                <div className="flex items-center justify-between">
-                  {product.has_discount && product.original_price && product.discounted_price ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg text-gray-500 line-through">
-                        ${product.original_price.toFixed(2)}
-                      </span>
-                      <span className="text-2xl font-bold text-primary">
-                        ${product.discounted_price.toFixed(2)}
-                      </span>
-                      {product.discount_percentage && (
-                        <span className="text-xs bg-red-500 text-white px-2 py-1 rounded">
-                          {product.discount_percentage}% OFF
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-2xl font-bold text-primary">
-                      ${parseFloat(product.product_price).toFixed(2)}
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Link href={`/shop/${product.product_id}`} className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      View Details
-                    </Button>
-                  </Link>
-                  <Button onClick={() => handleAddToCart(product)}>
-                    <ShoppingCart className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ProductCard key={product.product_id} product={product} />
           ))}
         </div>
       )}
     </div>
   )
+
+  function ProductCard({ product }: { product: Product }) {
+    const [index, setIndex] = useState(0)
+    const [isHovered, setIsHovered] = useState(false)
+    const images = getProductImageUrls(product)
+
+    useEffect(() => {
+      if (!images || images.length <= 1) return
+      const t = setInterval(() => setIndex(i => (i + 1) % images.length), 2000)
+      return () => clearInterval(t)
+    }, [images.length])
+
+    return (
+      <Card
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col"
+      >
+        <div className="aspect-square bg-gray-200 relative overflow-hidden">
+          {images.length > 0 ? (
+            images.map((url: string, i: number) => (
+              <img
+                key={url + i}
+                src={url}
+                alt={product.product_name}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${i === index ? "opacity-100" : "opacity-0"
+                  }`}
+              />
+            ))
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              No Image
+            </div>
+          )}
+        </div>
+        <CardContent className="pt-4 flex flex-col flex-1">
+          <h3 className="font-bold text-lg mb-2">{product.product_name}</h3>
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+            {product.product_description}
+          </p>
+          <div className="flex items-center justify-between mt-auto">
+            {product.has_discount && product.original_price && product.discounted_price ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 line-through">
+                  ${product.original_price.toFixed(2)}
+                </span>
+                <span className="text-xl font-bold text-primary">
+                  ${product.discounted_price.toFixed(2)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-xl font-bold text-primary">
+                ${parseFloat(product.product_price).toFixed(2)}
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Link href={`/shop/${product.product_id}`} className="flex-1">
+              <Button variant="outline" className="w-full">
+                View Details
+              </Button>
+            </Link>
+            <Button onClick={() => handleAddToCart(product)}>
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 }
 
 
