@@ -82,13 +82,13 @@ export default function HomePage() {
   // Gallery state
   const galleryImages = [
     "/assets/images/c50.png",
-     "/assets/images/c54.png",
+    "/assets/images/c54.png",
     "/assets/images/c51.png",
-     "/assets/images/c55.png",
+    "/assets/images/c55.png",
     "/assets/images/c52.png",
     "/assets/images/c53.png",
-   
-   
+
+
   ]
   const [currentIndex, setCurrentIndex] = useState(0)
   const [categoryImages, setCategoryImages] = useState<Record<string, string[]>>({})
@@ -241,88 +241,36 @@ export default function HomePage() {
   return (
     <div className="w-full overflow-x-hidden">
 
-      {/* ================================================= */}
-      {/* 1. HERO SECTION */}
-      {/* ================================================= */}
-      <section className="relative w-full h-[320px] md:h-[500px] lg:h-[650px] overflow-hidden">
+      {/* 1. HERO SECTION - FULL VISIBILITY */}
+      <section className="relative w-full bg-[#B5B796] overflow-hidden min-h-[380px] md:min-h-[400px] lg:min-h-[500px]">
 
-        {/* BACKGROUND VIDEO */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/assets/video/bannervideoCaterly.mp4" type="video/mp4" />
-        </video>
+        {/* BACKGROUND IMAGE - NO CUTTING */}
+        <div className="relative w-full h-full">
+          <img
+            src="/assets/images/ban.jpeg"
+            alt="Wide Banner"
+            className="w-full h-full object-contain md:object-cover lg:object-contain object-center"
+          />
 
-        {/* DARK OVERLAY */}
-        <div className="absolute inset-0 bg-black/50"></div>
+          {/* LIGHT OVERLAY FOR CLARITY */}
+          <div className="absolute inset-0 bg-black/10"></div>
+        </div>
 
-        {/* CONTENT */}
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="flex flex-col items-center text-center max-w-[900px] px-4 md:px-6 gap-4 md:gap-6">
+        {/* BUTTONS ALIGNED TO IMAGE CONTENT */}
+        <div className="absolute inset-0 z-10 flex items-end justify-start pb-6 md:pb-24 lg:pb-32 px-4 md:px-20 lg:px-44">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <button
+              onClick={openQuoteModal}
+              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl text-sm md:text-md font-bold w-full sm:w-auto transition-all shadow-xl hover:scale-105 active:scale-95"
+            >
+              Book Now
+            </button>
 
-            {/* HEADING */}
-            <h1 className="text-[28px] md:text-[44px] lg:text-[56px] leading-tight font-semibold text-white">
-              Crafting{" "}
-              <span className="text-[#E03A3E] italic">
-                unforgettable
-              </span>
-              <br />
-              event experiences.
-            </h1>
-
-            {/* SUBTEXT */}
-            <p className="text-[13px] md:text-[16px] text-gray-200 max-w-[620px]">
-              Elevating every event with refined flavors, flawless presentation,
-              and lasting impressions.
-            </p>
-
-            {/* BUTTONS */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-3 w-full sm:w-auto">
-
-              <button
-                onClick={openQuoteModal}
-                className="
-            bg-[#E03A3E]
-            hover:bg-[#cc3236]
-            text-white
-            px-6
-            py-3
-            rounded-md
-            text-sm
-            font-semibold
-            w-full sm:w-auto
-            transition
-          "
-              >
-                Book Now
+            <Link href="/shop" className="w-full sm:w-auto">
+              <button className="bg-white/95 backdrop-blur-sm border border-white/20 hover:bg-white text-gray-900 px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl text-sm md:text-md font-bold w-full sm:w-auto transition-all shadow-xl hover:scale-105 active:scale-95">
+                View Menu
               </button>
-
-              <Link href="/shop">
-                <button
-                  className="
-              bg-white
-              border border-[#E6E6E6]
-              hover:bg-gray-100
-              text-black
-              px-6
-              py-3
-              rounded-md
-              text-sm
-              font-semibold
-              w-full sm:w-auto
-              transition
-            "
-                >
-                  View Menu
-                </button>
-              </Link>
-
-            </div>
-
+            </Link>
           </div>
         </div>
       </section>
