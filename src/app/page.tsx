@@ -23,9 +23,11 @@ export default function HomePage() {
   const [reviewsLoading, setReviewsLoading] = useState(true)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewForm, setReviewForm] = useState({ reviewer_name: "", rating: 5, review_text: "" })
+  const [mounted, setMounted] = useState(false)
   const [submittingReview, setSubmittingReview] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const fetchReviews = async () => {
       try {
         const res = await api.get("/store/reviews/general")
@@ -238,22 +240,52 @@ export default function HomePage() {
     )
   }
 
+  // 1. HERO SECTION State
+  const heroImages = [
+    "/assets/images/ban.jpeg",
+    "/assets/images/ban1.jpeg",
+    "/assets/images/ban2.jpeg",
+    "/assets/images/ban3.jpeg",
+  ]
+  const [heroIndex, setHeroIndex] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroImages.length)
+    }, 2000)
+    return () => clearInterval(timer)
+  }, [heroImages.length])
+
   return (
     <div className="w-full overflow-x-hidden">
 
       {/* 1. HERO SECTION */}
-      <section className="relative w-full bg-[#f8fbd3] overflow-hidden min-h-[220px] md:h-[520px] lg:h-[620px]">
-        {/* IMAGE — Full width, height follows content/min-height */}
-        <div className="w-full">
-          <img
-            src="/assets/images/ban.jpeg"
-            alt="Caterly Hero Banner"
-            className="w-full h-full object-cover object-center md:object-left-top"
-          />
-        </div>
+      <section
+        className="relative w-full bg-[#EAD8DE] overflow-hidden min-h-[220px] md:min-h-[300px] aspect-[16/9] md:aspect-[4125/1542]"
+      >
+        {/* IMAGE SLIDER — Full width */}
+        {mounted && (
+          <div className="absolute inset-0 w-full h-full">
+            {heroImages.map((src, i) => (
+              <div
+                key={src}
+                className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${i === heroIndex ? "opacity-100" : "opacity-0"
+                  }`}
+              >
+                <Image
+                  src={src}
+                  alt={`Caterly Hero Banner ${i + 1}`}
+                  fill
+                  priority={i === 0}
+                  className="object-contain object-center md:object-top"
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* CONTENT — Buttons left-aligned and compact */}
-        <div className="absolute inset-0 z-10 flex flex-col justify-end px-4 pb-4 md:px-20 md:pb-24 lg:px-44 lg:pb-32">
+        <div className="absolute inset-0 z-10 flex flex-col justify-end px-4 pb-6 md:px-20 md:pb-12 lg:px-44 lg:pb-24 bg-black/5">
           <div className="flex flex-row items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <button
               onClick={openQuoteModal}

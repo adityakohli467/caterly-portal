@@ -326,6 +326,9 @@ function PaymentPageContent() {
                                 card_number: cardNumber,
                                 card_expiry: cardExpiry,
                                 cvv: cvv,
+                                amount: Math.round(finalTotal * 100), // Standard Fat Zebra requires cents (integer)
+                                reference: `Order #${orderId}`,
+                                currency: 'AUD',
                                 ip_address: '127.0.0.1'
                               });
 
