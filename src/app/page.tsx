@@ -261,7 +261,7 @@ export default function HomePage() {
 
       {/* 1. HERO SECTION */}
       <section
-        className="relative w-full bg-[#EAD8DE] overflow-hidden min-h-[220px] md:min-h-[300px] aspect-[16/9] md:aspect-[4125/1542]"
+        className="relative w-full bg-[#EAD8DE] overflow-hidden min-h-[260px] md:min-h-[300px] aspect-[16/9] md:aspect-[4125/1542]"
       >
         {/* IMAGE SLIDER — Full width */}
         {mounted && (
@@ -285,17 +285,17 @@ export default function HomePage() {
         )}
 
         {/* CONTENT — Buttons left-aligned and compact */}
-        <div className="absolute inset-0 z-10 flex flex-col justify-end px-6 pb-6 md:px-10 md:pb-12 lg:px-20 lg:pb-24 bg-black/5">
-          <div className="flex flex-row items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="absolute inset-0 z-10 flex flex-col justify-end px-3 pb-3 md:px-10 md:pb-12 lg:px-20 lg:pb-24 bg-black/5">
+          <div className="flex flex-row items-center gap-2 md:gap-3 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <button
               onClick={openQuoteModal}
-              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-4 py-2 md:px-8 md:py-3.5 rounded-lg text-xs md:text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95"
+              className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2.5 md:px-8 md:py-3.5 rounded-lg text-sm md:text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95"
             >
               Book Now
             </button>
 
             <Link href="/shop">
-              <button className="bg-white/95 border border-white/20 hover:bg-white text-gray-900 px-4 py-2 md:px-8 md:py-3.5 rounded-lg text-xs md:text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95">
+              <button className="bg-white/95 border border-white/20 hover:bg-white text-gray-900 px-6 py-2.5 md:px-8 md:py-3.5 rounded-lg text-sm md:text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95">
                 View Menu
               </button>
             </Link>

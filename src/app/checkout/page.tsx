@@ -569,19 +569,19 @@ export default function CheckoutPage() {
                                         <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No Pic</div>
                                       )}
                                     </div>
-                                      <div>
-                                        <div className="font-bold text-[#1A237E] leading-tight text-sm">{item.product_name}</div>
-                                        {item.options?.map((opt, idx) => (
-                                          <div key={idx} className="text-[10px] text-gray-500">
-                                            {opt.option_name}: {opt.option_value}
-                                          </div>
-                                        ))}
-                                        {item.item_comments && (
-                                          <div className="text-[11px] text-[#E03A3E] mt-1 italic font-medium">
-                                            Note: {item.item_comments}
-                                          </div>
-                                        )}
-                                      </div>
+                                    <div>
+                                      <div className="font-bold text-[#1A237E] leading-tight text-sm">{item.product_name}</div>
+                                      {item.options?.map((opt, idx) => (
+                                        <div key={idx} className="text-[10px] text-gray-500">
+                                          {opt.option_name}: {opt.option_value}
+                                        </div>
+                                      ))}
+                                      {item.item_comments && (
+                                        <div className="text-[11px] text-[#E03A3E] mt-1 italic font-medium">
+                                          Note: {item.item_comments}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </td>
                                 <td className="py-4 pr-4 text-right font-medium text-gray-900">${itemPrice.toFixed(2)}</td>
@@ -781,8 +781,8 @@ export default function CheckoutPage() {
                                 const isPassed = isTimeSlotPassed(deliveryDate || getSydneyTodayString(), timeStr)
 
                                 return (
-                                  <SelectItem 
-                                    key={i} 
+                                  <SelectItem
+                                    key={i}
                                     value={timeStr}
                                     disabled={isPassed}
                                     className={isPassed ? "opacity-50 cursor-not-allowed" : ""}
@@ -856,8 +856,8 @@ export default function CheckoutPage() {
                                   const isPassed = isTimeSlotPassed(subscriptionStartDate || getSydneyTodayString(), timeStr)
 
                                   return (
-                                    <SelectItem 
-                                      key={i} 
+                                    <SelectItem
+                                      key={i}
                                       value={timeStr}
                                       disabled={isPassed}
                                       className={isPassed ? "opacity-50 cursor-not-allowed" : ""}
