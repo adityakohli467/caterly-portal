@@ -285,7 +285,7 @@ export default function HomePage() {
         )}
 
         {/* CONTENT — Buttons left-aligned and compact */}
-        <div className="absolute inset-0 z-10 flex flex-col justify-end px-4 pb-6 md:px-20 md:pb-12 lg:px-44 lg:pb-24 bg-black/5">
+        <div className="absolute inset-0 z-10 flex flex-col justify-end px-6 pb-6 md:px-10 md:pb-12 lg:px-20 lg:pb-24 bg-black/5">
           <div className="flex flex-row items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <button
               onClick={openQuoteModal}
