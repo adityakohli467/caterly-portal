@@ -25,6 +25,7 @@ import { Minus, Plus, Trash2, ShoppingCart, X, Upload, Check, Tag } from "lucide
 import { getProductImageUrl } from "@/lib/product-utils"
 import { Textarea } from "@/components/ui/textarea"
 import { PaymentModal } from "@/components/checkout/PaymentModal"
+import { getSydneyTodayString, isTimeSlotPassed } from "@/lib/date-utils"
 
 interface Product {
   product_id: number
@@ -67,7 +68,7 @@ export default function CheckoutPage() {
   const [deliveryNotesImagePreview, setDeliveryNotesImagePreview] = useState<string | null>(null)
   const [isSubscription, setIsSubscription] = useState(false)
   const [subscriptionFrequency, setSubscriptionFrequency] = useState("Every 1 Week")
-  const [subscriptionStartDate, setSubscriptionStartDate] = useState(new Date().toISOString().split("T")[0])
+  const [subscriptionStartDate, setSubscriptionStartDate] = useState(getSydneyTodayString())
   const [deliveryDate, setDeliveryDate] = useState<string>("")
   const [deliveryTime, setDeliveryTime] = useState<string>("")
   const [postcodeError, setPostcodeError] = useState("")
@@ -746,8 +747,15 @@ export default function CheckoutPage() {
                             id="delivery-date"
                             type="date"
                             value={deliveryDate}
-                            onChange={(e) => setDeliveryDate(e.target.value)}
-                            min={new Date().toISOString().split("T")[0]}
+                            onChange={(e) => {
+                              const newDate = e.target.value;
+                              setDeliveryDate(newDate);
+                              // Reset time if it becomes invalid on the newly selected today
+                              if (newDate === getSydneyTodayString() && deliveryTime && isTimeSlotPassed(newDate, deliveryTime)) {
+                                setDeliveryTime("");
+                              }
+                            }}
+                            min={getSydneyTodayString()}
                             required={!isSubscription}
                             className="bg-white border-gray-300 text-gray-900 focus:ring-[#E03A3E] focus:border-[#E03A3E]"
                           />
@@ -770,9 +778,19 @@ export default function CheckoutPage() {
                                 const m = minute === 0 ? "00" : minute
                                 const ampm = hour >= 12 ? "PM" : "AM"
                                 const timeStr = `${h}:${m} ${ampm}`
+                                const isPassed = isTimeSlotPassed(deliveryDate || getSydneyTodayString(), timeStr)
+
                                 return (
-                                  <SelectItem key={i} value={timeStr}>
-                                    {timeStr}
+                                  <SelectItem 
+                                    key={i} 
+                                    value={timeStr}
+                                    disabled={isPassed}
+                                    className={isPassed ? "opacity-50 cursor-not-allowed" : ""}
+                                  >
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>{timeStr}</span>
+                                      {isPassed && <span className="text-[10px] ml-2 font-normal text-gray-400 italic">(Past)</span>}
+                                    </div>
                                   </SelectItem>
                                 )
                               })}
@@ -806,8 +824,15 @@ export default function CheckoutPage() {
                               id="start-date"
                               type="date"
                               value={subscriptionStartDate}
-                              onChange={(e) => setSubscriptionStartDate(e.target.value)}
-                              min={new Date().toISOString().split("T")[0]}
+                              onChange={(e) => {
+                                const newDate = e.target.value;
+                                setSubscriptionStartDate(newDate);
+                                // Reset time if it becomes invalid on the newly selected today
+                                if (newDate === getSydneyTodayString() && deliveryTime && isTimeSlotPassed(newDate, deliveryTime)) {
+                                  setDeliveryTime("");
+                                }
+                              }}
+                              min={getSydneyTodayString()}
                               className="bg-white border-gray-300 text-gray-900 h-10 focus:ring-[#E03A3E] focus:border-[#E03A3E]"
                             />
                           </div>
@@ -828,9 +853,19 @@ export default function CheckoutPage() {
                                   const m = minute === 0 ? "00" : minute
                                   const ampm = hour >= 12 ? "PM" : "AM"
                                   const timeStr = `${h}:${m} ${ampm}`
+                                  const isPassed = isTimeSlotPassed(subscriptionStartDate || getSydneyTodayString(), timeStr)
+
                                   return (
-                                    <SelectItem key={i} value={timeStr}>
-                                      {timeStr}
+                                    <SelectItem 
+                                      key={i} 
+                                      value={timeStr}
+                                      disabled={isPassed}
+                                      className={isPassed ? "opacity-50 cursor-not-allowed" : ""}
+                                    >
+                                      <div className="flex items-center justify-between w-full">
+                                        <span>{timeStr}</span>
+                                        {isPassed && <span className="text-[10px] ml-2 font-normal text-gray-400 italic">(Past)</span>}
+                                      </div>
                                     </SelectItem>
                                   )
                                 })}
