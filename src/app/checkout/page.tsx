@@ -229,6 +229,9 @@ export default function CheckoutPage() {
 
     const afterWholesaleDiscount = subtotal - wholesaleDiscount
 
+    // Move shipping fee calculation up so coupon can be applied against the combined total
+    const shippingFee = shippingMethod === "standard" ? 50 : 0
+
     // Calculate coupon discount (applied after wholesale discount)
     let couponDiscount = 0
     if (couponApplied) {
@@ -236,17 +239,16 @@ export default function CheckoutPage() {
         // Percentage discount - use value (percentage) not discount_amount
         couponDiscount = afterWholesaleDiscount * (couponApplied.value / 100)
       } else if (couponApplied.type === 'F') {
-        // Fixed amount discount - use discount_amount
-        couponDiscount = couponApplied.discount_amount || 0
+        // Fixed amount discount - use value to allow applying to both products and shipping
+        couponDiscount = couponApplied.value || 0
       }
-      // Ensure discount doesn't exceed afterWholesaleDiscount
-      couponDiscount = Math.min(couponDiscount, afterWholesaleDiscount)
+      // Ensure discount doesn't exceed the combined total of products + shipping
+      couponDiscount = Math.min(couponDiscount, afterWholesaleDiscount + shippingFee)
     }
 
-    const afterDiscount = afterWholesaleDiscount - couponDiscount
-    const shippingFee = shippingMethod === "standard" ? 50 : 0
+    const total = Math.max(0, afterWholesaleDiscount + shippingFee - couponDiscount)
+    const afterDiscount = Math.max(0, afterWholesaleDiscount - couponDiscount)
     const gst = afterWholesaleDiscount * 0.1 // 10% GST (calculated on subtotal before coupons)
-    const total = afterDiscount + shippingFee // GST is shown but not charged separately
 
     return {
       subtotal,
@@ -279,10 +281,11 @@ export default function CheckoutPage() {
       }
       const afterWholesaleDiscount = subtotal - wholesaleDiscount
 
-      // Validate coupon with backend
+      // Validate coupon with backend - include shipping fee in order total
+      const shippingFee = shippingMethod === "standard" ? 50 : 0
       const response = await api.post("/store/coupons/validate", {
         coupon_code: couponCode.trim(),
-        order_total: afterWholesaleDiscount, // Pass after wholesale discount
+        order_total: afterWholesaleDiscount + shippingFee, 
       })
 
       if (response.data.valid && response.data.coupon) {
