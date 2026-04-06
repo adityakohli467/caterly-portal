@@ -61,47 +61,16 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
     return v
   }
 
+
+  // Instead of direct charge, redirect to FatZebra HPP
   const handlePayNow = async () => {
-    const cardNumber = formData.cardNumber.replace(/\s/g, "")
-    const expiryInput = formData.expiry
-    const cvv = formData.cvv
-
-    // Format MM / YY to MM/YYYY for Fat Zebra
-    const expiryParts = expiryInput.split("/").map(p => p.trim())
-    let cardExpiry = ""
-    if (expiryParts.length === 2) {
-      const month = expiryParts[0].padStart(2, "0")
-      let year = expiryParts[1]
-      if (year.length === 2) year = "20" + year
-      cardExpiry = `${month}/${year}`
-    }
-
-    if (!cardNumber || !cardExpiry || !cvv) {
-      toast.error("Please fill in all card details correctly")
-      return
-    }
-
     setLoading(true)
     try {
-      const res = await api.post(`/store/payment/${orderId}/fatzebra-charge`, {
-        card_holder: customerName || "Customer",
-        card_number: cardNumber,
-        card_expiry: cardExpiry,
-        cvv: cvv,
-        ip_address: "127.0.0.1"
-      })
-
-      if (res.data.success) {
-        toast.success("Payment successful!")
-        onSuccess()
-      } else {
-        toast.error(res.data.message || "Payment failed")
-      }
-    } catch (err: any) {
-      console.error("Payment error:", err)
-      toast.error(err.response?.data?.message || "Payment gateway error")
-    } finally {
+      const backendBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000").replace(/\/$/, "")
+      window.location.href = `${backendBase}/store/payment/${orderId}/fatzebra-hpp`
+    } catch (err) {
       setLoading(false)
+      toast.error("Failed to initiate payment. Please try again.")
     }
   }
 
