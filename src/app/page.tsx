@@ -16,6 +16,117 @@ interface Review {
   created_at: string
 }
 
+const galleryImages = [
+  "/assets/images/c50.png",
+  "/assets/images/c54.png",
+  "/assets/images/c51.png",
+  "/assets/images/c55.png",
+  "/assets/images/c52.png",
+  "/assets/images/c53.png",
+]
+
+// Catering card slideshow images
+const corporateImages = [
+  "/assets/images/c42.png",
+  "/assets/images/c43.png",
+  "/assets/images/c44.png",
+  "/assets/images/c45.png",
+]
+const eventImages = [
+  "/assets/images/c46.png",
+  "/assets/images/c47.png",
+  "/assets/images/c48.png",
+  "/assets/images/c50.png",
+  "/assets/images/c51.png",
+]
+const weddingImages = [
+  "/assets/images/c52.png",
+  "/assets/images/c53.png",
+  "/assets/images/c54.png",
+  "/assets/images/c55.png",
+  "/assets/images/c56.png",
+]
+
+const ServiceCard = ({ title, subtitle, description, points, images }: { title: string, subtitle: string, description: string, points: string[], images: string[] }) => {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    if (!images || images.length <= 1) return
+    const t = setInterval(() => setIndex(i => (i + 1) % images.length), 1000)
+    return () => clearInterval(t)
+  }, [images.length])
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col group transition-all duration-300">
+      <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
+        {images.map((src, i) => (
+          <Image
+            key={src}
+            src={src}
+            alt={title}
+            fill
+            className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
+          />
+        ))}
+      </div>
+
+      <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">{title}</h3>
+      <p className="text-[13px] font-medium text-black mb-3">{subtitle}</p>
+      <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">{description}</p>
+
+      <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
+        {points.map((p, i) => <li key={i}>✔ {p}</li>)}
+      </ul>
+
+      <div className="mt-auto">
+        <Link href="/shop" passHref legacyBehavior>
+          <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full transition-colors">
+            Order Now
+          </button>
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+const CategoryCard = ({ item, dynamicImages }: { item: any, dynamicImages: string[] }) => {
+  const [index, setIndex] = useState(0)
+  // Placeholder first, then dynamic ones
+  const allImages = dynamicImages.length > 0 ? [item.img, ...dynamicImages] : [item.img]
+
+  useEffect(() => {
+    if (allImages.length <= 1) return
+    const t = setInterval(() => setIndex(i => (i + 1) % allImages.length), 1000)
+    return () => clearInterval(t)
+  }, [allImages.length])
+
+  return (
+    <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col h-full group transition-all duration-300">
+      <div className="relative h-[240px] w-full bg-gray-100">
+        {allImages.map((src, i) => (
+          <Image
+            key={src + i}
+            src={src}
+            alt={item.title}
+            fill
+            className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
+          />
+        ))}
+      </div>
+
+      <div className="p-6 flex flex-col flex-grow">
+        <h3 className="text-[18px] font-semibold text-black mb-3">{item.title}</h3>
+        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-4 flex-grow">{item.desc}</p>
+        <Link href={`/shop?search=${encodeURIComponent(item.search)}`} passHref legacyBehavior>
+          <a className="bg-[#E03A3E] hover:bg-[#cc3236] text-white text-sm font-semibold px-5 py-2 rounded-md inline-block transition w-fit">
+            Order Now
+          </a>
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 export default function HomePage() {
   const openQuoteModal = useQuoteModalStore((s) => s.open)
   // Reviews state
@@ -81,17 +192,6 @@ export default function HomePage() {
 
 
 
-  // Gallery state
-  const galleryImages = [
-    "/assets/images/c50.png",
-    "/assets/images/c54.png",
-    "/assets/images/c51.png",
-    "/assets/images/c55.png",
-    "/assets/images/c52.png",
-    "/assets/images/c53.png",
-
-
-  ]
   const [currentIndex, setCurrentIndex] = useState(0)
   const [categoryImages, setCategoryImages] = useState<Record<string, string[]>>({})
 
@@ -138,107 +238,6 @@ export default function HomePage() {
     }
   }
 
-  // Catering card slideshow images
-  const corporateImages = [
-    "/assets/images/c42.png",
-    "/assets/images/c43.png",
-    "/assets/images/c44.png",
-    "/assets/images/c45.png",
-  ]
-  const eventImages = [
-    "/assets/images/c46.png",
-    "/assets/images/c47.png",
-    "/assets/images/c48.png",
-    "/assets/images/c50.png",
-    "/assets/images/c51.png",
-  ]
-  const weddingImages = [
-    "/assets/images/c52.png",
-    "/assets/images/c53.png",
-    "/assets/images/c54.png",
-    "/assets/images/c55.png",
-    "/assets/images/c56.png",
-  ]
-
-  const ServiceCard = ({ title, subtitle, description, points, images }: { title: string, subtitle: string, description: string, points: string[], images: string[] }) => {
-    const [index, setIndex] = useState(0)
-
-    useEffect(() => {
-      if (!images || images.length <= 1) return
-      const t = setInterval(() => setIndex(i => (i + 1) % images.length), 2000)
-      return () => clearInterval(t)
-    }, [images.length])
-
-    return (
-      <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col group transition-all duration-300">
-        <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-          {images.map((src, i) => (
-            <Image
-              key={src}
-              src={src}
-              alt={title}
-              fill
-              className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
-            />
-          ))}
-        </div>
-
-        <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">{title}</h3>
-        <p className="text-[13px] font-medium text-black mb-3">{subtitle}</p>
-        <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 flex-grow">{description}</p>
-
-        <ul className="text-left text-[14px] text-[#6B6B6B] mb-6 space-y-1">
-          {points.map((p, i) => <li key={i}>✔ {p}</li>)}
-        </ul>
-
-        <div className="mt-auto">
-          <Link href="/shop" passHref legacyBehavior>
-            <button className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-6 py-2 rounded-md text-sm font-semibold w-full transition-colors">
-              Order Now
-            </button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const CategoryCard = ({ item, dynamicImages }: { item: any, dynamicImages: string[] }) => {
-    const [index, setIndex] = useState(0)
-    // Placeholder first, then dynamic ones
-    const allImages = dynamicImages.length > 0 ? [item.img, ...dynamicImages] : [item.img]
-
-    useEffect(() => {
-      if (allImages.length <= 1) return
-      const t = setInterval(() => setIndex(i => (i + 1) % allImages.length), 2000)
-      return () => clearInterval(t)
-    }, [allImages.length])
-
-    return (
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col h-full group transition-all duration-300">
-        <div className="relative h-[240px] w-full bg-gray-100">
-          {allImages.map((src, i) => (
-            <Image
-              key={src + i}
-              src={src}
-              alt={item.title}
-              fill
-              className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
-            />
-          ))}
-        </div>
-
-        <div className="p-6 flex flex-col flex-grow">
-          <h3 className="text-[18px] font-semibold text-black mb-3">{item.title}</h3>
-          <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-4 flex-grow">{item.desc}</p>
-          <Link href={`/shop?search=${encodeURIComponent(item.search)}`} passHref legacyBehavior>
-            <a className="bg-[#E03A3E] hover:bg-[#cc3236] text-white text-sm font-semibold px-5 py-2 rounded-md inline-block transition w-fit">
-              Order Now
-            </a>
-          </Link>
-        </div>
-      </div>
-    )
-  }
 
   // 1. HERO SECTION State
   const heroImages = [
