@@ -129,7 +129,7 @@ export default function ContactPage() {
             <form className="space-y-6" onSubmit={handleSubmit}>
 
               {/* First & Last Name */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm font-medium block mb-2">
                     First Name
@@ -162,7 +162,7 @@ export default function ContactPage() {
               </div>
 
               {/* Email & Phone */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm font-medium block mb-2">
                     Email
@@ -213,8 +213,8 @@ export default function ContactPage() {
               {/* Captcha */}
               <div>
                 <label className="text-sm font-medium block mb-2">Captcha</label>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center min-w-[90px] border-2 border-dashed border-[#E03A3E] px-5 py-3 rounded-md select-none">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center justify-center min-w-[90px] border-2 border-dashed border-[#E03A3E] px-4 py-3 rounded-md select-none">
                     <span className="text-[#E03A3E] font-bold text-lg tracking-widest">{captchaCode}</span>
                   </div>
                   <button
@@ -230,7 +230,7 @@ export default function ContactPage() {
                     value={captchaInput}
                     onChange={(e) => setCaptchaInput(e.target.value)}
                     placeholder="Enter captcha"
-                    className="flex-1 border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
+                    className="flex-1 min-w-[140px] border border-[#FDECEC] rounded-lg px-4 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E03A3E]"
                   />
                 </div>
               </div>
