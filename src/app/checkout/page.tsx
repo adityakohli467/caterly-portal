@@ -250,13 +250,28 @@ export default function CheckoutPage() {
     const afterDiscount = Math.max(0, afterWholesaleDiscount - couponDiscount)
     const gst = afterWholesaleDiscount * 0.11 // 11% GST (calculated on subtotal before coupons)
 
+    // Handle FREE DELIVERY coupon specially for display purposes
+    let effectiveShippingFee = shippingFee
+    let effectiveCouponDiscount = couponDiscount
+    const isFreeDelivery = couponApplied && (
+      couponApplied.code.toUpperCase().includes('FREE DELIVERY') ||
+      couponApplied.code.toUpperCase().includes('FREEDELIVERY')
+    )
+
+    if (isFreeDelivery && effectiveShippingFee > 0) {
+      const freeDeliveryAmount = Math.min(effectiveShippingFee, effectiveCouponDiscount)
+      effectiveShippingFee -= freeDeliveryAmount
+      effectiveCouponDiscount -= freeDeliveryAmount
+    }
+
     return {
       subtotal,
       wholesaleDiscount,
-      couponDiscount,
+      couponDiscount: effectiveCouponDiscount,
       afterWholesaleDiscount,
       afterDiscount,
-      shippingFee,
+      shippingFee: effectiveShippingFee,
+      originalShippingFee: isFreeDelivery ? shippingFee : null,
       gst,
       total,
     }
@@ -1155,10 +1170,17 @@ export default function CheckoutPage() {
                             <span>- ${totals.couponDiscount.toFixed(2)}</span>
                           </div>
                         )}
-                        {totals.shippingFee > 0 && (
+                        {shippingMethod === "standard" && (
                           <div className="flex justify-between text-sm">
                             <span>Delivery Fee</span>
-                            <span>${totals.shippingFee.toFixed(2)}</span>
+                            <span className="flex items-center gap-2">
+                              {totals.originalShippingFee !== null && totals.originalShippingFee > 0 && (
+                                <span className="line-through text-gray-400 font-normal">
+                                  ${totals.originalShippingFee.toFixed(2)}
+                                </span>
+                              )}
+                              <span>${totals.shippingFee.toFixed(2)}</span>
+                            </span>
                           </div>
                         )}
                         <div className="flex justify-between text-xs text-gray-500 italic mt-2">

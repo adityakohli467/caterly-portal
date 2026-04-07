@@ -222,21 +222,31 @@ export function Header() {
               </Link>
 
               {isAuthenticated && user ? (
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-4 w-full">
                   <div className="flex items-center gap-2">
                     <User className="w-5 h-5 text-[#E03A3E]" />
                     <span className="font-medium text-black">{user.username}</span>
                   </div>
-                  <button
-                    onClick={() => {
-                      handleLogout()
-                      setOpen(false)
-                    }}
-                    className="flex items-center gap-2 text-[#E03A3E] font-medium"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    Logout
-                  </button>
+                  <div className="flex items-center gap-6">
+                    <Link
+                      href="/account"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2 text-black font-medium"
+                    >
+                      <UserCircle className="w-5 h-5 text-[#E03A3E]" />
+                      Account
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout()
+                        setOpen(false)
+                      }}
+                      className="flex items-center gap-2 text-[#E03A3E] font-medium"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      Logout
+                    </button>
+                  </div>
                 </div>
               ) : pathname === '/checkout' ? (
                 <button
