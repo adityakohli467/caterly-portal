@@ -121,7 +121,7 @@ function PaymentPageContent() {
     : (order?.after_wholesale_discount
       ? parsePrice(order.after_wholesale_discount)
       : afterDiscount + couponDiscount)
-  const gst = savedTotals ? savedTotals.gst : preDiscountSubtotal * 0.1
+  const gst = savedTotals ? savedTotals.gst : preDiscountSubtotal * 0.11
   const finalTotal = savedTotals ? savedTotals.total : afterDiscount + deliveryFee
 
   return (
@@ -396,7 +396,7 @@ function PaymentPageContent() {
 
                     {gst > 0 && (
                       <div className="flex justify-between text-gray-500">
-                        <span>GST (10%)</span>
+                        <span>GST (11%)</span>
                         <span>${gst.toFixed(2)}</span>
                       </div>
                     )}

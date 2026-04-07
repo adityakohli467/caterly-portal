@@ -248,7 +248,7 @@ export default function CheckoutPage() {
 
     const total = Math.max(0, afterWholesaleDiscount + shippingFee - couponDiscount)
     const afterDiscount = Math.max(0, afterWholesaleDiscount - couponDiscount)
-    const gst = afterWholesaleDiscount * 0.1 // 10% GST (calculated on subtotal before coupons)
+    const gst = afterWholesaleDiscount * 0.11 // 11% GST (calculated on subtotal before coupons)
 
     return {
       subtotal,
@@ -1153,7 +1153,7 @@ export default function CheckoutPage() {
                           </div>
                         )}
                         <div className="flex justify-between text-xs text-gray-500 italic mt-2">
-                          <span>Includes GST (10%)</span>
+                          <span>Includes GST (11%)</span>
                           <span>${totals.gst.toFixed(2)}</span>
                         </div>
                       </div>
