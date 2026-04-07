@@ -144,9 +144,9 @@ export default function PublicQuotePage() {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A'
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -192,7 +192,7 @@ export default function PublicQuotePage() {
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Quote Not Found</h1>
             <p className="text-gray-600 mb-6">
-              {!isToken && !isNumeric 
+              {!isToken && !isNumeric
                 ? 'Invalid quote link. Please check the link and try again.'
                 : 'The quote you\'re looking for doesn\'t exist or has been removed.'}
             </p>
@@ -241,7 +241,7 @@ export default function PublicQuotePage() {
         {/* Quote Details Card */}
         <Card className="p-6 mb-6 bg-white border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quote Information</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <p className="text-sm text-gray-600">Customer Name</p>
@@ -296,7 +296,7 @@ export default function PublicQuotePage() {
         {/* Products Card */}
         <Card className="p-6 mb-6 bg-white border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quote Items</h2>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -420,7 +420,7 @@ export default function PublicQuotePage() {
         {!currentStatus && (
           <Card className="p-6 bg-white border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Feedback</h2>
-            
+
             <div className="mb-6">
               <label htmlFor="comments" className="block text-sm font-medium text-gray-700 mb-2">
                 Comments / Feedback

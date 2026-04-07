@@ -49,7 +49,7 @@ export const isTimeSlotPassed = (
   try {
     const [time, ampm] = timeStr.split(" ");
     let [hours, minutes] = time.split(":").map(Number);
-    
+
     if (ampm === "PM" && hours < 12) hours += 12;
     if (ampm === "AM" && hours === 12) hours = 0;
 
