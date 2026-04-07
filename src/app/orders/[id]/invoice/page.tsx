@@ -110,8 +110,8 @@ export default function InvoicePage() {
 
     const subtotalAfterCoupon = Math.max(0, trueSubtotal - couponDiscount)
 
-    // Recalculate GST accurately (10% of subtotal)
-    const gst = trueSubtotal * 0.1
+    // Recalculate GST accurately (11% of subtotal)
+    const gst = trueSubtotal * 0.11
 
     // Final Total verification
     const total = subtotalAfterCoupon + deliveryFee
@@ -274,7 +274,7 @@ export default function InvoicePage() {
                         </div>
 
                         <div className="flex justify-between py-2 text-gray-600 border-b pb-4">
-                            <span>GST Included (10%):</span>
+                            <span>GST Included (11%):</span>
                             <span>${gst.toFixed(2)}</span>
                         </div>
 
