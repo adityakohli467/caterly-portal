@@ -285,7 +285,7 @@ export default function CheckoutPage() {
       const shippingFee = shippingMethod === "standard" ? 50 : 0
       const response = await api.post("/store/coupons/validate", {
         coupon_code: couponCode.trim(),
-        order_total: afterWholesaleDiscount + shippingFee, 
+        order_total: afterWholesaleDiscount + shippingFee,
       })
 
       if (response.data.valid && response.data.coupon) {
@@ -361,7 +361,7 @@ export default function CheckoutPage() {
       setPostcodeError("")
     }
 
-    // Validate Delivery Date and Time for One-Off Purchases
+    // Validate Delivery Date and Time
     if (!isSubscription) {
       if (!deliveryDate) {
         toast.error("Please select a delivery date.")
@@ -369,6 +369,15 @@ export default function CheckoutPage() {
       }
       if (!deliveryTime) {
         toast.error("Please select a delivery time.")
+        return
+      }
+    } else {
+      if (!subscriptionStartDate) {
+        toast.error("Please select a subscription start date.")
+        return
+      }
+      if (!deliveryTime) {
+        toast.error("Please select a delivery time for your subscription.")
         return
       }
     }
@@ -416,9 +425,9 @@ export default function CheckoutPage() {
         delivery_frequency: isSubscription ? subscriptionFrequency : "One Time",
         delivery_start_date: isSubscription ? subscriptionStartDate : null,
         delivery_date: !isSubscription ? deliveryDate : null,
-        delivery_time: !isSubscription ? deliveryTime : null,
+        delivery_time: deliveryTime || null,
         delivery_date_time: isSubscription
-          ? `${subscriptionStartDate}T00:00:00`
+          ? (subscriptionStartDate && deliveryTime ? formatDateTime(subscriptionStartDate, deliveryTime) : `${subscriptionStartDate}T00:00:00`)
           : (deliveryDate && deliveryTime ? formatDateTime(deliveryDate, deliveryTime) : new Date().toISOString()),
         subtotal: totals.afterDiscount,
         wholesale_discount: totals.wholesaleDiscount,
