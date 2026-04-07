@@ -89,7 +89,7 @@ const ServiceCard = ({ title, subtitle, description, points, images }: { title: 
   )
 }
 
-const CategoryCard = ({ item, dynamicImages }: { item: any, dynamicImages: string[] }) => {
+const CategoryCard = ({ item, categoryId, dynamicImages }: { item: any, categoryId?: number, dynamicImages: string[] }) => {
   const [index, setIndex] = useState(0)
   // Placeholder first, then dynamic ones
   const allImages = dynamicImages.length > 0 ? [item.img, ...dynamicImages] : [item.img]
@@ -117,7 +117,11 @@ const CategoryCard = ({ item, dynamicImages }: { item: any, dynamicImages: strin
       <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-[18px] font-semibold text-black mb-3">{item.title}</h3>
         <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-4 flex-grow">{item.desc}</p>
-        <Link href={`/shop?search=${encodeURIComponent(item.search)}`} passHref legacyBehavior>
+        <Link
+          href={categoryId ? `/shop?category=${categoryId}` : `/shop?search=${encodeURIComponent(item.search)}`}
+          passHref
+          legacyBehavior
+        >
           <a className="bg-[#E03A3E] hover:bg-[#cc3236] text-white text-sm font-semibold px-5 py-2 rounded-md inline-block transition w-fit">
             Order Now
           </a>
@@ -136,6 +140,7 @@ export default function HomePage() {
   const [reviewForm, setReviewForm] = useState({ reviewer_name: "", rating: 5, review_text: "" })
   const [mounted, setMounted] = useState(false)
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [categoriesMap, setCategoriesMap] = useState<Record<string, number>>({})
 
   useEffect(() => {
     setMounted(true)
@@ -151,6 +156,27 @@ export default function HomePage() {
       }
     }
     fetchReviews()
+
+    const fetchCats = async () => {
+      try {
+        const res = await api.get("/store/products/categories")
+        const cats = res.data.categories || []
+        const map: Record<string, number> = {}
+        const process = (c: any) => {
+          if (c.category_name) {
+            map[c.category_name.toLowerCase().trim()] = c.category_id
+          }
+          if (c.children) {
+            c.children.forEach(process)
+          }
+        }
+        cats.forEach(process)
+        setCategoriesMap(map)
+      } catch (err) {
+        console.error("Failed to fetch categories:", err)
+      }
+    }
+    fetchCats()
   }, [])
 
   const refetchReviews = async () => {
@@ -267,9 +293,8 @@ export default function HomePage() {
               {heroImages.map((src, i) => (
                 <div
                   key={src}
-                  className={`absolute inset-0 w-full h-full transition-all duration-700 ease-in-out ${
-                    i === heroIndex ? "opacity-100 z-10 scale-100" : "opacity-0 z-0 scale-105"
-                  }`}
+                  className={`absolute inset-0 w-full h-full transition-all duration-700 ease-in-out ${i === heroIndex ? "opacity-100 z-10 scale-100" : "opacity-0 z-0 scale-105"
+                    }`}
                 >
                   <Image
                     src={src}
@@ -386,50 +411,58 @@ export default function HomePage() {
           </div>
 
           {/* CARDS GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-x-[40px] md:gap-y-[64px]">            {[
-            {
-              title: "Breakfast Packages",
-              desc: "Start the day right with freshly prepared breakfast selections including pastries, sandwiches, wraps, fruit platters and coffee options. Perfect for early meetings and team gatherings.",
-              img: "/assets/images/c34.jpg",
-              search: "breakfast"
-            },
-            {
-              title: "Morning Tea Packages",
-              desc: "A delightful mix of sweet and savoury treats designed for mid morning breaks. Includes muffins, slices, pastries, fruit and light bites to keep everyone energised.",
-              img: "/assets/images/c31.jpeg",
-              search: "morning tea"
-            },
-            {
-              title: "Lunch Packages",
-              desc: "Our lunch packages offer a satisfying variety of wraps, sandwiches, salads and hot food options. Ideal for corporate meetings, office lunches and team events.",
-              img: "/assets/images/c58.png",
-              search: "lunch"
-            },
-            {
-              title: "Assorted Platters",
-              desc: "Beautifully presented platters featuring sandwiches, wraps, fruit, pastries and gourmet selections. Perfect for sharing at meetings, functions and celebrations.",
-              img: "/assets/images/c33.jpeg",
-              search: "platter"
-            },
-            {
-              title: "Finger Food and Canapés",
-              desc: "Elegant bite sized options designed for events and networking functions. Easy to enjoy while mingling and ideal for cocktail style gatherings.",
-              img: "/assets/images/c36.png",
-              search: "finger food"
-            },
-            {
-              title: "Cakes and Sweet Treats",
-              desc: "Celebrate special occasions with our delicious cakes and dessert selections including birthday cakes, slices and sweet platters.",
-              img: "/assets/images/c35.png",
-              search: "cake"
-            },
-          ].map((item, index) => (
-            <CategoryCard
-              key={index}
-              item={item}
-              dynamicImages={categoryImages[item.search] || []}
-            />
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-x-[40px] md:gap-y-[64px]">
+            {[
+              {
+                title: "Breakfast Packages",
+                desc: "Start the day right with freshly prepared breakfast selections including pastries, sandwiches, wraps, fruit platters and coffee options. Perfect for early meetings and team gatherings.",
+                img: "/assets/images/c34.jpg",
+                search: "breakfast"
+              },
+              {
+                title: "Morning Tea Packages",
+                desc: "A delightful mix of sweet and savoury treats designed for mid morning breaks. Includes muffins, slices, pastries, fruit and light bites to keep everyone energised.",
+                img: "/assets/images/c31.jpeg",
+                search: "morning tea"
+              },
+              {
+                title: "Lunch Packages",
+                desc: "Our lunch packages offer a satisfying variety of wraps, sandwiches, salads and hot food options. Ideal for corporate meetings, office lunches and team events.",
+                img: "/assets/images/c58.png",
+                search: "lunch"
+              },
+              {
+                title: "Assorted Platters",
+                desc: "Beautifully presented platters featuring sandwiches, wraps, fruit, pastries and gourmet selections. Perfect for sharing at meetings, functions and celebrations.",
+                img: "/assets/images/c33.jpeg",
+                search: "platter"
+              },
+              {
+                title: "Finger Food and Canapés",
+                desc: "Elegant bite sized options designed for events and networking functions. Easy to enjoy while mingling and ideal for cocktail style gatherings.",
+                img: "/assets/images/c36.png",
+                search: "finger food"
+              },
+              {
+                title: "Cakes and Sweet Treats",
+                desc: "Celebrate special occasions with our delicious cakes and dessert selections including birthday cakes, slices and sweet platters.",
+                img: "/assets/images/c35.png",
+                search: "cake"
+              },
+            ].map((item, index) => {
+              // Priority: 1. Try search term, 2. try title without " Packages"
+              const categoryId = categoriesMap[item.search.toLowerCase()] ||
+                categoriesMap[item.title.toLowerCase().replace(" packages", "").trim()];
+
+              return (
+                <CategoryCard
+                  key={index}
+                  item={item}
+                  categoryId={categoryId}
+                  dynamicImages={categoryImages[item.search] || []}
+                />
+              );
+            })}
           </div>
 
           {/* CTA BUTTON */}
