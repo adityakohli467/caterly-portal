@@ -236,10 +236,10 @@ export default function CheckoutPage() {
     let couponDiscount = 0
     if (couponApplied) {
       if (couponApplied.type === 'P') {
-        // Percentage discount - use value (percentage) not discount_amount
-        couponDiscount = afterWholesaleDiscount * (couponApplied.value / 100)
+        // Percentage discount - applies to total (items + shipping) as requested
+        couponDiscount = (afterWholesaleDiscount + shippingFee) * (couponApplied.value / 100)
       } else if (couponApplied.type === 'F') {
-        // Fixed amount discount - use value to allow applying to both products and shipping
+        // Fixed amount discount - applies to overall total
         couponDiscount = couponApplied.value || 0
       }
       // Ensure discount doesn't exceed the combined total of products + shipping
@@ -249,34 +249,16 @@ export default function CheckoutPage() {
     const total = Math.max(0, afterWholesaleDiscount + shippingFee - couponDiscount)
     const gst = afterWholesaleDiscount * 0.11 // 11% GST (calculated on subtotal before coupons)
 
-    // Handle FREE DELIVERY coupon specially for display and logic purposes
-    let effectiveShippingFee = shippingFee
-    let effectiveCouponDiscount = couponDiscount
-    const isFreeDelivery = couponApplied && (
-      couponApplied.code.toUpperCase().includes('FREE DELIVERY') ||
-      couponApplied.code.toUpperCase().includes('FREEDELIVERY')
-    )
-
-    // Important: For FREE DELIVERY coupons, the discount applies to shipping first.
-    // We must only subtract the REMAINING discount from the product subtotal (afterDiscount).
-    let productDiscount = couponDiscount
-    if (isFreeDelivery && shippingFee > 0) {
-      const freeDeliveryAmount = Math.min(shippingFee, couponDiscount)
-      effectiveShippingFee -= freeDeliveryAmount
-      effectiveCouponDiscount -= freeDeliveryAmount
-      productDiscount -= freeDeliveryAmount
-    }
-
-    const afterDiscount = Math.max(0, afterWholesaleDiscount - productDiscount)
+    const afterDiscount = Math.max(0, afterWholesaleDiscount - couponDiscount)
 
     return {
       subtotal,
       wholesaleDiscount,
-      couponDiscount: effectiveCouponDiscount,
+      couponDiscount,
       afterWholesaleDiscount,
       afterDiscount,
-      shippingFee: effectiveShippingFee,
-      originalShippingFee: isFreeDelivery ? shippingFee : null,
+      shippingFee,
+      originalShippingFee: null,
       gst,
       total,
     }
@@ -309,13 +291,35 @@ export default function CheckoutPage() {
       })
 
       if (response.data.valid && response.data.coupon) {
+        const coupon = response.data.coupon;
+        const couponType = coupon.type === 'percentage' ? 'P' : 'F';
+        const couponValue = parseFloat(coupon.value) || 0;
+        const isFreeDelivery = coupon.code.toUpperCase().includes('FREE DELIVERY') || 
+                               coupon.code.toUpperCase().includes('FREEDELIVERY');
+
+        // Check if coupon discount exceeds product price
+        if (!isFreeDelivery) {
+          let potentialDiscount = 0;
+          if (couponType === 'P') {
+            potentialDiscount = (afterWholesaleDiscount + shippingFee) * (couponValue / 100);
+          } else {
+            potentialDiscount = couponValue;
+          }
+
+          if (potentialDiscount > afterWholesaleDiscount) {
+            toast.error("This coupon is not applicable as the discount exceeds the product price.");
+            setValidatingCoupon(false);
+            return;
+          }
+        }
+
         setCouponApplied({
-          code: response.data.coupon.code,
-          type: response.data.coupon.type === 'percentage' ? 'P' : 'F',
-          discount_amount: response.data.coupon.discount_amount,
-          value: response.data.coupon.value,
+          code: coupon.code,
+          type: couponType,
+          discount_amount: coupon.discount_amount,
+          value: coupon.value,
         })
-        toast.success(`Coupon "${response.data.coupon.code}" applied successfully!`)
+        toast.success(`Coupon "${coupon.code}" applied successfully!`)
       } else {
         toast.error("Invalid or expired coupon code")
         setCouponApplied(null)
