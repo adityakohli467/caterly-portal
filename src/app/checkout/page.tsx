@@ -297,20 +297,21 @@ export default function CheckoutPage() {
         const isFreeDelivery = coupon.code.toUpperCase().includes('FREE DELIVERY') || 
                                coupon.code.toUpperCase().includes('FREEDELIVERY');
 
-        // Check if coupon discount exceeds product price
-        if (!isFreeDelivery) {
-          let potentialDiscount = 0;
-          if (couponType === 'P') {
-            potentialDiscount = (afterWholesaleDiscount + shippingFee) * (couponValue / 100);
-          } else {
-            potentialDiscount = couponValue;
-          }
+        // Block the coupon only if the discount exceeds the entire order total
+        // (products + delivery fee). Free delivery coupons are always allowed
+        // as long as they don't exceed that combined total.
+        const orderTotal = afterWholesaleDiscount + shippingFee;
+        let potentialDiscount = 0;
+        if (couponType === 'P') {
+          potentialDiscount = orderTotal * (couponValue / 100);
+        } else {
+          potentialDiscount = couponValue;
+        }
 
-          if (potentialDiscount > afterWholesaleDiscount) {
-            toast.error("This coupon is not applicable as the discount exceeds the product price.");
-            setValidatingCoupon(false);
-            return;
-          }
+        if (potentialDiscount > orderTotal) {
+          toast.error("This coupon is not applicable as the discount exceeds the order total.");
+          setValidatingCoupon(false);
+          return;
         }
 
         setCouponApplied({
@@ -425,6 +426,7 @@ export default function CheckoutPage() {
       }))
 
       const totals = calculateTotal()
+
       // Build delivery address properly
       const addressParts: string[] = []
       if (billingData.streetAddress) addressParts.push(billingData.streetAddress)
@@ -442,7 +444,7 @@ export default function CheckoutPage() {
         email: billingData.email,
         telephone: billingData.phone,
         delivery_address: deliveryAddress,
-        delivery_fee: totals.shippingFee,
+        delivery_fee: totals.shippingFee,           // always $50 for standard delivery
         payment_method: "card",
         coupon_code: couponApplied?.code || null,
         postcode: billingData.postcode,
@@ -453,12 +455,12 @@ export default function CheckoutPage() {
         delivery_date_time: isSubscription
           ? (subscriptionStartDate && deliveryTime ? formatDateTime(subscriptionStartDate, deliveryTime) : `${subscriptionStartDate}T00:00:00`)
           : (deliveryDate && deliveryTime ? formatDateTime(deliveryDate, deliveryTime) : new Date().toISOString()),
-        subtotal: totals.afterDiscount,
+        subtotal: totals.subtotal,                  // raw product subtotal (before any discounts)
         wholesale_discount: totals.wholesaleDiscount,
-        coupon_discount: totals.couponDiscount,
+        coupon_discount: totals.couponDiscount,     // full discount on combined total (products + delivery)
         gst: totals.gst,
         gst_status: 1,
-        order_total: totals.total,
+        order_total: totals.total,                  // final amount charged to customer
         billing_address: billingData.streetAddress,
         billing_city: billingData.suburb,
         billing_postcode: billingData.postcode,
