@@ -392,7 +392,7 @@ export default function PublicQuotePage() {
 
                 <tr className="border-b border-gray-100">
                   <td colSpan={3} className="text-right py-3 px-4">
-                    <span className="text-sm font-medium text-gray-700">GST (11%)</span>
+                    <span className="text-sm font-medium text-gray-700">GST Included</span>
                   </td>
                   <td className="text-right py-3 px-4">
                     <span className="text-sm font-medium text-gray-900">

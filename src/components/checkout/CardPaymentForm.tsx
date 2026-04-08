@@ -91,39 +91,6 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
         ip_address: "127.0.0.1"
       })
 
-      if (res.data.three_ds_required) {
-        // 3DS required: dynamically create and submit a form to ACS URL
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = res.data.acs_url;
-        form.style.display = 'none';
-
-        // PaReq (3DS request)
-        const paReqInput = document.createElement('input');
-        paReqInput.type = 'hidden';
-        paReqInput.name = 'PaReq';
-        paReqInput.value = res.data.pa_req;
-        form.appendChild(paReqInput);
-
-        // MD (Merchant Data)
-        const mdInput = document.createElement('input');
-        mdInput.type = 'hidden';
-        mdInput.name = 'MD';
-        mdInput.value = res.data.md;
-        form.appendChild(mdInput);
-
-        // TermUrl (callback URL after 3DS auth)
-        const termUrlInput = document.createElement('input');
-        termUrlInput.type = 'hidden';
-        termUrlInput.name = 'TermUrl';
-        termUrlInput.value = res.data.term_url;
-        form.appendChild(termUrlInput);
-
-        document.body.appendChild(form);
-        form.submit();
-        return; // Stop further execution
-      }
-
       if (res.data.success) {
         toast.success("Payment successful!")
         onSuccess()

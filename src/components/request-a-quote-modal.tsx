@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { useQuoteModalStore } from "@/store/quote-modal"
+import { X } from "lucide-react"
 
 const generateCaptcha = () => Math.floor(1000 + Math.random() * 9000).toString()
 
@@ -142,9 +143,10 @@ export function RequestAQuoteModal() {
 
               <button
                 onClick={handleClose}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-600 text-lg"
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 text-[#E03A3E] transition-colors"
+                aria-label="Close"
               >
-                ✕
+                <X className="h-5 w-5" />
               </button>
 
             </div>

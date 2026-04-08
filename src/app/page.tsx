@@ -58,16 +58,14 @@ const ServiceCard = ({ title, subtitle, description, points, images }: { title: 
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 text-center flex flex-col group transition-all duration-300">
-      <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6">
-        {images.map((src, i) => (
-          <Image
-            key={src}
-            src={src}
-            alt={title}
-            fill
-            className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
-          />
-        ))}
+      <div className="relative h-[220px] md:h-[260px] rounded-xl overflow-hidden mb-4 md:mb-6 bg-gray-100">
+        <Image
+          src={images[index]}
+          alt={title}
+          fill
+          className="object-cover transition-opacity duration-700"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+        />
       </div>
 
       <h3 className="text-[18px] font-semibold text-[#A61E2D] mb-2">{title}</h3>
@@ -103,15 +101,13 @@ const CategoryCard = ({ item, categoryId, dynamicImages }: { item: any, category
   return (
     <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col h-full group transition-all duration-300">
       <div className="relative h-[240px] w-full bg-gray-100">
-        {allImages.map((src, i) => (
-          <Image
-            key={src + i}
-            src={src}
-            alt={item.title}
-            fill
-            className={`object-cover transition-opacity duration-700 ${i === index ? "opacity-100" : "opacity-0"}`}
-          />
-        ))}
+        <Image
+          src={allImages[index]}
+          alt={item.title}
+          fill
+          className="object-cover transition-opacity duration-700"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+        />
       </div>
 
       <div className="p-6 flex flex-col flex-grow">
@@ -287,24 +283,17 @@ export default function HomePage() {
       {/* 1. HERO SECTION */}
       <section className="relative w-full bg-white overflow-hidden flex flex-col">
         {/* IMAGE SLIDER & DESKTOP OVERLAY */}
-        <div className="relative w-full min-h-[0] md:min-h-[300px] aspect-[4125/1542] overflow-hidden bg-white">
+        <div className="relative w-full min-h-[0] md:min-h-[300px] aspect-[4125/1542] overflow-hidden bg-gray-50">
           {mounted && (
             <div className="absolute inset-0 w-full h-full">
-              {heroImages.map((src, i) => (
-                <div
-                  key={src}
-                  className={`absolute inset-0 w-full h-full transition-all duration-700 ease-in-out ${i === heroIndex ? "opacity-100 z-10 scale-100" : "opacity-0 z-0 scale-105"
-                    }`}
-                >
-                  <Image
-                    src={src}
-                    alt={`Caterly Hero Banner ${i + 1}`}
-                    fill
-                    priority={i === 0}
-                    className="object-cover sm:object-contain object-center md:object-top"
-                  />
-                </div>
-              ))}
+              <Image
+                src={heroImages[heroIndex]}
+                alt={`Caterly Hero Banner ${heroIndex + 1}`}
+                fill
+                priority
+                className="object-cover sm:object-contain object-center md:object-top transition-opacity duration-700"
+                sizes="100vw"
+              />
             </div>
           )}
 
