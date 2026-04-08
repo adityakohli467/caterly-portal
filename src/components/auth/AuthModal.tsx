@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { X } from "lucide-react"
 import { useAuthStore } from "@/store/auth"
 import { useAuthModalStore } from "@/store/auth-modal"
 import { toast } from "sonner"
@@ -171,6 +172,15 @@ export function AuthModal() {
       <DialogContent className="max-w-[480px] p-0 border-none bg-white rounded-2xl overflow-hidden shadow-2xl">
         <DialogTitle className="sr-only">{view === "login" ? "Login" : "Register"}</DialogTitle>
         <DialogDescription className="sr-only">Authenticate to Caterly</DialogDescription>
+
+        {/* Manual Close Button */}
+        <button
+          onClick={() => closeModal()}
+          className="absolute right-4 top-4 z-50 p-2 rounded-full text-[#E03A3E] hover:bg-red-50 transition-colors"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
 
         {/* Logo Only */}
         <div className="flex items-center justify-center pt-8 pb-2">

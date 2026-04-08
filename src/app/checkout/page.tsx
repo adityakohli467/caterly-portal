@@ -247,10 +247,9 @@ export default function CheckoutPage() {
     }
 
     const total = Math.max(0, afterWholesaleDiscount + shippingFee - couponDiscount)
-    const afterDiscount = Math.max(0, afterWholesaleDiscount - couponDiscount)
     const gst = afterWholesaleDiscount * 0.11 // 11% GST (calculated on subtotal before coupons)
 
-    // Handle FREE DELIVERY coupon specially for display purposes
+    // Handle FREE DELIVERY coupon specially for display and logic purposes
     let effectiveShippingFee = shippingFee
     let effectiveCouponDiscount = couponDiscount
     const isFreeDelivery = couponApplied && (
@@ -258,11 +257,17 @@ export default function CheckoutPage() {
       couponApplied.code.toUpperCase().includes('FREEDELIVERY')
     )
 
-    if (isFreeDelivery && effectiveShippingFee > 0) {
-      const freeDeliveryAmount = Math.min(effectiveShippingFee, effectiveCouponDiscount)
+    // Important: For FREE DELIVERY coupons, the discount applies to shipping first.
+    // We must only subtract the REMAINING discount from the product subtotal (afterDiscount).
+    let productDiscount = couponDiscount
+    if (isFreeDelivery && shippingFee > 0) {
+      const freeDeliveryAmount = Math.min(shippingFee, couponDiscount)
       effectiveShippingFee -= freeDeliveryAmount
       effectiveCouponDiscount -= freeDeliveryAmount
+      productDiscount -= freeDeliveryAmount
     }
+
+    const afterDiscount = Math.max(0, afterWholesaleDiscount - productDiscount)
 
     return {
       subtotal,
@@ -1151,7 +1156,7 @@ export default function CheckoutPage() {
                       {/* Cost Breakdown */}
                       <div className="space-y-2 mb-6 pb-6 border-b border-[#F2CACA] text-black">
                         <div className="flex justify-between text-sm">
-                          <span>Subtotal (includes GST)</span>
+                          <span>Subtotal (GST Included)</span>
                           <span>${totals.subtotal.toFixed(2)}</span>
                         </div>
 
@@ -1184,7 +1189,7 @@ export default function CheckoutPage() {
                           </div>
                         )}
                         <div className="flex justify-between text-xs text-gray-500 italic mt-2">
-                          <span>Includes GST (11%)</span>
+                          <span>GST Included</span>
                           <span>${totals.gst.toFixed(2)}</span>
                         </div>
                       </div>

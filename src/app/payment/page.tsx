@@ -396,7 +396,7 @@ function PaymentPageContent() {
 
                     {gst > 0 && (
                       <div className="flex justify-between text-gray-500">
-                        <span>GST (11%)</span>
+                        <span>GST Included</span>
                         <span>${gst.toFixed(2)}</span>
                       </div>
                     )}

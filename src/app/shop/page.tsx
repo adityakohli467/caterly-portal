@@ -10,6 +10,7 @@ import { LoadingWithLogo } from "@/components/loading-with-logo"
 import { getProductImageUrl, getProductImageUrls } from "@/lib/product-utils"
 import { Search, ChevronRight, ChevronDown } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 interface ProductCategory {
   category_id: number
@@ -274,15 +275,13 @@ function ShopPageContent() {
         className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer flex flex-col h-full"
       >
         <div className="relative w-full bg-gray-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
-          {imageUrls.map((url, index) => (
-            <img
-              key={url + index}
-              src={url || "/assets/images/placeholder.jpg"}
-              alt={product.product_name}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"
-                } group-hover:scale-105 transition-transform duration-500`}
-            />
-          ))}
+          <Image
+            src={imageUrls[currentImageIndex] || "/assets/images/placeholder.jpg"}
+            alt={product.product_name}
+            fill
+            className="object-cover transition-opacity duration-700 ease-in-out group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 300px"
+          />
         </div>
         <div className="p-4 flex flex-col flex-1">
           <div className="min-h-[3rem] mb-2">

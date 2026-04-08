@@ -274,7 +274,7 @@ export default function InvoicePage() {
                         </div>
 
                         <div className="flex justify-between py-2 text-gray-600 border-b pb-4">
-                            <span>GST Included (11%):</span>
+                            <span>GST Included:</span>
                             <span>${gst.toFixed(2)}</span>
                         </div>
 
