@@ -258,7 +258,7 @@ export default function CheckoutPage() {
       afterWholesaleDiscount,
       afterDiscount,
       shippingFee,
-      originalShippingFee: null,
+      originalShippingFee: null as number | null,
       gst,
       total,
     }
