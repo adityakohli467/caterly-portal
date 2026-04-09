@@ -627,8 +627,9 @@ export default function CheckoutPage() {
                                   <div className="flex items-center justify-center gap-3">
                                     <button
                                       type="button"
-                                      onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
+                                      onClick={() => updateQuantity(cartItemId, Math.max(item.min_quantity || 1, item.quantity - 1))}
                                       className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:text-black hover:border-black transition-colors"
+                                      title={item.min_quantity && item.min_quantity > 1 ? `Min quantity: ${item.min_quantity}` : undefined}
                                     >
                                       <Minus className="w-3 h-3" />
                                     </button>
@@ -704,8 +705,9 @@ export default function CheckoutPage() {
                               <div className="flex items-center gap-4 bg-gray-50 rounded-full px-4 py-2 border border-gray-200">
                                 <button
                                   type="button"
-                                  onClick={() => updateQuantity(cartItemId, Math.max(1, item.quantity - 1))}
+                                  onClick={() => updateQuantity(cartItemId, Math.max(item.min_quantity || 1, item.quantity - 1))}
                                   className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 active:bg-gray-100 shadow-sm"
+                                  title={item.min_quantity && item.min_quantity > 1 ? `Min quantity: ${item.min_quantity}` : undefined}
                                 >
                                   <Minus className="w-4 h-4" />
                                 </button>
