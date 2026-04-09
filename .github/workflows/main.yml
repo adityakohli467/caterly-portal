@@ -1,4 +1,4 @@
-name: Deploy Caterly Portal
+name: 🚀 Deploy caterly-portal cpanel(PAT)
 
 on:
   push:
@@ -7,50 +7,36 @@ on:
 
 jobs:
   deploy:
-    name: Deploy Caterly Portal to EC2
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository (workflow context only)
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2️⃣ Deploy via SSH
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: 🚀 Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           port: 22
           script: |
-            set -e
-
-            echo "📁 Moving to project directory"
-            cd /home/ubuntu/Caterly/Caterly_portal
-
-            echo "🔄 Pulling latest code using GitHub PAT"
-            git pull https://kaushikaspace:${{ secrets.GH_PAT }}@github.com/kaushikaspace/Caterly_portal.git main
-
+            echo "🚀 Starting Deployment..."
+            cd ~/public_html/test/caterly_portal
+            echo "🔐 Setting Git with PAT"
+            git config --global credential.helper store
+            echo "https://${{ secrets.GH_USERNAME }}:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
+            echo "📥 Pull latest code"
+            git fetch --all
+            git reset --hard origin/main
             echo "🧹 Cleaning old build"
             rm -rf .next
-
             echo "📦 Installing dependencies"
-            npm install
-
-            echo "🏗️ Building Next.js (standalone)"
+            npm install --legacy-peer-deps
+            echo "🏗 Building project"
             npm run build
-
-            echo "📂 Copying static & public files"
-            mkdir -p .next/standalone/.next
-            cp -r .next/static .next/standalone/.next/
-            cp -r public .next/standalone/
-
-            echo "🚀 Restarting PM2 process"
-            cd .next/standalone
-            PORT=3000 pm2 restart Caterly-portal --update-env || PORT=3000 pm2 start server.js --name Caterly-portal
-
-            echo "💾 Saving PM2 state"
+            echo "🔄 Restarting PM2"
+            pm2 delete caterly-portal || true 
+            
+            echo "🚀 Starting NestJS app from dist/main.js" 
+            PORT=3120 pm2 start npm --name "caterly-portal" -- run start
             pm2 save
-
-            echo "✅ Caterly Portal deployment completed successfully"
+            pm2 list
+            echo "✅ Deployment Completed!"
