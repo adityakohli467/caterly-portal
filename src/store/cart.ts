@@ -16,6 +16,7 @@ interface CartItem {
   product_name: string
   product_price: string
   quantity: number
+  min_quantity?: number // Minimum order quantity enforced by the product
   product_image?: string
   options?: ProductOption[]
   cart_item_id?: string // Unique ID for items with different options

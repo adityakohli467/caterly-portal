@@ -285,6 +285,7 @@ function ProductDetailContent({
       product_price: priceToUse,
       product_image: getProductImageUrl(product),
       quantity,
+      min_quantity: product.min_quantity ? Math.max(1, parseInt(String(product.min_quantity))) : undefined,
       options: options.length > 0 ? options : undefined,
       item_comments: itemComments || undefined,
     });
