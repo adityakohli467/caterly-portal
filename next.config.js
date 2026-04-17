@@ -17,8 +17,13 @@ const nextConfig = {
       'localhost',
       'via.placeholder.com',
       'caterly-uploads-unique-id.s3.ap-southeast-2.amazonaws.com',
+      'n8sefsa42s.ap-southeast-2.awsapprunner.com',
     ],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'n8sefsa42s.ap-southeast-2.awsapprunner.com',
+      },
       {
         protocol: 'https',
         hostname: '*.s3.ap-southeast-2.amazonaws.com',
