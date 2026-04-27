@@ -15,10 +15,15 @@ const nextConfig = {
     domains: [
       'localhost',
       'via.placeholder.com',
+      'api.caterly.com.au',
       'caterly-uploads-unique-id.s3.ap-southeast-2.amazonaws.com',
       'n8sefsa42s.ap-southeast-2.awsapprunner.com',
     ],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.caterly.com.au',
+      },
       {
         protocol: 'https',
         hostname: 'n8sefsa42s.ap-southeast-2.awsapprunner.com',
