@@ -18,7 +18,7 @@ function PaymentSuccessContent() {
   const [orderId, setOrderId] = useState<string | null>(null)
   const [orderType, setOrderType] = useState<string | null>(null)
   const transactionId = searchParams.get("transaction_id")
-  const paymentIntentId = searchParams.get("payment_intent_id")
+  const paymentIntentId = searchParams.get("payment_intent_id") || searchParams.get("payment_intent")
   const orderIdParam = searchParams.get("order_id")
 
   useEffect(() => {
@@ -31,6 +31,12 @@ function PaymentSuccessContent() {
     if (paymentIntentId && orderIdParam) {
       setOrderId(orderIdParam)
       verifyPayment()
+    } else if (orderIdParam) {
+      // Redirected from our own payment page after successful payment
+      setOrderId(orderIdParam)
+      setVerified(true)
+      setVerifying(false)
+      clearCart()
     } else {
       setVerifying(false)
       toast.error("Missing payment information")
