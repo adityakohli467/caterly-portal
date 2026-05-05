@@ -159,7 +159,10 @@ function PaymentPageContent() {
   const fetchOrder = async (id: number, authenticated: boolean) => {
     try {
       setLoadingOrder(true)
-      const endpoint = authenticated ? `/store/orders/${id}` : `/store/orders/guest/${id}`
+      const authToken = searchParams.get("auth")
+      const endpoint = authenticated
+        ? `/store/orders/${id}`
+        : `/store/orders/guest/${id}${authToken ? `?auth=${authToken}` : ''}`
       const response = await api.get(endpoint)
       const fetchedOrder = response.data.order
       setOrder(fetchedOrder)

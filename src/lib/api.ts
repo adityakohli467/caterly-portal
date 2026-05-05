@@ -106,13 +106,16 @@ api.interceptors.response.use(
           currentPath === '/privacy' ||
           currentPath === '/terms' ||
           currentPath === '/checkout' ||
-          currentPath === '/cart'
+          currentPath === '/cart' ||
+          currentPath === '/payment' ||
+          currentPath.startsWith('/payment/')
 
         // Don't redirect for public APIs (products, shop, etc.)
         const isPublicAPI = error.config?.url?.includes('/store/products') ||
           error.config?.url?.includes('/store/products/categories') ||
           error.config?.url?.includes('/store/orders') ||
           error.config?.url?.includes('/store/orders/guest') ||
+          error.config?.url?.includes('/store/payment') ||
           error.config?.url?.includes('/store/blogs')
 
         if (!isPublicPath && !isPublicAPI && !currentPath.includes('/auth/login') && !currentPath.includes('/login')) {
