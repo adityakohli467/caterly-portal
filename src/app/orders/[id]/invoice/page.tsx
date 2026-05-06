@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { useAuthStore } from "@/store/auth"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
@@ -54,7 +54,9 @@ interface Order {
 export default function InvoicePage() {
     const router = useRouter()
     const params = useParams()
+    const searchParams = useSearchParams()
     const orderId = params?.id as string
+    const authToken = searchParams.get("auth")
     const { checkAuth } = useAuthStore()
 
     const [order, setOrder] = useState<Order | null>(null)
@@ -62,6 +64,12 @@ export default function InvoicePage() {
 
     useEffect(() => {
         const init = async () => {
+            // If auth token is provided in URL, bypass login and use guest endpoint
+            if (authToken) {
+                fetchOrderWithAuth()
+                return
+            }
+
             try {
                 await checkAuth()
                 if (!useAuthStore.getState().isAuthenticated) {
@@ -75,6 +83,18 @@ export default function InvoicePage() {
         }
         init()
     }, [orderId])
+
+    const fetchOrderWithAuth = async () => {
+        try {
+            const response = await api.get(`/store/orders/guest/${orderId}?auth=${authToken}`)
+            setOrder(response.data.order)
+        } catch (error: any) {
+            toast.error("Failed to load invoice")
+            router.push("/auth/login")
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const fetchOrder = async () => {
         try {
