@@ -129,8 +129,8 @@ export default function OrderDetailPage() {
 
   const subtotalAfterCoupon = Math.max(0, trueSubtotal - couponDiscount)
 
-  // Recalculate GST accurately (11% of subtotal)
-  const gst = trueSubtotal * 0.11
+  // Recalculate GST (total / 11)
+  const gst = trueSubtotal / 11
 
   // Final Total verification
   const total = subtotalAfterCoupon + deliveryFee

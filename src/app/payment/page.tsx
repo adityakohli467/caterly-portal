@@ -234,7 +234,7 @@ function PaymentPageContent() {
   const preDiscountSubtotal = savedTotals
     ? savedTotals.subtotal
     : (order?.after_wholesale_discount ? parsePrice(order.after_wholesale_discount) : afterDiscount + couponDiscount)
-  const gst = savedTotals ? savedTotals.gst : preDiscountSubtotal * 0.11
+  const gst = savedTotals ? savedTotals.gst : preDiscountSubtotal / 11
   const finalTotal = savedTotals ? savedTotals.total : afterDiscount + deliveryFee
 
   return (

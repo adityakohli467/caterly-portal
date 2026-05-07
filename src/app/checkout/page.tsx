@@ -247,7 +247,7 @@ export default function CheckoutPage() {
     }
 
     const total = Math.max(0, afterWholesaleDiscount + shippingFee - couponDiscount)
-    const gst = afterWholesaleDiscount * 0.11 // 11% GST (calculated on subtotal before coupons)
+    const gst = afterWholesaleDiscount / 11 // GST included (1/11th of total)
 
     const afterDiscount = Math.max(0, afterWholesaleDiscount - couponDiscount)
 
