@@ -1,7 +1,6 @@
 "use client"
 
 import { Clock, Phone } from "lucide-react"
-import Link from "next/link"
 import { useQuoteModalStore } from "@/store/quote-modal"
 
 export function TopBar() {
@@ -42,16 +41,6 @@ export function TopBar() {
               >
                 Request a Quote
               </button>
-
-              {/* Healthy Choices (Updated Theme) */}
-              <Link
-                href="https://hospitalcatering.com.au/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border border-white text-white hover:bg-white hover:text-black px-3 py-1 rounded-[6px] transition text-[11px] md:text-[12px] font-semibold"
-              >
-                Healthy Choices
-              </Link>
 
             </div>
           </div>
