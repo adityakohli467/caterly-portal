@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // Required for Docker standalone build
+  output: 'standalone',
+
   // Optimize for faster builds and prevent serialization issues
   experimental: {
     optimizePackageImports: ['lucide-react', '@tanstack/react-query'],
@@ -20,6 +23,10 @@ const nextConfig = {
       'n8sefsa42s.ap-southeast-2.awsapprunner.com',
     ],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.railway.app',
+      },
       {
         protocol: 'https',
         hostname: 'api.caterly.com.au',
