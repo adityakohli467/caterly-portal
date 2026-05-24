@@ -246,6 +246,7 @@ export default function OrderDetailPage() {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
+                      timeZone: "Australia/Sydney",
                     })}
                   </p>
                 )}

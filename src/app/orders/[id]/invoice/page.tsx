@@ -199,12 +199,12 @@ export default function InvoicePage() {
                         <h3 className="text-gray-500 font-medium mb-1 uppercase text-sm tracking-wider">Invoice Info:</h3>
                         <p className="text-gray-600">
                             <span className="font-semibold text-black">Date:</span>{" "}
-                            {new Date(order.date_added).toLocaleDateString("en-AU")}
+                            {new Date(order.date_added).toLocaleDateString("en-AU", { timeZone: "Australia/Sydney" })}
                         </p>
                         {order.delivery_date_time && (
                             <p className="text-gray-600 mt-1">
                                 <span className="font-semibold text-black">Delivery Date:</span>{" "}
-                                {new Date(order.delivery_date_time).toLocaleDateString("en-AU")}
+                                {new Date(order.delivery_date_time).toLocaleDateString("en-AU", { timeZone: "Australia/Sydney" })}
                             </p>
                         )}
                         <p className="text-gray-600 mt-1">

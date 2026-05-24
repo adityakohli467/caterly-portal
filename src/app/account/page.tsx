@@ -379,10 +379,11 @@ function AccountContent() {
                     <div>
                       <p className="text-sm text-gray-500">Member Since</p>
                       <p className="font-medium">
-                        {new Date(customer?.customer_date_added).toLocaleDateString("en-US", {
+                        {new Date(customer?.customer_date_added).toLocaleDateString("en-AU", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
+                          timeZone: "Australia/Sydney",
                         })}
                       </p>
                     </div>
@@ -565,10 +566,11 @@ function AccountContent() {
                                   Order #{order.order_id}
                                 </p>
                                 <p className="text-sm text-gray-500">
-                                  {new Date(order.date_added).toLocaleDateString('en-US', {
+                                  {new Date(order.date_added).toLocaleDateString('en-AU', {
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric',
+                                    timeZone: 'Australia/Sydney',
                                   })}
                                 </p>
                                 {order.item_count && (
@@ -668,11 +670,12 @@ function AccountContent() {
 
                                   <p className="text-sm text-gray-500">
                                     {new Date(order.date_added).toLocaleDateString(
-                                      "en-US",
+                                      "en-AU",
                                       {
                                         year: "numeric",
                                         month: "long",
                                         day: "numeric",
+                                        timeZone: "Australia/Sydney",
                                       }
                                     )}
                                   </p>
@@ -843,10 +846,11 @@ function AccountContent() {
                             )}
                             {subscription.delivery_date_time && (
                               <p className="text-sm text-gray-600 mb-2">
-                                Next Delivery: {new Date(subscription.delivery_date_time).toLocaleDateString('en-US', {
+                                Next Delivery: {new Date(subscription.delivery_date_time).toLocaleDateString('en-AU', {
                                   year: 'numeric',
                                   month: 'long',
                                   day: 'numeric',
+                                  timeZone: 'Australia/Sydney',
                                 })}
                               </p>
                             )}

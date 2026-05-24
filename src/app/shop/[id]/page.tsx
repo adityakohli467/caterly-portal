@@ -294,19 +294,13 @@ function ProductDetailContent({
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = date.getDate();
-    const month = date.toLocaleString("default", { month: "short" });
-    const year = date.getFullYear();
-    const suffix =
-      day === 1 || day === 21 || day === 31
-        ? "st"
-        : day === 2 || day === 22
-          ? "nd"
-          : day === 3 || day === 23
-            ? "rd"
-            : "th";
-    return `${day}${suffix} ${month}, ${year}`;
+    const formatter = new Intl.DateTimeFormat('en-AU', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Australia/Sydney'
+    })
+    return formatter.format(new Date(dateString))
   };
 
   const updateQuantity = (change: number) => {

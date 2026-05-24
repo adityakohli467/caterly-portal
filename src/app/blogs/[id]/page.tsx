@@ -83,10 +83,11 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
 
   const formatDate = (dateString: string) => {
     if (!dateString) return ""
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-AU", {
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "Australia/Sydney",
     })
   }
 

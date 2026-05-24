@@ -144,12 +144,13 @@ export default function PublicQuotePage() {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A'
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('en-AU', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'Australia/Sydney'
     })
   }
 
