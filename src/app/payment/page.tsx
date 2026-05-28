@@ -214,28 +214,19 @@ function PaymentPageContent() {
   }
 
   // ─── Price breakdown ────────────────────────────────────────────────
+  // Always use fresh data from the API order response to avoid stale totals
   const parsePrice = (val: any) => {
     if (typeof val === 'number') return val
     if (!val) return 0
     return parseFloat(String(val).replace(/[^\d.-]/g, '')) || 0
   }
 
-  let savedTotals: any = null
-  if (typeof window !== 'undefined' && orderId) {
-    try {
-      const raw = localStorage.getItem(`caterly_order_totals_${orderId}`)
-      if (raw) savedTotals = JSON.parse(raw)
-    } catch {}
-  }
-
   const deliveryFee = parsePrice(order?.delivery_fee)
-  const couponDiscount = savedTotals ? savedTotals.couponDiscount : parsePrice(order?.coupon_discount || 0)
-  const afterDiscount = savedTotals ? savedTotals.afterDiscount : parsePrice(order?.after_discount || order?.subtotal || 0)
-  const preDiscountSubtotal = savedTotals
-    ? savedTotals.subtotal
-    : (order?.after_wholesale_discount ? parsePrice(order.after_wholesale_discount) : afterDiscount + couponDiscount)
-  const gst = savedTotals ? savedTotals.gst : preDiscountSubtotal / 11
-  const finalTotal = savedTotals ? savedTotals.total : afterDiscount + deliveryFee
+  const couponDiscount = parsePrice(order?.coupon_discount || 0)
+  const afterDiscount = parsePrice(order?.after_discount || order?.subtotal || 0)
+  const preDiscountSubtotal = order?.after_wholesale_discount ? parsePrice(order.after_wholesale_discount) : afterDiscount + couponDiscount
+  const gst = preDiscountSubtotal / 11
+  const finalTotal = parsePrice(order?.order_total) || (afterDiscount + deliveryFee)
 
   return (
     <div className="min-h-screen bg-white">
