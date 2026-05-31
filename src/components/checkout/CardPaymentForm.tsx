@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { Button } from "@/components/ui/button"
@@ -118,6 +118,8 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const paymentIntentIdRef = useRef<string | null>(null)
+  const paymentSucceededRef = useRef(false)
 
   useEffect(() => {
     const initPayment = async () => {
@@ -128,6 +130,7 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
         })
         if (res.data.success && res.data.client_secret) {
           setClientSecret(res.data.client_secret)
+          paymentIntentIdRef.current = res.data.payment_intent_id || null
         } else {
           setError(res.data.message || "Failed to initialize payment")
         }
@@ -139,6 +142,17 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
       }
     }
     initPayment()
+
+    // Cleanup: cancel the intent if component unmounts without successful payment
+    return () => {
+      if (paymentIntentIdRef.current && !paymentSucceededRef.current) {
+        api.post("/store/payment/cancel-intent", {
+          payment_intent_id: paymentIntentIdRef.current,
+        }).catch(() => {
+          // Non-critical cleanup
+        })
+      }
+    }
   }, [orderId])
 
   if (loading) {
@@ -181,7 +195,10 @@ export function CardPaymentForm({ orderId, orderTotal, customerName, onSuccess, 
       <StripePaymentForm
         orderId={orderId}
         orderTotal={orderTotal}
-        onSuccess={onSuccess}
+        onSuccess={() => {
+          paymentSucceededRef.current = true
+          onSuccess()
+        }}
         onCancel={onCancel}
       />
     </Elements>
