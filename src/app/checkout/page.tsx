@@ -1108,7 +1108,7 @@ export default function CheckoutPage() {
                           </div>
                         )}
 
-                        {!couponApplied && (
+                        {!couponApplied && false && (
                           <div className="mt-4">
                             <button
                               type="button"
