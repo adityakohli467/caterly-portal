@@ -36,6 +36,7 @@ interface Product {
   parent_category_name?: string | null
   min_quantity?: number | null
   show_in_storefront?: boolean | number
+  healthy_choice_color?: string | null
 }
 
 interface Category {
@@ -250,6 +251,22 @@ function HealthyChoicesContent() {
             className="object-cover transition-opacity duration-700 ease-in-out group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 300px"
           />
+          {product.healthy_choice_color && (
+            <div className="absolute top-3 left-3 z-10">
+              <div
+                className={`w-6 h-6 rounded-sm shadow-md border border-white/50 ${
+                  product.healthy_choice_color === 'green' ? 'bg-[#4CAF50]' :
+                  product.healthy_choice_color === 'amber' ? 'bg-[#FF9800]' :
+                  product.healthy_choice_color === 'red' ? 'bg-[#F44336]' : ''
+                }`}
+                title={
+                  product.healthy_choice_color === 'green' ? 'Green - Everyday choices' :
+                  product.healthy_choice_color === 'amber' ? 'Amber - Sometimes' :
+                  product.healthy_choice_color === 'red' ? 'Red - Occasional treats' : ''
+                }
+              />
+            </div>
+          )}
         </div>
         <div className="p-4 flex flex-col flex-1">
           <div className="min-h-[3rem] mb-2">
