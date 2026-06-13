@@ -290,10 +290,10 @@ function HealthyChoicesContent() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left">
               <h1 className="text-[32px] md:text-[42px] font-bold text-gray-900 leading-tight">
-                Healthy <span className="text-[#2E7D32]">Choices</span>
+                Healthy Choices <span className="text-[#2E7D32]">Made Easy</span>
               </h1>
               <p className="text-[14px] md:text-[16px] text-gray-500 mt-2">
-                Nutritious and delicious catering options for health-conscious events.
+                Green for everyday choices, Amber for sometimes, Red for occasional treats.
               </p>
             </div>
           </div>
