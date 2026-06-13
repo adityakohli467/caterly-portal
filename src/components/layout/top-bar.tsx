@@ -2,6 +2,7 @@
 
 import { Clock, Phone } from "lucide-react"
 import { useQuoteModalStore } from "@/store/quote-modal"
+import Link from "next/link"
 
 export function TopBar() {
   const openQuoteModal = useQuoteModalStore((s) => s.open)
@@ -41,6 +42,13 @@ export function TopBar() {
               >
                 Request a Quote
               </button>
+
+              <Link
+                href="/healthychoices"
+                className="bg-[#2E7D32] border border-[#2E7D32] text-white hover:bg-transparent hover:text-white px-3 py-1 rounded-[6px] transition text-[11px] md:text-[12px] font-bold"
+              >
+                Healthy Choices
+              </Link>
 
             </div>
           </div>

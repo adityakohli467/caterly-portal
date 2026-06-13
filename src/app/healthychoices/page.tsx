@@ -1,0 +1,423 @@
+"use client"
+
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Input } from "@/components/ui/input"
+import { useCartStore } from "@/store/cart"
+import { api } from "@/lib/api"
+import { toast } from "sonner"
+import { LoadingWithLogo } from "@/components/loading-with-logo"
+import { getProductImageUrl, getProductImageUrls } from "@/lib/product-utils"
+import { Search, ChevronRight } from "lucide-react"
+import Image from "next/image"
+
+interface ProductCategory {
+  category_id: number
+  category_name: string
+  parent_category_id?: number | null
+}
+
+interface Product {
+  product_id: number
+  product_name: string
+  product_description: string
+  product_price: string
+  original_price?: number
+  discounted_price?: number
+  has_discount?: boolean
+  discount_percentage?: number
+  product_image?: string
+  product_images?: Array<{ image_url: string } | string> | null
+  short_description?: string
+  categories?: ProductCategory[]
+  subcategory_id?: number | null
+  subcategory_name?: string | null
+  parent_category_id?: number | null
+  parent_category_name?: string | null
+  min_quantity?: number | null
+  show_in_storefront?: boolean | number
+}
+
+interface Category {
+  category_id: number
+  category_name: string
+  parent_category_id?: number | null
+  children?: Category[]
+}
+
+function HealthyChoicesContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { addItem } = useCartStore()
+
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(() => {
+    const c = searchParams.get('category')
+    return c ? parseInt(c) : null
+  })
+  const [expandedParents, setExpandedParents] = useState<Set<number>>(new Set())
+  const [search, setSearch] = useState(() => searchParams.get('search') || "")
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || "")
+  const [loading, setLoading] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
+
+  // Debounce search
+  useEffect(() => {
+    if (search) setSearchLoading(true)
+    const timer = setTimeout(() => setDebouncedSearch(search), 500)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get("/store/products/healthy-choices/categories")
+      const cats = res.data.categories || []
+      setCategories(cats)
+
+      if (!selectedCategory && !searchParams.get('search') && cats.length > 0) {
+        setSelectedCategory(cats[0].category_id)
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories", err)
+    }
+  }
+
+  const getParentOfChild = (childId: number): Category | null =>
+    categories.find(c => c.children?.some(ch => ch.category_id === childId)) || null
+
+  const findCategoryById = (id: number): Category | undefined => {
+    for (const cat of categories) {
+      if (cat.category_id === id) return cat
+      const child = cat.children?.find(c => c.category_id === id)
+      if (child) return child
+    }
+    return undefined
+  }
+
+  useEffect(() => { fetchCategories() }, [])
+
+  useEffect(() => {
+    let isActive = true
+
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        if (isActive) setProducts([])
+
+        const sortAndSetProducts = (productList: Product[]) => {
+          const sorted = [...productList].sort((a, b) => {
+            const priceA = parseFloat(a.product_price) || 0
+            const priceB = parseFloat(b.product_price) || 0
+            return priceA - priceB
+          })
+          if (isActive) setProducts(sorted)
+        }
+
+        if (debouncedSearch) {
+          const res = await api.get("/store/products/healthy-choices", { params: { limit: 100, search: debouncedSearch } })
+          sortAndSetProducts(res.data.products || [])
+          return
+        }
+
+        if (!selectedCategory) {
+          const res = await api.get("/store/products/healthy-choices", { params: { limit: 100 } })
+          sortAndSetProducts(res.data.products || [])
+          return
+        }
+
+        const res = await api.get("/store/products/healthy-choices", {
+          params: {
+            limit: 100,
+            category_id: selectedCategory
+          }
+        })
+        const apiProducts: Product[] = res.data.products || []
+
+        const selectedNode = findCategoryById(selectedCategory)
+        const selectedName = selectedNode?.category_name || ""
+
+        const filtered = apiProducts.filter(p =>
+          p.subcategory_id === selectedCategory ||
+          p.parent_category_id === selectedCategory ||
+          p.categories?.some(c => c.category_id === selectedCategory) ||
+          (selectedName && (
+            p.subcategory_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
+            p.parent_category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim() ||
+            p.categories?.some(c => c.category_name?.toLowerCase().trim() === selectedName.toLowerCase().trim())
+          ))
+        )
+
+        sortAndSetProducts(filtered)
+
+      } catch (err) {
+        console.error("Failed to fetch products", err)
+        if (isActive) setProducts([])
+      } finally {
+        if (isActive) {
+          setLoading(false)
+          setSearchLoading(false)
+        }
+      }
+    }
+
+    if (categories.length > 0 || selectedCategory === null) {
+      fetchProducts()
+    }
+
+    return () => { isActive = false }
+  }, [selectedCategory, debouncedSearch, categories])
+
+  const handleAddToCart = (product: Product) => {
+    const priceToUse =
+      product.has_discount && product.discounted_price
+        ? product.discounted_price.toString()
+        : product.product_price
+    const minQty = product.min_quantity ? Math.max(1, parseInt(String(product.min_quantity))) : 1
+    addItem({
+      product_id: product.product_id,
+      product_name: product.product_name,
+      product_price: priceToUse,
+      product_image: getProductImageUrl(product),
+      quantity: minQty,
+    })
+    if (minQty > 1) {
+      toast.success(`${product.product_name} added to cart (minimum order: ${minQty})`)
+    } else {
+      toast.success(`${product.product_name} added to cart`)
+    }
+  }
+
+  const toggleParent = (id: number) => {
+    setExpandedParents(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectSubcategory = (id: number) => {
+    setSelectedCategory(id)
+    router.push(`/healthychoices?category=${id}`)
+  }
+
+  useEffect(() => {
+    if (selectedCategory && categories.length > 0) {
+      const parent = getParentOfChild(selectedCategory)
+      if (parent) {
+        setExpandedParents(prev => new Set([...prev, parent.category_id]))
+      }
+    }
+  }, [selectedCategory, categories])
+
+  const rawCatName = debouncedSearch
+    ? debouncedSearch
+    : selectedCategory
+      ? findCategoryById(selectedCategory)?.category_name ?? "Products"
+      : "All Products"
+  const selectedCatName = rawCatName?.toLowerCase() === 'bbq' ? 'BBQ' : rawCatName
+
+  const ProductCard = ({ product }: { product: Product }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [isHovered, setIsHovered] = useState(false)
+    const imageUrls = getProductImageUrls(product)
+
+    useEffect(() => {
+      if (imageUrls.length <= 1) return
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % imageUrls.length)
+      }, 2000)
+      return () => clearInterval(interval)
+    }, [imageUrls.length])
+
+    const productUrl = selectedCategory
+      ? `/shop/${product.product_id}?from=${selectedCategory}`
+      : `/shop/${product.product_id}`
+
+    return (
+      <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => router.push(productUrl)}
+        className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer flex flex-col h-full"
+      >
+        <div className="relative w-full bg-gray-50 overflow-hidden" style={{ aspectRatio: '4/3' }}>
+          <Image
+            src={imageUrls[currentImageIndex] || "/assets/images/placeholder.jpg"}
+            alt={product.product_name}
+            fill
+            className="object-cover transition-opacity duration-700 ease-in-out group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 300px"
+          />
+        </div>
+        <div className="p-4 flex flex-col flex-1">
+          <div className="min-h-[3rem] mb-2">
+            <h3 className="font-semibold text-gray-900 text-base leading-snug line-clamp-2">
+              {product.product_name}
+            </h3>
+          </div>
+          <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
+            <div className="flex flex-col">
+              {parseFloat(product.has_discount && product.discounted_price
+                ? product.discounted_price.toString()
+                : product.product_price) > 0 && (
+                  <span className="text-lg font-bold text-[#E03A3E]">
+                    ${product.has_discount && product.discounted_price
+                      ? product.discounted_price
+                      : product.product_price}
+                  </span>
+                )}
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); router.push(productUrl) }}
+              className="ml-auto bg-[#E03A3E] text-white px-5 py-1.5 rounded-md text-sm font-medium hover:bg-[#cc3236] transition shadow-sm"
+            >
+              Order Now
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white min-h-screen">
+
+      {/* HEADER SECTION */}
+      <section className="bg-white py-10 md:py-14 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <h1 className="text-[32px] md:text-[42px] font-bold text-gray-900 leading-tight">
+                Healthy <span className="text-[#2E7D32]">Choices</span>
+              </h1>
+              <p className="text-[14px] md:text-[16px] text-gray-500 mt-2">
+                Nutritious and delicious catering options for health-conscious events.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-4 gap-8">
+
+            {/* LEFT SIDEBAR */}
+            <aside className="lg:col-span-1">
+              <div className="sticky top-24 space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 custom-scrollbar">
+
+                <div className="mb-6">
+                  <h4 className="text-[18px] font-bold text-gray-900 mb-2 border-b-2 border-[#2E7D32] pb-1 inline-block">
+                    Categories
+                  </h4>
+                  <ul className="space-y-2 mt-4">
+                    {categories
+                      .filter(cat => !cat.parent_category_id)
+                      .map(parent => {
+                        const hasChildren = parent.children && parent.children.length > 0
+                        const isExpanded = expandedParents.has(parent.category_id)
+                        return (
+                          <li key={parent.category_id}>
+                            <div
+                              onClick={() => {
+                                if (hasChildren) {
+                                  toggleParent(parent.category_id)
+                                }
+                                selectSubcategory(parent.category_id)
+                              }}
+                              className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${(hasChildren ? isExpanded : selectedCategory === parent.category_id)
+                                ? "bg-green-50 text-[#2E7D32]"
+                                : "hover:bg-gray-50 text-gray-700"
+                                }`}
+                            >
+                              <span className={`font-semibold text-[15px] ${parent.category_name?.toLowerCase() === 'bbq' ? '' : 'capitalize'}`}>
+                                {parent.category_name?.toLowerCase() === 'bbq' ? 'BBQ' : (parent.category_name?.toLowerCase() || '')}
+                              </span>
+                              {hasChildren && (
+                                <ChevronRight
+                                  className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-90 text-[#2E7D32]" : "text-gray-400 group-hover:text-gray-600"
+                                    }`}
+                                />
+                              )}
+                            </div>
+
+                            {hasChildren && isExpanded && (
+                              <ul className="mt-1 ml-4 space-y-1 mb-2">
+                                {parent.children!.map((child) => (
+                                  <li
+                                    key={child.category_id}
+                                    onClick={() => selectSubcategory(child.category_id)}
+                                    className={`relative pl-4 pr-3 py-1.5 rounded-md cursor-pointer text-[14px] transition-all duration-200 ${child.category_name?.toLowerCase() === 'bbq' ? 'font-bold' : 'capitalize'} ${selectedCategory === child.category_id
+                                        ? "text-[#2E7D32] font-bold bg-white shadow-sm ring-1 ring-green-100"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                      }`}
+                                  >
+                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${selectedCategory === child.category_id ? "bg-[#2E7D32]" : "bg-gray-200"
+                                      }`} />
+                                    {child.category_name?.toLowerCase() === 'bbq' ? 'BBQ' : (child.category_name?.toLowerCase() || '')}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </li>
+                        )
+                      })}
+                  </ul>
+                </div>
+              </div>
+            </aside>
+
+            {/* MAIN CONTENT */}
+            <main className="lg:col-span-3">
+
+              {/* TOOLBAR */}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                <div className="text-center md:text-left">
+                  <h2 className={`text-3xl font-extrabold text-gray-900 tracking-tight ${selectedCatName?.toLowerCase() === 'bbq' ? '' : 'capitalize'}`}>
+                    {selectedCatName || "All Products"}
+                  </h2>
+                  <div className="h-1 w-12 bg-[#2E7D32] mt-2 rounded-full mx-auto md:mx-0"></div>
+                </div>
+                <div className="relative w-full max-w-[400px]">
+                  <Input
+                    type="text"
+                    placeholder="Search healthy choices..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full border-gray-200 rounded-xl pl-12 pr-4 py-6 text-[16px] text-black placeholder:text-gray-400 focus:border-[#2E7D32] focus:ring-4 focus:ring-green-50 shadow-sm transition-all"
+                  />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#2E7D32]" />
+                </div>
+              </div>
+
+              {loading ? (
+                <LoadingWithLogo message="Loading products..." size="lg" />
+              ) : searchLoading ? (
+                <LoadingWithLogo message="Searching products..." size="md" />
+              ) : products.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">No healthy choice products found</div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map(product => (
+                    <ProductCard key={product.product_id} product={product} />
+                  ))}
+                </div>
+              )}
+
+            </main>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default function HealthyChoicesPage() {
+  return (
+    <Suspense fallback={<LoadingWithLogo message="Loading..." size="lg" />}>
+      <HealthyChoicesContent />
+    </Suspense>
+  )
+}
