@@ -235,7 +235,7 @@ export function Footer() {
 
       {/* COPYRIGHT */}
       <div className="text-center text-sm text-white/60 pb-6">
-        © 2025 Caterly. All Rights Reserved.
+        © {new Date().getFullYear()} Caterly. All Rights Reserved.
       </div>
 
     </footer>
