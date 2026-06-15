@@ -424,6 +424,8 @@ function ProductDetailContent({
 
   // Build breadcrumb using the `from` search param (subcategory the user came from)
   const fromCategoryId = searchParams ? parseInt(searchParams.get("from") || "") || null : null;
+  const fromSource = searchParams ? searchParams.get("source") || null : null;
+  const isFromHealthy = fromSource === "healthy";
 
   // Helper to find a category in the flat+nested list
   const findCatById = (id: number): CategoryNode | null => {
@@ -490,16 +492,16 @@ function ProductDetailContent({
             </Link>
             <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
             <Link
-              href="/shop"
+              href={isFromHealthy ? "/healthychoices" : "/shop"}
               className="px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
             >
-              Packages
+              {isFromHealthy ? "Healthy Packages" : "Packages"}
             </Link>
             {breadcrumbMainCat && (
               <>
                 <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
                 <Link
-                  href={`/shop?category=${breadcrumbMainCat.category_id}`}
+                  href={isFromHealthy ? `/healthychoices?category=${breadcrumbMainCat.category_id}` : `/shop?category=${breadcrumbMainCat.category_id}`}
                   className="px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
                 >
                   {breadcrumbMainCat.category_name}
@@ -510,7 +512,7 @@ function ProductDetailContent({
               <>
                 <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
                 <Link
-                  href={`/shop?category=${breadcrumbSubCat.category_id}`}
+                  href={isFromHealthy ? `/healthychoices?category=${breadcrumbSubCat.category_id}` : `/shop?category=${breadcrumbSubCat.category_id}`}
                   className="px-3 py-1.5 rounded-full text-gray-500 hover:text-[#E03A3E] hover:bg-red-50 transition-all duration-200 font-medium"
                 >
                   {breadcrumbSubCat.category_name}

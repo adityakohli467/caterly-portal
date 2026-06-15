@@ -108,8 +108,8 @@ function HealthyChoicesContent() {
 
         const sortAndSetProducts = (productList: Product[]) => {
           const sorted = [...productList].sort((a, b) => {
-            const priceA = parseFloat(a.product_price) || 0
-            const priceB = parseFloat(b.product_price) || 0
+            const priceA = (a.has_discount && a.discounted_price) ? a.discounted_price : (parseFloat(a.product_price) || 0)
+            const priceB = (b.has_discount && b.discounted_price) ? b.discounted_price : (parseFloat(b.product_price) || 0)
             return priceA - priceB
           })
           if (isActive) setProducts(sorted)
@@ -233,8 +233,8 @@ function HealthyChoicesContent() {
     }, [imageUrls.length])
 
     const productUrl = selectedCategory
-      ? `/shop/${product.product_id}?from=${selectedCategory}`
-      : `/shop/${product.product_id}`
+      ? `/shop/${product.product_id}?from=${selectedCategory}&source=healthy`
+      : `/shop/${product.product_id}?source=healthy`
 
     return (
       <div
