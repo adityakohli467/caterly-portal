@@ -263,10 +263,9 @@ export default function HomePage() {
 
   // 1. HERO SECTION State
   const heroImages = [
-    "/assets/images/platter_1600x598.jpg",
-    "/assets/images/breakycaty_1600x598.jpg",
-    "/assets/images/lunchcaty_1600x598.jpg",
-    "/assets/images/morning_1600x598.jpg",
+    "/assets/images/platters_4125x1542.png",
+    "/assets/images/breakky_4125x1542.png",
+    "/assets/images/morningc_4125x1542.png",
   ]
   const [heroIndex, setHeroIndex] = useState(0)
 
@@ -297,42 +296,10 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* DESKTOP-ONLY BUTTONS — Overlay logic (exactly as before) */}
-          <div className="hidden md:flex absolute inset-0 z-10 flex-col justify-end px-10 pb-12 lg:px-20 lg:pb-24 bg-black/5">
-            <div className="flex flex-row items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <button
-                onClick={openQuoteModal}
-                className="bg-[#E03A3E] hover:bg-[#cc3236] text-white px-8 py-3.5 rounded-lg text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95"
-              >
-                Book Now
-              </button>
 
-              <Link href="/shop">
-                <button className="bg-white/95 border border-white/20 hover:bg-white text-gray-900 px-8 py-3.5 rounded-lg text-base font-bold transition-all shadow-md hover:scale-105 active:scale-95">
-                  View Menu
-                </button>
-              </Link>
-            </div>
-          </div>
         </div>
 
-        {/* MOBILE-ONLY ACTION BUTTONS — Positioned Below & Equal Size */}
-        <div className="flex md:hidden w-full bg-white px-4 py-4 border-b border-[#FDECEC]">
-          <div className="flex flex-row items-center gap-3 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <button
-              onClick={openQuoteModal}
-              className="flex-1 h-[52px] bg-[#E03A3E] border border-transparent hover:bg-[#cc3236] text-white rounded-xl text-[14px] font-bold transition-all shadow-md active:scale-95 flex items-center justify-center"
-            >
-              Book Now
-            </button>
 
-            <Link href="/shop" className="flex-1">
-              <button className="w-full h-[52px] bg-white border border-[#FDECEC] hover:bg-gray-50 text-gray-900 rounded-xl text-[14px] font-bold transition-all shadow-md active:scale-95 flex items-center justify-center">
-                View Menu
-              </button>
-            </Link>
-          </div>
-        </div>
       </section>
 
 
