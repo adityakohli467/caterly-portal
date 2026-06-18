@@ -263,10 +263,10 @@ export default function HomePage() {
 
   // 1. HERO SECTION State
   const heroImages = [
-    "/assets/images/platter.jpg",
-    "/assets/images/breakycaty.jpg",
-    "/assets/images/lunchcaty.jpg",
-    "/assets/images/morning.jpg",
+    "/assets/images/platter_1600x598.jpg",
+    "/assets/images/breakycaty_1600x598.jpg",
+    "/assets/images/lunchcaty_1600x598.jpg",
+    "/assets/images/morning_1600x598.jpg",
   ]
   const [heroIndex, setHeroIndex] = useState(0)
 
