@@ -27,24 +27,13 @@ const galleryImages = [
 
 // Catering card slideshow images
 const corporateImages = [
-  "/assets/images/c42.png",
-  "/assets/images/c43.png",
-  "/assets/images/c44.png",
-  "/assets/images/c45.png",
+  "/assets/images/corporate-catering.jpeg",
 ]
 const eventImages = [
-  "/assets/images/c46.png",
-  "/assets/images/c47.png",
-  "/assets/images/c48.png",
-  "/assets/images/c50.png",
-  "/assets/images/c51.png",
+  "/assets/images/event-catering.jpeg",
 ]
 const weddingImages = [
-  "/assets/images/c52.png",
-  "/assets/images/c53.png",
-  "/assets/images/c54.png",
-  "/assets/images/c55.png",
-  "/assets/images/c56.png",
+  "/assets/images/wedding-catering.jpeg",
 ]
 
 const ServiceCard = ({ title, subtitle, description, points, images }: { title: string, subtitle: string, description: string, points: string[], images: string[] }) => {
