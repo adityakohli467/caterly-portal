@@ -169,7 +169,7 @@ export function AuthModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
-      <DialogContent className="max-w-[480px] p-0 border-none bg-white rounded-2xl overflow-hidden shadow-2xl">
+      <DialogContent className="max-w-[600px] w-[95vw] max-h-[90vh] flex flex-col p-0 border-none bg-white rounded-2xl overflow-hidden shadow-2xl">
         <DialogTitle className="sr-only">{view === "login" ? "Login" : "Register"}</DialogTitle>
         <DialogDescription className="sr-only">Authenticate to Caterly</DialogDescription>
 
@@ -183,7 +183,7 @@ export function AuthModal() {
         </button>
 
         {/* Logo Only */}
-        <div className="flex items-center justify-center pt-8 pb-2">
+        <div className="flex items-center justify-center pt-8 pb-2 shrink-0">
           <Image
             src="/assets/images/cat.svg"
             alt="Caterly logo"
@@ -194,7 +194,7 @@ export function AuthModal() {
         </div>
 
         {/* Content Area */}
-        <div className="p-6 sm:p-8 max-h-[85vh] overflow-y-auto custom-scrollbar">
+        <div className="p-6 sm:p-8 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
 
           {view === "login" ? (
             /* ================= LOGIN VIEW ================= */
