@@ -183,18 +183,18 @@ export function AuthModal() {
         </button>
 
         {/* Logo Only */}
-        <div className="flex items-center justify-center pt-8 pb-2 shrink-0">
+        <div className="flex items-center justify-center pt-4 pb-1 shrink-0">
           <Image
             src="/assets/images/cat.svg"
             alt="Caterly logo"
-            width={140}
-            height={80}
+            width={96}
+            height={55}
             priority
           />
         </div>
 
         {/* Content Area */}
-        <div className="p-6 sm:p-8 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <div className="p-6 sm:p-8 sm:pt-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
 
           {view === "login" ? (
             /* ================= LOGIN VIEW ================= */
