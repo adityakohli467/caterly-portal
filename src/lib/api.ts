@@ -99,7 +99,6 @@ api.interceptors.response.use(
           currentPath === '/products' ||
           currentPath === '/shop' ||
           currentPath.startsWith('/shop/') ||
-          currentPath === '/about' ||
           currentPath === '/contact' ||
           currentPath === '/blogs' ||
           currentPath.startsWith('/blogs/') ||
