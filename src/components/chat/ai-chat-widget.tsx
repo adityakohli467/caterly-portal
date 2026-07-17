@@ -16,7 +16,7 @@ interface ChatMessage {
 const uid = () => Math.random().toString(36).slice(2)
 
 const WELCOME_TEXT =
-  "Hey there! I'm Bizzy 👋 your Caterly event buddy. Planning something special? Tell me the occasion, how many guests, your budget and any veg/non-veg mix — I'll sort out a menu for you."
+  "Hey there! I'm Bizzy 👋 your Caterly event buddy. Planning something special? Tell me the occasion, how many guests, your budget and any dietary needs — and I'll put together a menu for you."
 
 const QUICK_REPLIES = [
   "Planning a wedding",
