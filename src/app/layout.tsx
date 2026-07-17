@@ -9,6 +9,7 @@ import { SessionManager } from "@/components/session-manager"
 import { Toaster } from "sonner"
 import { RequestAQuoteModal } from "@/components/request-a-quote-modal"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { AiChatWidget } from "@/components/chat/ai-chat-widget"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -46,6 +47,7 @@ export default function RootLayout({
           </div>
           <RequestAQuoteModal />
           <AuthModal />
+          <AiChatWidget />
           <Toaster
             position="top-right"
             richColors
