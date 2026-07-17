@@ -1,8 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { MessageCircle, X, Send, Loader2, Sparkles } from "lucide-react"
+import Image from "next/image"
+import { X, Send, Loader2 } from "lucide-react"
 import { api } from "@/lib/api"
+
+const BOT_ICON = "/assets/images/bizzy-bot.png"
 
 interface ChatMessage {
   role: "user" | "assistant"
@@ -12,7 +15,7 @@ interface ChatMessage {
 const WELCOME: ChatMessage = {
   role: "assistant",
   content:
-    "Hi! I'm the Caterly Assistant. Tell me about your event — date, number of guests, budget and any veg/non-veg preferences — and I'll build a menu for you.",
+    "Hi, I'm Bizzy — your Caterly assistant! Tell me about your event — date, number of guests, budget and any veg/non-veg preferences — and I'll build a menu for you.",
 }
 
 export function AiChatWidget() {
@@ -65,11 +68,17 @@ export function AiChatWidget() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Open chat assistant"
-          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-black shadow-lg transition hover:bg-amber-400"
+          aria-label="Open Bizzy chat assistant"
+          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-amber-500 py-2 pl-2 pr-5 text-black shadow-lg transition hover:bg-amber-400"
         >
-          <MessageCircle className="h-5 w-5" />
-          <span className="hidden font-semibold sm:inline">Ask Caterly AI</span>
+          <Image
+            src={BOT_ICON}
+            alt="Bizzy"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-full object-cover"
+          />
+          <span className="hidden font-semibold sm:inline">Ask Bizzy</span>
         </button>
       )}
 
@@ -79,11 +88,15 @@ export function AiChatWidget() {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 bg-[#1c1c1c] px-4 py-3">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-black">
-                <Sparkles className="h-4 w-4" />
-              </div>
+              <Image
+                src={BOT_ICON}
+                alt="Bizzy"
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full object-cover"
+              />
               <div>
-                <p className="text-sm font-semibold text-white">Caterly Assistant</p>
+                <p className="text-sm font-semibold text-white">Bizzy</p>
                 <p className="text-xs text-green-400">Online</p>
               </div>
             </div>
