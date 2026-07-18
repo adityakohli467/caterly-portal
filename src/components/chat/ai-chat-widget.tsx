@@ -36,6 +36,14 @@ interface ChatMessage {
 
 const uid = () => Math.random().toString(36).slice(2)
 
+/** Heuristic: does this assistant message read like a priced menu proposal? */
+const looksLikeMenu = (text: string) => {
+  if (!text) return false
+  const hasPrice = /\$\s?\d/.test(text)
+  const hasMenuCue = /(per person|total\b|menu|package|starter|main|dessert|platter)/i.test(text)
+  return hasPrice && hasMenuCue
+}
+
 const WELCOME_TEXT =
   "Hey there! I'm Bizzy 👋 your Caterly event buddy. Planning something special? Tell me the occasion, how many guests, your budget and any dietary needs — and I'll put together a menu for you."
 
@@ -121,6 +129,9 @@ export function AiChatWidget() {
 
   const showQuickReplies = messages.length === 1 && !typing
 
+  // The most recent assistant message — the only one that should offer the fallback "add menu" CTA.
+  const lastAssistantId = [...messages].reverse().find((m) => m.role === "assistant")?.id
+
   return (
     <>
       {/* Floating launcher */}
@@ -198,7 +209,16 @@ export function AiChatWidget() {
                     {m.content}
                   </div>
                 </div>
-                {m.role === "assistant" && m.quote?.items?.length ? <QuoteCard quote={m.quote} /> : null}
+                {m.role === "assistant" && m.quote?.items?.length ? (
+                  <QuoteCard quote={m.quote} />
+                ) : m.role === "assistant" && m.id === lastAssistantId && !typing && looksLikeMenu(m.content) ? (
+                  <button
+                    onClick={() => sendText("Yes please — build the quote for that menu so I can add it to my cart.")}
+                    className="ml-8 flex items-center gap-1.5 self-start rounded-full bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-500"
+                  >
+                    <ShoppingCart className="h-3.5 w-3.5" /> Add this menu to cart
+                  </button>
+                ) : null}
               </div>
             ))}
 
