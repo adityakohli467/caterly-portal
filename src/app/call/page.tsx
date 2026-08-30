@@ -100,7 +100,7 @@ export default function ContactPage() {
                 <span className="text-[#E03A3E] text-lg">📞</span>
                 <div>
                   <div className="font-semibold">Phone</div>
-                  <div className="text-gray-600">1300 827 286</div>
+                  <a href="tel:1300827286" className="text-gray-600 hover:text-[#E03A3E] transition-colors">1300 827 286</a>
                 </div>
               </div>
 
@@ -108,7 +108,7 @@ export default function ContactPage() {
                 <span className="text-[#E03A3E] text-lg">✉️</span>
                 <div>
                   <div className="font-semibold">Email</div>
-                  <div className="text-gray-600">catering@caterly.com.au </div>
+                  <a href="mailto:catering@caterly.com.au" className="text-gray-600 hover:text-[#E03A3E] transition-colors">catering@caterly.com.au</a>
                 </div>
               </div>
 
