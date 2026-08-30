@@ -248,7 +248,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-gray-900 font-bold mb-1">Email</p>
-                    <p className="text-gray-700">catering@caterly.com.au</p>
+                    <a href="mailto:catering@caterly.com.au" className="text-gray-700 hover:text-[#E03A3E] transition-colors">catering@caterly.com.au</a>
                   </div>
                 </div>
 
@@ -258,7 +258,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-gray-900 font-bold mb-1">Phone</p>
-                    <p className="text-gray-700">1300 827 286</p>
+                    <a href="tel:1300827286" className="text-gray-700 hover:text-[#E03A3E] transition-colors">1300 827 286</a>
                   </div>
                 </div>
               </div>

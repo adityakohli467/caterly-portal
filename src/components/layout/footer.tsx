@@ -70,12 +70,12 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <div className="flex text-white/80">
               <strong className="min-w-[65px] inline-block">Phone:</strong>
-              <span>1300 827 286</span>
+              <a href="tel:1300827286" className="hover:text-white transition-colors">1300 827 286</a>
             </div>
 
             <div className="flex text-white/80">
               <strong className="min-w-[65px] inline-block">Email:</strong>
-              <span className="break-all">catering@caterly.com.au</span>
+              <a href="mailto:catering@caterly.com.au" className="break-all hover:text-white transition-colors">catering@caterly.com.au</a>
             </div>
           </div>
         </div>
